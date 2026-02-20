@@ -1,0 +1,15 @@
+.chatApp {
+  display: flex;
+  height: 100%;
+  background: var(--bg-secondary);
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+}
+
+.mainPane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}

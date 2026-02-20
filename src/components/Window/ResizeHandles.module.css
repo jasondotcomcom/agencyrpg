@@ -1,0 +1,90 @@
+.resizeHandle {
+  position: absolute;
+  z-index: 1;
+}
+
+/* Corner handles */
+.handleNW {
+  top: -4px;
+  left: -4px;
+  width: 16px;
+  height: 16px;
+  cursor: nw-resize;
+}
+
+.handleNE {
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  cursor: ne-resize;
+}
+
+.handleSW {
+  bottom: -4px;
+  left: -4px;
+  width: 16px;
+  height: 16px;
+  cursor: sw-resize;
+}
+
+.handleSE {
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: se-resize;
+  border-radius: 0 0 var(--window-radius) 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 4px;
+}
+
+/* Cute resize grip dots */
+.handleSE::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background:
+    radial-gradient(circle, var(--color-mint) 2px, transparent 2px) 0 0 / 4px 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.handleSE:hover::before {
+  opacity: 1;
+}
+
+/* Edge handles */
+.handleN {
+  top: -4px;
+  left: 16px;
+  right: 16px;
+  height: 8px;
+  cursor: n-resize;
+}
+
+.handleS {
+  bottom: -4px;
+  left: 16px;
+  right: 16px;
+  height: 8px;
+  cursor: s-resize;
+}
+
+.handleW {
+  left: -4px;
+  top: 16px;
+  bottom: 16px;
+  width: 8px;
+  cursor: w-resize;
+}
+
+.handleE {
+  right: -4px;
+  top: 16px;
+  bottom: 16px;
+  width: 8px;
+  cursor: e-resize;
+}

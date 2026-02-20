@@ -1,0 +1,239 @@
+.screen {
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+/* ─── Welcome-back banner (NG+ runs only) ────────────────────────────────── */
+
+.welcomeBack {
+  text-align: center;
+  animation: wbFadeIn 0.8s ease both;
+}
+
+@keyframes wbFadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.runBadge {
+  display: inline-block;
+  padding: 3px 12px;
+  background: rgba(168, 230, 207, 0.12);
+  border: 1px solid rgba(168, 230, 207, 0.3);
+  border-radius: 20px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  color: rgba(168, 230, 207, 0.8);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.welcomeBackText {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 15px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+.document {
+  background: #fffef5;
+  padding: 40px;
+  max-width: 550px;
+  width: 100%;
+  border-radius: 3px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    inset 0 0 120px rgba(0, 0, 0, 0.025);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.documentHeader {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.seal {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 15px;
+  line-height: 1;
+}
+
+.title {
+  font-size: 20px;
+  letter-spacing: 3px;
+  margin: 0;
+  color: #1a1a1a;
+  border-bottom: 2px solid #333;
+  padding-bottom: 12px;
+  font-weight: normal;
+}
+
+.documentBody {
+  line-height: 1.6;
+  color: #2a2a2a;
+  margin-bottom: 25px;
+  font-size: 15px;
+}
+
+.documentBody p {
+  margin: 0 0 12px;
+}
+
+.list {
+  list-style: none;
+  padding-left: 15px;
+  margin: 8px 0 12px;
+}
+
+.list li {
+  margin-bottom: 8px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.list li::before {
+  content: '§ ';
+  position: absolute;
+  left: 0;
+  color: #777;
+}
+
+.finePrint {
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+  margin: 0 !important;
+}
+
+.signatureSection {
+  margin: 25px 0;
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
+}
+
+.signatureLabel {
+  display: block;
+  font-style: italic;
+  color: #555;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.signatureInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 0;
+  font-family: 'Brush Script MT', 'Segoe Script', 'Comic Sans MS', cursive;
+  font-size: 24px;
+  border: none;
+  border-bottom: 2px solid #444;
+  background: transparent;
+  text-align: center;
+  color: #1a1a2e;
+  transition: border-color 0.2s;
+  line-height: 1.2;
+}
+
+.signatureInput:focus {
+  outline: none;
+  border-bottom-color: #667eea;
+}
+
+.signatureInputActive {
+  border-bottom-color: #667eea;
+}
+
+.signatureInput::placeholder {
+  font-family: 'Georgia', serif;
+  font-size: 15px;
+  color: #bbb;
+  font-style: italic;
+}
+
+.foundButton {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  background: #1a1a2e;
+  color: #ffffff;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: 'Georgia', serif;
+  transition: background 0.2s, opacity 0.2s;
+  margin-top: 15px;
+}
+
+.foundButton:hover:not(:disabled) {
+  background: #667eea;
+}
+
+.foundButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+@media (max-height: 700px) {
+  .screen {
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .document {
+    padding: 30px;
+    max-height: none;
+  }
+
+  .documentHeader {
+    margin-bottom: 20px;
+  }
+
+  .seal {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 18px;
+    padding-bottom: 10px;
+  }
+
+  .documentBody {
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .signatureSection {
+    margin: 20px 0;
+    padding-top: 16px;
+  }
+
+  .signatureInput {
+    font-size: 20px;
+    padding: 8px 0;
+  }
+
+  .foundButton {
+    padding: 10px 20px;
+    margin-top: 12px;
+  }
+}

@@ -1,0 +1,256 @@
+.card {
+  background: white;
+  border: 1px solid rgba(168, 230, 207, 0.2);
+  border-radius: 14px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.card:hover {
+  border-color: var(--color-mint);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card.removing {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.typeInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.typeIcon {
+  font-size: 1.25rem;
+}
+
+.typeName {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.platform {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  background: rgba(168, 216, 234, 0.15);
+  border-radius: 8px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.removeButton {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--text-light);
+  font-size: 1.125rem;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.card:hover .removeButton {
+  opacity: 1;
+}
+
+.removeButton:hover {
+  background: rgba(244, 184, 197, 0.3);
+  color: #c75a5a;
+}
+
+.description {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.team {
+  display: flex;
+  align-items: center;
+}
+
+.teamAvatars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.teamAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--color-lavender-light) 0%, var(--color-lavender) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  margin-right: -8px;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.teamAvatar:last-of-type {
+  margin-right: 0;
+}
+
+.teamCost {
+  margin-left: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  background: rgba(168, 230, 207, 0.15);
+  border-radius: 6px;
+}
+
+.noTeam {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.teamButton,
+.generateButton,
+.reviewButton {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.teamButton {
+  background: rgba(195, 174, 214, 0.2);
+  color: #8a7a9e;
+}
+
+.teamButton:hover {
+  background: rgba(195, 174, 214, 0.4);
+}
+
+.generateButton {
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+  color: var(--text-dark);
+  box-shadow: 0 2px 8px rgba(168, 230, 207, 0.3);
+}
+
+.generateButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 230, 207, 0.4);
+}
+
+.generateButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.generateButton.generating {
+  background: linear-gradient(135deg, var(--color-butter-light) 0%, var(--color-butter) 100%);
+}
+
+.reviewButton {
+  background: linear-gradient(135deg, var(--color-sky-light) 0%, var(--color-sky) 100%);
+  color: var(--text-dark);
+}
+
+.reviewButton:hover {
+  transform: translateY(-1px);
+}
+
+.spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  margin-right: 4px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.generatingOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.generatingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 20px;
+}
+
+.generatingIcon {
+  font-size: 2rem;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.generatingText {
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}

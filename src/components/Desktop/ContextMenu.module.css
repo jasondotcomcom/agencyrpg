@@ -1,0 +1,74 @@
+.contextMenu {
+  position: fixed;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+  min-width: 160px;
+  z-index: 10000;
+  padding: 8px;
+  border: 1px solid rgba(168, 230, 207, 0.2);
+  animation: menuFadeIn 0.15s ease-out;
+}
+
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.menuItem {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: all 0.15s ease;
+}
+
+.menuItem:hover {
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.3) 0%, rgba(168, 216, 234, 0.3) 100%);
+}
+
+.menuItem:active {
+  transform: scale(0.98);
+}
+
+.menuItem.disabled {
+  color: #c0c0c0;
+  cursor: default;
+}
+
+.menuItem.disabled:hover {
+  background: transparent;
+}
+
+.menuItem.disabled:active {
+  transform: none;
+}
+
+.menuIcon {
+  font-size: 0.875rem;
+}
+
+.separator {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(168, 230, 207, 0.4),
+    transparent
+  );
+  margin: 6px 8px;
+}

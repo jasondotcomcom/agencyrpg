@@ -1,0 +1,353 @@
+.generationPhase {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.headerCompact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px;
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.headerIcon {
+  font-size: 1.375rem;
+}
+
+.headerTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+/* ─── Wait Screen (before playing games) ───── */
+.waitScreen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  gap: 6px;
+}
+
+.waitIcon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.waitTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.waitSubtitle {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.progressBarWrap {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-mint), var(--color-sky), var(--color-lavender));
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.progressLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.scrollHint {
+  margin-top: 8px;
+  opacity: 0;
+  animation: scrollFadeIn 0.5s ease 2s forwards;
+}
+
+.scrollArrow {
+  display: inline-block;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  animation: scrollBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes scrollFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.ctaDivider {
+  width: 100%;
+  max-width: 320px;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 20px 0;
+}
+
+.ctaSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ctaPrompt {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.playButton {
+  padding: 16px 48px;
+  min-width: 240px;
+  background: linear-gradient(135deg, var(--color-mint-light), var(--color-mint));
+  border: none;
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(168, 230, 207, 0.5);
+  transition: all 0.2s ease;
+  animation: ctaPulse 2s ease-in-out infinite;
+}
+
+.playButton:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(168, 230, 207, 0.6);
+}
+
+.playButton:active {
+  transform: scale(0.98);
+}
+
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 6px 24px rgba(168, 230, 207, 0.5); }
+  50% { box-shadow: 0 6px 32px rgba(168, 230, 207, 0.7); }
+}
+
+.ctaAlt {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+/* ─── Start Helping Prompt ───────────────── */
+.startHelpingPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 24px;
+  width: 100%;
+  text-align: center;
+}
+
+.startHelpingEmoji {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.startHelpingTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.startHelpingDesc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+.startHelpingButton {
+  margin-top: 6px;
+  padding: 14px 40px;
+  background: linear-gradient(135deg, var(--color-mint), var(--color-sky));
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--color-white);
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(168, 230, 207, 0.5);
+  transition: all 0.2s ease;
+}
+
+.startHelpingButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(168, 230, 207, 0.6);
+}
+
+.startHelpingButton:active {
+  transform: scale(0.97);
+}
+
+.startHelpingCancel {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+
+.startHelpingCancel:hover {
+  color: var(--text-dark);
+}
+
+/* ─── Playing state ──────────────────────── */
+.microGamesArea {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 430px;
+  max-height: 430px;
+  overflow: hidden;
+}
+
+.stopPlayingButton {
+  padding: 8px 20px;
+  margin: 0 auto 12px;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stopPlayingButton:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-secondary);
+}
+
+/* ─── Deliverable status list ────────────── */
+.deliverableList {
+  width: 100%;
+  padding: 12px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.deliverableRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.statusIcon {
+  font-size: 0.875rem;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.deliverableInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.deliverableRow.completed {
+  color: var(--color-mint);
+  background: rgba(168, 230, 207, 0.1);
+}
+
+.deliverableRow.completed .statusIcon {
+  color: var(--color-mint);
+  font-weight: 700;
+}
+
+.deliverableRow.failed {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.deliverableRow.failed .statusIcon {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.deliverableRow.active {
+  color: var(--color-sky);
+  background: rgba(168, 216, 234, 0.12);
+}
+
+.deliverableRow.active .statusIcon {
+  animation: dotPulse 1s ease-in-out infinite;
+}
+
+.deliverableRow.pending {
+  color: var(--text-muted);
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+.retryButton {
+  padding: 3px 10px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  background: transparent;
+  color: #ef4444;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background: #ef4444;
+  color: white;
+}

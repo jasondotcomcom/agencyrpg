@@ -1,0 +1,89 @@
+.taskbarButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 120px;
+  max-width: 180px;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.taskbarButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.taskbarButton:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.taskbarButton.active {
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.4) 0%, rgba(168, 216, 234, 0.4) 100%);
+  border-color: rgba(168, 230, 207, 0.5);
+  box-shadow: 0 2px 8px rgba(168, 230, 207, 0.3);
+}
+
+.taskbarButton.minimized {
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.taskbarButton.minimized:hover {
+  opacity: 1;
+}
+
+/* App-specific active colors */
+.taskbarButton.active[data-app="inbox"] {
+  background: linear-gradient(135deg, rgba(168, 216, 234, 0.4) 0%, rgba(168, 216, 234, 0.2) 100%);
+  border-color: rgba(168, 216, 234, 0.5);
+}
+
+.taskbarButton.active[data-app="chat"] {
+  background: linear-gradient(135deg, rgba(255, 183, 178, 0.4) 0%, rgba(255, 183, 178, 0.2) 100%);
+  border-color: rgba(255, 183, 178, 0.5);
+}
+
+.taskbarButton.active[data-app="files"],
+.taskbarButton.active[data-app="notes"] {
+  background: linear-gradient(135deg, rgba(255, 234, 167, 0.4) 0%, rgba(255, 234, 167, 0.2) 100%);
+  border-color: rgba(255, 234, 167, 0.5);
+}
+
+.taskbarButton.active[data-app="terminal"],
+.taskbarButton.active[data-app="help"] {
+  background: linear-gradient(135deg, rgba(195, 174, 214, 0.4) 0%, rgba(195, 174, 214, 0.2) 100%);
+  border-color: rgba(195, 174, 214, 0.5);
+}
+
+.taskbarButton.active[data-app="calendar"] {
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.4) 0%, rgba(168, 230, 207, 0.2) 100%);
+  border-color: rgba(168, 230, 207, 0.5);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}

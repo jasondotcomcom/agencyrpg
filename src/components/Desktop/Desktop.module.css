@@ -1,0 +1,66 @@
+.desktop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 56px; /* Taskbar height */
+  overflow: hidden;
+
+  /* Warm gradient background with subtle pattern */
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(168, 230, 207, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(168, 216, 234, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255, 183, 178, 0.2) 0%, transparent 60%),
+    linear-gradient(135deg, #fef9f3 0%, #fff4e6 50%, #fef0f5 100%);
+
+  /* Subtle dot pattern overlay */
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+}
+
+.desktop::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.02) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.iconGrid {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 16px;
+  padding: 24px;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+}
+
+/* ─── Dark Theme ─────────────────────────────────────────────────────────── */
+
+:global([data-theme="dark"]) .desktop {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(80, 160, 120, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(80, 140, 180, 0.12) 0%, transparent 50%),
+    linear-gradient(135deg, #1a1a2e 0%, #20203a 60%, #1e1e38 100%) !important;
+}
+
+:global([data-theme="dark"]) .desktop::before {
+  opacity: 0.15;
+}
+
+/* ─── High Contrast ──────────────────────────────────────────────────────── */
+
+:global(.high-contrast) .desktop {
+  background: #000000 !important;
+}
+
+:global(.high-contrast) .desktop::before {
+  display: none;
+}

@@ -1,0 +1,174 @@
+.header {
+  padding: 20px 24px;
+  background: rgba(254, 249, 243, 0.8);
+  border-bottom: 1px solid rgba(168, 230, 207, 0.2);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.clientBadge {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--color-lavender-light) 0%, var(--color-lavender) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  box-shadow: 0 4px 12px rgba(195, 174, 214, 0.3);
+}
+
+.titleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campaignName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.clientName {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.phaseBadge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, rgba(168, 216, 234, 0.3) 0%, rgba(168, 230, 207, 0.3) 100%);
+  border-radius: 8px;
+  color: var(--text-dark);
+}
+
+.stats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat {
+  min-width: 180px;
+  padding: 14px 18px;
+  background: white;
+  border-radius: 14px;
+  border: 1px solid rgba(168, 230, 207, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.stat.healthy {
+  border-color: rgba(168, 230, 207, 0.3);
+}
+
+.stat.warning {
+  border-color: rgba(249, 231, 159, 0.5);
+  background: rgba(249, 231, 159, 0.1);
+}
+
+.stat.critical {
+  border-color: rgba(244, 184, 197, 0.5);
+  background: rgba(244, 184, 197, 0.1);
+}
+
+.statHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.statIcon {
+  font-size: 0.875rem;
+}
+
+.statLabel {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.statValue {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.statSub {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.progressBar {
+  height: 6px;
+  background: rgba(168, 230, 207, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Budget progress shows spent (grows as you spend) */
+.stat.healthy .progressFill {
+  background: linear-gradient(135deg, var(--color-mint) 0%, var(--color-sky) 100%);
+}
+
+.stat.warning .progressFill {
+  background: linear-gradient(135deg, var(--color-butter) 0%, #e9c46a 100%);
+}
+
+.stat.critical .progressFill {
+  background: linear-gradient(135deg, var(--color-peach) 0%, #e07a7a 100%);
+}
+
+.spentLabel {
+  font-size: 0.6875rem;
+  color: var(--text-light);
+}
+
+.deadlineHint {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.stat.healthy .deadlineHint {
+  color: #5a9a7a;
+}
+
+.stat.warning .deadlineHint {
+  color: #c9a227;
+}
+
+.stat.critical .deadlineHint {
+  color: #c75a5a;
+}

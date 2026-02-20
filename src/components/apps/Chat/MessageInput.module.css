@@ -1,0 +1,100 @@
+.inputWrap {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.moraleNotif {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid rgba(168, 230, 207, 0.4);
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  animation: notifSlideUp 0.25s ease;
+  z-index: 10;
+}
+
+@keyframes notifSlideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.inputBar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 183, 178, 0.15);
+  background: white;
+  flex-shrink: 0;
+}
+
+.textInput {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 183, 178, 0.3);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  outline: none;
+  background: var(--bg-primary, #fef9f3);
+  color: var(--text-dark);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.textInput:focus {
+  border-color: var(--color-peach);
+  box-shadow: 0 0 0 3px rgba(255, 183, 178, 0.15);
+}
+
+.textInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.sendButton {
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--color-peach) 0%, #ff9a94 100%);
+  border: none;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sendButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 183, 178, 0.4);
+}
+
+.sendButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.readOnly {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 183, 178, 0.15);
+  background: rgba(254, 249, 243, 0.5);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  flex-shrink: 0;
+}
+
+.readOnlyIcon {
+  font-size: 0.875rem;
+}

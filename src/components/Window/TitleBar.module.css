@@ -1,0 +1,181 @@
+.titleBar {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+  color: var(--text-dark);
+  gap: 10px;
+  cursor: default;
+  border-radius: var(--window-radius) var(--window-radius) 0 0;
+  transition: background 0.2s ease;
+  user-select: none;
+}
+
+.titleBar.inactive {
+  background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+}
+
+.titleBar.draggable {
+  cursor: grab;
+}
+
+.titleBar.draggable:active {
+  cursor: grabbing;
+}
+
+/* App-specific title bar colors */
+.titleBar[data-app="inbox"] {
+  background: linear-gradient(135deg, var(--color-sky-light) 0%, var(--color-sky) 100%);
+}
+
+.titleBar[data-app="chat"] {
+  background: linear-gradient(135deg, var(--color-peach-light) 0%, var(--color-peach) 100%);
+}
+
+.titleBar[data-app="files"] {
+  background: linear-gradient(135deg, var(--color-butter-light) 0%, var(--color-butter) 100%);
+}
+
+.titleBar[data-app="terminal"] {
+  background: linear-gradient(135deg, var(--color-lavender-light) 0%, var(--color-lavender) 100%);
+}
+
+.titleBar[data-app="notes"] {
+  background: linear-gradient(135deg, var(--color-butter-light) 0%, var(--color-butter) 100%);
+}
+
+.titleBar[data-app="calendar"] {
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+}
+
+.titleBar[data-app="settings"] {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+}
+
+.titleBar[data-app="help"] {
+  background: linear-gradient(135deg, var(--color-lavender-light) 0%, var(--color-lavender) 100%);
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.title {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.controlButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  padding: 0;
+}
+
+.controlButton:hover {
+  transform: scale(1.15);
+}
+
+.controlButton:active {
+  transform: scale(0.95);
+}
+
+.minimizeButton {
+  background: linear-gradient(135deg, var(--color-butter-light) 0%, var(--color-butter) 100%);
+  box-shadow: 0 2px 8px rgba(253, 220, 109, 0.4);
+}
+
+.maximizeButton {
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+  box-shadow: 0 2px 8px rgba(168, 230, 207, 0.4);
+}
+
+.closeButton {
+  background: linear-gradient(135deg, var(--color-peach-light) 0%, var(--color-peach) 100%);
+  box-shadow: 0 2px 8px rgba(255, 183, 178, 0.4);
+}
+
+.buttonIcon {
+  width: 12px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.minimizeIcon {
+  width: 10px;
+  height: 2px;
+  background-color: var(--text-dark);
+  border-radius: 1px;
+}
+
+.maximizeIcon {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--text-dark);
+  border-radius: 2px;
+}
+
+.restoreIcon {
+  position: relative;
+  width: 12px;
+  height: 12px;
+}
+
+.restoreIcon::before,
+.restoreIcon::after {
+  content: '';
+  position: absolute;
+  border: 2px solid var(--text-dark);
+  border-radius: 2px;
+  background: transparent;
+}
+
+.restoreIcon::before {
+  width: 7px;
+  height: 7px;
+  top: 0;
+  right: 0;
+}
+
+.restoreIcon::after {
+  width: 7px;
+  height: 7px;
+  bottom: 0;
+  left: 0;
+  background: var(--color-mint);
+}
+
+.closeIcon {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1;
+}

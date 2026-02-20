@@ -1,0 +1,89 @@
+.hrWatcher {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99998;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.hrFace {
+  font-size: 2.5rem;
+  animation: hrBob 2s ease-in-out infinite;
+  line-height: 1;
+}
+
+.hrEyes {
+  font-size: 1.5rem;
+  margin-top: -0.75rem;
+  animation: hrBlink 4s ease-in-out infinite;
+  line-height: 1;
+}
+
+.hrBadge {
+  background: #e74c3c;
+  color: white;
+  font-size: 0.625rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 700;
+  margin-top: 0.125rem;
+  letter-spacing: 0.03em;
+}
+
+.thoughtBubble {
+  position: absolute;
+  top: -1.875rem;
+  left: 3.125rem;
+  background: white;
+  border: 0.0625rem solid #333;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+  animation: fadeInOut 3.5s ease-in-out infinite;
+  color: #333;
+  font-weight: 600;
+  box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.15);
+}
+
+.thoughtBubble::before {
+  content: '';
+  position: absolute;
+  bottom: -0.375rem;
+  left: 0.625rem;
+  width: 0;
+  height: 0;
+  border-left: 0.375rem solid transparent;
+  border-right: 0.375rem solid transparent;
+  border-top: 0.375rem solid white;
+}
+
+.thoughtBubble::after {
+  content: '';
+  position: absolute;
+  bottom: -0.4375rem;
+  left: 0.5625rem;
+  width: 0;
+  height: 0;
+  border-left: 0.4375rem solid transparent;
+  border-right: 0.4375rem solid transparent;
+  border-top: 0.4375rem solid #333;
+  z-index: -1;
+}
+
+@keyframes hrBob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-0.3125rem); }
+}
+
+@keyframes hrBlink {
+  0%, 45%, 55%, 100% { opacity: 1; }
+  50%                 { opacity: 0; }
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; }
+  15%, 85%  { opacity: 1; }
+}

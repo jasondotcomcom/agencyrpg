@@ -1,0 +1,685 @@
+.selectionPhase {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.headerIcon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--color-lavender-light) 0%, var(--color-lavender) 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.headerText {
+  flex: 1;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 6px 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.conceptsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Concept Card */
+.conceptCard {
+  background: var(--card-bg, rgba(168, 230, 207, 0.1));
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.conceptCard:hover {
+  border-color: var(--card-border, var(--color-mint));
+}
+
+.conceptCard.selected {
+  border-color: var(--card-border, var(--color-mint));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.radioLabel {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.radioInput {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.radioCustom {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.radioInput:checked + .radioCustom {
+  border-color: var(--color-mint-dark);
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+}
+
+.radioInput:checked + .radioCustom::after {
+  content: '✓';
+  display: block;
+  text-align: center;
+  line-height: 20px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: var(--text-dark);
+}
+
+.cardTitle {
+  flex: 1;
+}
+
+.conceptName {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 4px 0;
+}
+
+.conceptTagline {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-style: italic;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bigIdea {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  padding: 14px;
+  position: relative;
+}
+
+.bigIdeaHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.copyButton {
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.copyButton:hover {
+  background: rgba(168, 230, 207, 0.2);
+  border-color: var(--color-mint);
+  color: var(--text-dark);
+}
+
+.copyButtonCopied {
+  color: var(--color-mint-dark, #4caf50);
+  border-color: var(--color-mint);
+  background: rgba(168, 230, 207, 0.15);
+}
+
+.ideaLabel {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.ideaText {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.channelBadge {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.expandButton {
+  align-self: flex-start;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.expandButton:hover {
+  color: var(--text-dark);
+}
+
+.expandedContent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detailSection {
+  font-size: 0.8125rem;
+}
+
+.detailLabel {
+  display: block;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.detailValue {
+  color: var(--text-primary);
+}
+
+.detailText {
+  margin: 0;
+  line-height: 1.7;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  font-size: 0.8125rem;
+}
+
+.deliverablesList {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  line-height: 1.8;
+  color: var(--text-primary);
+}
+
+/* Tweaked Badge */
+.tweakedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, rgba(249, 231, 159, 0.35) 0%, rgba(255, 183, 178, 0.25) 100%);
+  border: 1px solid rgba(249, 231, 159, 0.6);
+  border-radius: 20px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* Card Actions */
+.cardActions {
+  display: flex;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 4px;
+}
+
+.chooseButton {
+  flex: 1;
+  padding: 10px 16px;
+  background: rgba(168, 230, 207, 0.2);
+  border: 1px solid rgba(168, 230, 207, 0.3);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chooseButton:hover {
+  background: rgba(168, 230, 207, 0.35);
+  border-color: var(--color-mint);
+  color: var(--text-dark);
+}
+
+.chooseButton.chosen {
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+  border-color: var(--color-mint);
+  color: var(--text-dark);
+}
+
+.tweakButton {
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tweakButton:hover:not(:disabled) {
+  background: rgba(195, 174, 214, 0.15);
+  border-color: var(--color-lavender);
+  color: var(--text-dark);
+}
+
+.tweakButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.reviseButton {
+  padding: 14px 24px;
+  background: white;
+  border: 1px solid rgba(168, 230, 207, 0.3);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reviseButton:hover:not(:disabled) {
+  background: rgba(168, 230, 207, 0.1);
+  border-color: var(--color-mint);
+}
+
+.reviseButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.buildButton {
+  flex: 1;
+  padding: 14px 24px;
+  background: rgba(168, 230, 207, 0.3);
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+}
+
+.buildButton.active {
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+  color: var(--text-dark);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(168, 230, 207, 0.4);
+}
+
+.buildButton.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(168, 230, 207, 0.5);
+}
+
+/* Selected Preview */
+.selectedPreview {
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.1) 0%, rgba(168, 216, 234, 0.1) 100%);
+  border-radius: 14px;
+  padding: 16px 20px;
+  border: 1px solid rgba(168, 230, 207, 0.2);
+}
+
+.previewTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 6px 0;
+}
+
+.previewText {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  width: 90%;
+  max-width: 480px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(168, 230, 207, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(168, 230, 207, 0.1);
+  border-radius: 8px;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: rgba(244, 184, 197, 0.3);
+  color: #c75a5a;
+}
+
+.modalContent {
+  padding: 20px 24px;
+}
+
+.modalText {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0 0 16px 0;
+}
+
+.feedbackInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid rgba(168, 230, 207, 0.2);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  resize: none;
+  transition: border-color 0.2s ease;
+}
+
+.feedbackInput:focus {
+  outline: none;
+  border-color: var(--color-mint);
+}
+
+.feedbackInput::placeholder {
+  color: var(--text-light);
+}
+
+.modalFooter {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(168, 230, 207, 0.2);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancelButton {
+  padding: 12px 20px;
+  background: transparent;
+  border: 1px solid rgba(168, 230, 207, 0.3);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: rgba(168, 230, 207, 0.1);
+}
+
+.regenerateButton {
+  padding: 12px 20px;
+  background: rgba(168, 230, 207, 0.3);
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+}
+
+.regenerateButton.active {
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.regenerateButton.active:hover {
+  transform: translateY(-1px);
+}
+
+/* Pre-Generation Confirmation Panel */
+.confirmationPanel {
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.08) 0%, rgba(168, 216, 234, 0.08) 100%);
+  border: 2px solid rgba(168, 230, 207, 0.25);
+  border-radius: 16px;
+  padding: 24px;
+  animation: slideDown 0.3s ease;
+}
+
+.confirmationTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 8px 0;
+}
+
+.confirmationSubtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0 0 16px 0;
+}
+
+.confirmationDeliverables {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.confirmationItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+}
+
+.confirmationIcon {
+  font-size: 1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.confirmationLabel {
+  font-weight: 500;
+}
+
+.confirmationNote {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 20px 0;
+  font-style: italic;
+}
+
+.confirmationActions {
+  display: flex;
+  gap: 12px;
+}
+
+.backButton {
+  padding: 12px 20px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.confirmButton {
+  flex: 1;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(168, 230, 207, 0.4);
+}
+
+.confirmButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(168, 230, 207, 0.5);
+}

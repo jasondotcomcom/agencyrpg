@@ -1,0 +1,627 @@
+/* ─── Overlay ─────────────────────────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0d0d1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlayFadeIn 1s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.phaseContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Team Reactions Phase ────────────────────────────────────────────────── */
+
+.chatScene {
+  width: 100%;
+  max-width: 560px;
+  height: 80vh;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.chatHash {
+  font-size: 1.125rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 700;
+}
+
+.chatChannelName {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.chatMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+.chatMessages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chatMessages::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.chatMsg {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.fadeInUp {
+  animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chatAvatar {
+  font-size: 1.375rem;
+  flex-shrink: 0;
+  width: 36px;
+  text-align: center;
+}
+
+.chatBubble {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chatName {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(168, 230, 207, 0.8);
+}
+
+.chatText {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+}
+
+.typingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 0 8px 12px;
+}
+
+.typingDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+
+.typingDot:nth-child(2) { animation-delay: 0.2s; }
+.typingDot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+
+.fadingOut {
+  position: absolute;
+  inset: 0;
+  background: #0d0d1a;
+  animation: fadeIn 3s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── Fade to Black ───────────────────────────────────────────────────────── */
+
+.fadeBlack {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  animation: fadeBlackIn 1s ease forwards;
+}
+
+@keyframes fadeBlackIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── Where Are They Now ─────────────────────────────────────────────────── */
+
+.whereCard {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.whereCard.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.whereCard.invisible {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.whereProgress {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.progressDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  transition: background 0.3s ease;
+}
+
+.progressDotActive {
+  background: rgba(168, 230, 207, 0.8);
+}
+
+.whereEmoji {
+  font-size: 4.5rem;
+  line-height: 1;
+}
+
+.whereName {
+  font-size: 2.125rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.whereRole {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.whereText {
+  font-size: 1.25rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.75);
+  font-style: italic;
+  max-width: 520px;
+  font-weight: 400;
+}
+
+.nextButton {
+  margin-top: 32px;
+  padding: 14px 36px;
+  background: rgba(168, 230, 207, 0.12);
+  border: 1px solid rgba(168, 230, 207, 0.3);
+  border-radius: 12px;
+  color: #a8e6cf;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nextButton:hover {
+  background: rgba(168, 230, 207, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ─── Portfolio Montage ───────────────────────────────────────────────────── */
+
+.montage {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.montageHeader {
+  text-align: center;
+}
+
+.montageTitle {
+  font-size: 2.625rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.montageStats {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.montageScrollOuter {
+  width: 100%;
+  overflow: hidden;
+  padding: 16px 0;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.montageScroll {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  animation: scrollLeft linear infinite;
+}
+
+@keyframes scrollLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.montageCard {
+  width: 140px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.montageCardScore {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #a8e6cf;
+}
+
+.montageCardClient {
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.montageCardStars {
+  font-size: 0.6875rem;
+}
+
+.montageCardAward {
+  font-size: 0.625rem;
+  color: #fdcb6e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Credits ─────────────────────────────────────────────────────────────── */
+
+.creditsContainer {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.creditsScroll {
+  height: 100%;
+  overflow: hidden;
+}
+
+.creditsContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 100vh 0 80px;
+  animation: rollUp 20s linear forwards;
+}
+
+@keyframes rollUp {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100%); }
+}
+
+.creditsBig {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 8px;
+  text-align: center;
+}
+
+.creditsDivider {
+  width: 120px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.creditsEntry {
+  text-align: center;
+}
+
+.creditsLabel {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.creditsValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.creditsSubValue {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+
+.creditsQuote {
+  font-size: 1.25rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.creditsYear {
+  font-size: 1.375rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.creditsEnd {
+  height: 200px;
+}
+
+.creditsSkip {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 10;
+}
+
+/* ─── Post-Credits ────────────────────────────────────────────────────────── */
+
+.postCredits {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+  transition: opacity 0.8s ease;
+}
+
+.postCredits.visible { opacity: 1; }
+.postCredits.invisible { opacity: 0; }
+
+.corpLogo {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: #999999;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.corpTagline {
+  font-size: 0.875rem;
+  color: #666666;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.corpDivider {
+  width: 200px;
+  height: 1px;
+  background: #444444;
+  margin: 8px 0;
+}
+
+.corpBody {
+  font-size: 0.9375rem;
+  color: #888888;
+  max-width: 440px;
+  line-height: 1.7;
+}
+
+.corpCta {
+  margin: 8px 0;
+}
+
+.corpCtaBox {
+  padding: 20px 40px;
+  border: 1px solid #555555;
+  border-radius: 4px;
+  color: #888888;
+  font-size: 0.9375rem;
+}
+
+.corpCtaUrl {
+  font-size: 0.75rem;
+  color: #555555;
+  margin-top: 6px;
+}
+
+.corpButtons {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.corpButton {
+  padding: 14px 28px;
+  background: #2a2a2a;
+  border: 1px solid #555555;
+  border-radius: 4px;
+  color: #888888;
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.corpButton:hover {
+  background: #333333;
+  color: #aaaaaa;
+}
+
+.corpButtonPrimary {
+  background: #333333;
+  border-color: #a8e6cf;
+  color: #a8e6cf;
+}
+
+.corpButtonPrimary:hover {
+  background: rgba(168, 230, 207, 0.1);
+}
+
+.corpFinePrint {
+  font-size: 0.6875rem;
+  color: #444444;
+  margin-top: 8px;
+}
+
+/* ─── Shared: Continue button ─────────────────────────────────────────────── */
+
+.continueButton {
+  padding: 14px 36px;
+  background: rgba(168, 230, 207, 0.12);
+  border: 1px solid rgba(168, 230, 207, 0.3);
+  border-radius: 12px;
+  color: #a8e6cf;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: fadeInUp 0.6s ease;
+}
+
+.continueButton:hover {
+  background: rgba(168, 230, 207, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ─── HostileChatPhase: vignette + continue overlay ──────────────────────── */
+
+/* Subtle vignette that signals "something cinematic" without covering the UI */
+.hostileVignette {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none; /* desktop + chat window remain fully interactive */
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    transparent 45%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+  transition: background 0.3s ease, opacity 0.8s ease;
+}
+
+/* Fade to black when the player clicks Continue */
+.hostileVignetteOut {
+  background: #000000;
+  opacity: 1;
+}
+
+.hostileContinueOverlay {
+  position: fixed;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: all; /* re-enable pointer events just for the button */
+  animation: fadeInUp 0.6s ease;
+}
+
+.hostileContinueBtn {
+  padding: 0.75rem 2.25rem;
+  background: rgba(13, 13, 26, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 2rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  letter-spacing: 0.03em;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.hostileContinueBtn:hover {
+  background: rgba(13, 13, 26, 0.96);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.45);
+}
+
+/* ─── Shared: Visibility helpers ──────────────────────────────────────────── */
+
+.visible { opacity: 1; }
+.invisible { opacity: 0; }

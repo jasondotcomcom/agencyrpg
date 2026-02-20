@@ -1,0 +1,405 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Soft Pastel Color Palette */
+  --color-mint: #a8e6cf;
+  --color-mint-light: #c7f0df;
+  --color-mint-dark: #7ed3b2;
+
+  --color-peach: #ffb7b2;
+  --color-peach-light: #ffd1ce;
+  --color-peach-dark: #ff9a94;
+
+  --color-sky: #a8d8ea;
+  --color-sky-light: #c5e8f7;
+  --color-sky-dark: #7fc4dc;
+
+  --color-lavender: #c3aed6;
+  --color-lavender-light: #d9cce8;
+  --color-lavender-dark: #a98fc4;
+
+  --color-butter: #ffeaa7;
+  --color-butter-light: #fff4cc;
+  --color-butter-dark: #fddc6d;
+
+  --color-coral: #ff9a8b;
+  --color-cream: #fef9f3;
+  --color-white: #ffffff;
+
+  /* App-specific colors */
+  --app-inbox: #a8d8ea;
+  --app-chat: #ffb7b2;
+  --app-files: #ffeaa7;
+  --app-terminal: #c3aed6;
+  --app-notes: #ffeaa7;
+  --app-calendar: #a8e6cf;
+  --app-settings: #e8e8e8;
+  --app-help: #c3aed6;
+
+  /* UI Colors */
+  --bg-primary: #fef9f3;
+  --bg-secondary: #ffffff;
+  --text-primary: #5a5a5a;
+  --text-secondary: #888888;
+  --text-dark: #444444;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --shadow-color-strong: rgba(0, 0, 0, 0.15);
+
+  /* Window styling */
+  --window-radius: 16px;
+  --button-radius: 50%;
+  --icon-radius: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  /* 100% = 16px browser default. applySettings overrides this inline via
+     textScale so all rem-based font sizes scale proportionally. */
+  font-size: 100%;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+body, #root {
+  /* Inherit base font-size from html so applySettings text scaling cascades */
+  font-size: 1rem;
+  background-color: var(--bg-primary);
+}
+
+/* Utility classes */
+.rounded-button {
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: var(--button-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.rounded-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px var(--shadow-color-strong);
+}
+
+.rounded-button:active {
+  transform: scale(0.95);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-mint);
+  border-radius: 10px;
+  border: 2px solid var(--color-cream);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-mint-dark);
+}
+
+/* Selection */
+::selection {
+  background: var(--color-lavender-light);
+  color: var(--text-dark);
+}
+
+/* ─── Dark Theme ─────────────────────────────────────────────────────────── */
+
+[data-theme="dark"] {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #20203a;
+  --text-primary: #e2e2f0;
+  --text-secondary: #9090b0;
+  --text-dark: #f0f0ff;
+  --shadow-color: rgba(0, 0, 0, 0.35);
+  --shadow-color-strong: rgba(0, 0, 0, 0.5);
+  --color-cream: #252540;
+}
+
+/* body/root dark background (non-module elements) */
+[data-theme="dark"] body,
+[data-theme="dark"] #root {
+  background-color: #1a1a2e !important;
+}
+
+/* ─── High Contrast Mode ─────────────────────────────────────────────────── */
+
+.high-contrast {
+  --bg-primary: #000000;
+  --bg-secondary: #111111;
+  --text-primary: #ffffff;
+  --text-secondary: #ffff00;
+  --text-dark: #ffffff;
+  --color-mint: #00ff88;
+  --color-mint-light: #00ff88;
+  --color-mint-dark: #00cc70;
+  --color-sky: #00cfff;
+  --color-sky-light: #00cfff;
+  --color-lavender: #cc88ff;
+  --color-butter: #ffee00;
+  --color-peach: #ff8844;
+  --color-cream: #111111;
+  --shadow-color: rgba(255, 255, 255, 0.1);
+}
+
+.high-contrast body,
+.high-contrast #root {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.high-contrast * {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.high-contrast button:not([class*="close"]):not([class*="minimize"]):not([class*="maximize"]) {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+/* Ensure all text is readable in high contrast */
+.high-contrast p,
+.high-contrast span,
+.high-contrast div,
+.high-contrast h1,
+.high-contrast h2,
+.high-contrast h3,
+.high-contrast h4,
+.high-contrast label {
+  color: inherit;
+}
+
+/* ─── Reduced Motion ─────────────────────────────────────────────────────── */
+
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ─── Color-Blind Friendly Mode ──────────────────────────────────────────── */
+
+/* Thicker, more visible borders on all interactive elements */
+.color-blind-mode input,
+.color-blind-mode button,
+.color-blind-mode select,
+.color-blind-mode textarea {
+  border-width: 2px !important;
+  border-style: solid !important;
+}
+
+/* Win/fail status indicators get text labels */
+.color-blind-mode [data-win="true"]::before {
+  content: "✓ ";
+  font-weight: 800;
+}
+.color-blind-mode [data-win="false"]::before {
+  content: "✗ ";
+  font-weight: 800;
+}
+
+/* Score tiers get shape patterns — used by campaign results */
+.color-blind-mode [data-tier="gold"]::before   { content: "★ "; }
+.color-blind-mode [data-tier="silver"]::before { content: "◆ "; }
+.color-blind-mode [data-tier="bronze"]::before { content: "● "; }
+
+/* Success / error / warning states get text prefixes */
+.color-blind-mode [data-status="success"]::before { content: "[✓] "; font-weight: 700; }
+.color-blind-mode [data-status="error"]::before   { content: "[✗] "; font-weight: 700; }
+.color-blind-mode [data-status="warning"]::before { content: "[!] "; font-weight: 700; }
+
+/* Add diagonal-stripe pattern to success-colored backgrounds */
+.color-blind-mode [data-cbpattern="success"] {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(255, 255, 255, 0.15) 8px,
+    rgba(255, 255, 255, 0.15) 16px
+  ) !important;
+}
+
+/* Add cross-stripe pattern to error/danger backgrounds */
+.color-blind-mode [data-cbpattern="danger"] {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 8px,
+    rgba(0, 0, 0, 0.12) 8px,
+    rgba(0, 0, 0, 0.12) 16px
+  ) !important;
+}
+
+/* Increase contrast on notification badges */
+.color-blind-mode [class*="badge"] {
+  outline: 2px solid #000 !important;
+  font-weight: 800 !important;
+}
+
+/* Underline links/interactive text instead of relying on color alone */
+.color-blind-mode a,
+.color-blind-mode [role="link"] {
+  text-decoration: underline !important;
+}
+
+/* Focus ring — extra visible */
+.color-blind-mode *:focus-visible {
+  outline: 3px solid #0066ff !important;
+  outline-offset: 2px !important;
+}
+
+/* ─── Screen Reader Utility ──────────────────────────────────────────────── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── Cheat Code Visual Effects ──────────────────────────────────────────── */
+
+/* Screen flash when a cheat activates */
+.cheat-activated {
+  animation: cheatFlash 0.5s ease-out;
+}
+
+@keyframes cheatFlash {
+  0%   { filter: brightness(1.5) hue-rotate(20deg); }
+  50%  { filter: brightness(2)   hue-rotate(-20deg); }
+  100% { filter: brightness(1)   hue-rotate(0deg); }
+}
+
+/* Floating cheat name text */
+.floating-cheat-text {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 1.25rem #ff0, 0 0 2.5rem #f0f;
+  animation: floatUp 1.5s ease-out forwards;
+  pointer-events: none;
+  z-index: 99999;
+  font-family: 'Quicksand', sans-serif;
+  white-space: nowrap;
+}
+
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); }
+}
+
+/* ─── Mobile Block ────────────────────────────────────────────────────────── */
+
+.mobile-block {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a2e;
+  padding: 40px 32px;
+  text-align: center;
+  gap: 16px;
+  font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.mobile-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+  letter-spacing: 4px;
+}
+
+.mobile-block h1 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #f0f0ff;
+  line-height: 1.35;
+  max-width: 320px;
+}
+
+.mobile-block p {
+  font-size: 0.9375rem;
+  color: #9090b0;
+  line-height: 1.6;
+  max-width: 300px;
+}
+
+.mobile-url {
+  color: #c3aed6 !important;
+}
+
+.mobile-url strong {
+  color: #e0d0f0;
+}
+
+.mobile-btn {
+  margin-top: 8px;
+  padding: 14px 28px;
+  background: #667eea;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  letter-spacing: 0.01em;
+}
+
+.mobile-btn:hover {
+  background: #7b8ff7;
+}
+
+.mobile-btn:active {
+  transform: scale(0.97);
+}
+
+.mobile-btn.copied {
+  background: #7ed3b2;
+  color: #1a1a2e;
+}
+
+/* ─── Big Head Mode ───────────────────────────────────────────────────────── */
+
+.big-head-mode [data-role="chat-avatar"] {
+  transform: scale(2.2) translateY(22%);
+  display: inline-block;
+  z-index: 1;
+  position: relative;
+  transition: transform 0.3s ease;
+}

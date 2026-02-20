@@ -1,0 +1,163 @@
+.emailItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+  background: white;
+  border: 1px solid transparent;
+}
+
+.emailItem:hover {
+  background: rgba(168, 230, 207, 0.15);
+  border-color: rgba(168, 230, 207, 0.3);
+}
+
+.emailItem.selected {
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.25) 0%, rgba(168, 216, 234, 0.25) 100%);
+  border-color: var(--color-mint);
+}
+
+.emailItem.unread {
+  background: white;
+  border-left: 3px solid var(--color-sky);
+}
+
+.emailItem.unread .subject {
+  font-weight: 700;
+}
+
+.emailItem.unread .preview {
+  color: var(--text-primary);
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-sky-light) 100%);
+}
+
+.avatar.brief {
+  background: linear-gradient(135deg, var(--color-sky-light) 0%, var(--color-sky) 100%);
+}
+
+.avatar.team {
+  background: linear-gradient(135deg, var(--color-lavender-light) 0%, var(--color-lavender) 100%);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sender {
+  flex: 1;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.time {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.subject {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.625rem;
+  font-weight: 600;
+}
+
+.badge.brief {
+  background: rgba(168, 216, 234, 0.3);
+  color: #5a9ab3;
+}
+
+.badge.team {
+  background: rgba(195, 174, 214, 0.3);
+  color: #8a7a9e;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.emailItem:hover .actions {
+  opacity: 1;
+}
+
+.actionButton {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.actionButton:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(1.1);
+}
+
+.actionButton.starred {
+  color: #ffc107;
+}

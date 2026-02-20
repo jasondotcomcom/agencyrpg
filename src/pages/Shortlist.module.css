@@ -1,0 +1,588 @@
+/* ─── Page ─────────────────────────────────────────────────────────────────── */
+
+.page {
+  min-height: 100vh;
+  background: var(--bg-primary);          /* #fef9f3 — same warm cream as game */
+  color: var(--text-primary);
+  font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+}
+
+/* ─── Header ───────────────────────────────────────────────────────────────── */
+
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.backLink {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+}
+
+.backLink:hover {
+  color: var(--color-mint-dark);
+}
+
+.headerCenter {
+  text-align: center;
+}
+
+.title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.tagline {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.2rem;
+}
+
+/* ─── Sort Bar ─────────────────────────────────────────────────────────────── */
+
+.sortBar {
+  display: flex;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sortBtn {
+  padding: 0.375rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 1.5rem;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sortBtn:hover {
+  background: var(--color-butter-light);
+  border-color: var(--color-butter-dark);
+  color: var(--text-dark);
+}
+
+.sortBtnActive {
+  background: var(--color-butter);
+  border-color: var(--color-butter-dark);
+  color: var(--text-dark);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.sortBtnActive:hover {
+  background: var(--color-butter);
+}
+
+/* ─── Main ─────────────────────────────────────────────────────────────────── */
+
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+}
+
+.resultCount {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 1rem;
+}
+
+/* ─── Grid ─────────────────────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.875rem;
+}
+
+/* ─── Campaign Card ────────────────────────────────────────────────────────── */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  background: var(--bg-secondary);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-family: inherit;
+}
+
+.card:hover {
+  border-color: var(--color-lavender);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-lavender);
+  outline-offset: 2px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.cardAwardBadge {
+  font-size: 1.125rem;
+}
+
+.cardBody {
+  flex: 1;
+}
+
+.cardClient {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.125rem;
+}
+
+.cardProject {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.3;
+}
+
+.cardConcept {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 0.1875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
+.cardBy {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+}
+
+/* ─── Score Badge ──────────────────────────────────────────────────────────── */
+
+.scoreBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.625rem;
+  height: 2.625rem;
+  border-radius: 0.625rem;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* Match Portfolio tier gradients exactly */
+.tier_exceptional    { background: linear-gradient(135deg, #f7c948, #f4a93c); }
+.tier_great          { background: linear-gradient(135deg, var(--color-mint), var(--color-mint-dark)); }
+.tier_solid          { background: linear-gradient(135deg, var(--color-sky), var(--color-sky-dark)); }
+.tier_needs_improvement {
+  background: linear-gradient(135deg, #e0e0e0, #c8c8c8);
+  color: var(--text-secondary);
+}
+
+/* ─── Upvote Button ────────────────────────────────────────────────────────── */
+
+.upvoteBtn {
+  padding: 0.25rem 0.75rem;
+  background: var(--color-peach-light);
+  border: 1.5px solid var(--color-peach);
+  border-radius: 1.5rem;
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.upvoteBtn:hover:not(:disabled) {
+  background: var(--color-peach);
+  transform: scale(1.05);
+}
+
+.upvoteBtn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.upvoteBtnVoted {
+  background: #ffe0a0;
+  border-color: #f7c948;
+  color: var(--text-dark);
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.upvoteBtnVoted:hover {
+  transform: none;
+}
+
+/* ─── Awards ───────────────────────────────────────────────────────────────── */
+
+.awardChip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, var(--color-butter-light), var(--color-mint-light));
+  border: 1px solid var(--color-butter-dark);
+  border-radius: 1.5rem;
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+/* ─── Modal Overlay ────────────────────────────────────────────────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1.5rem;
+  animation: overlayFadeIn 0.15s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  position: relative;
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: modalSlideUp 0.2s ease;
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modalClose {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: var(--bg-primary);
+  border-radius: 50%;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.modalClose:hover {
+  background: var(--color-peach-light);
+  color: var(--text-dark);
+}
+
+/* ─── Modal Header ─────────────────────────────────────────────────────────── */
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.modalTitles {
+  flex: 1;
+  min-width: 0;
+}
+
+.modalClient {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.125rem;
+}
+
+.modalProject {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.25;
+}
+
+.modalBy {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* ─── Modal Awards ─────────────────────────────────────────────────────────── */
+
+.modalAwards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+/* ─── Modal Sections ───────────────────────────────────────────────────────── */
+
+.modalSection {
+  background: var(--bg-primary);
+  border-radius: 10px;
+  padding: 0.75rem 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.modalSectionLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.modalConceptName {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  font-style: italic;
+}
+
+.modalConceptDesc {
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ─── Deliverables ─────────────────────────────────────────────────────────── */
+
+.delivList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.delivItem {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+}
+
+.delivItem::before {
+  content: '•';
+  color: var(--color-mint-dark);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.delivType {
+  font-weight: 700;
+  color: var(--text-dark);
+  text-transform: capitalize;
+}
+
+.delivPlatform {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.0625rem 0.375rem;
+  border-radius: 4px;
+}
+
+.delivDesc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  flex-basis: 100%;
+  padding-left: 0.875rem;
+  line-height: 1.5;
+}
+
+/* ─── Modal Footer ─────────────────────────────────────────────────────────── */
+
+.modalFooter {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.25rem;
+}
+
+.modalFooter .upvoteBtn {
+  padding: 0.5rem 1.5rem;
+  font-size: 0.9375rem;
+}
+
+/* ─── States ───────────────────────────────────────────────────────────────── */
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 5rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.loadingDots {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.loadingDots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-mint);
+  animation: dotBounce 1.2s ease-in-out infinite;
+}
+
+.loadingDots span:nth-child(2) { animation-delay: 0.2s; }
+.loadingDots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 5rem 1rem;
+  text-align: center;
+}
+
+.errorMsg {
+  font-size: 0.875rem;
+  color: var(--color-peach-dark);
+}
+
+.retryBtn {
+  padding: 0.5rem 1.5rem;
+  background: var(--color-peach-light);
+  border: 1.5px solid var(--color-peach);
+  border-radius: 0.5rem;
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.retryBtn:hover {
+  background: var(--color-peach);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 5rem 1rem;
+  text-align: center;
+}
+
+.emptyEmoji {
+  font-size: 3rem;
+  opacity: 0.4;
+}
+
+.emptyTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.emptyHint {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+/* ─── Footer ───────────────────────────────────────────────────────────────── */
+
+.footer {
+  text-align: center;
+  padding: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.footerLink {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.15s ease;
+}
+
+.footerLink:hover {
+  color: var(--text-dark);
+}

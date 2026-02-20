@@ -1,0 +1,371 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  width: 90%;
+  max-width: 600px;
+  max-height: 85%;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(168, 230, 207, 0.2);
+  display: flex;
+  gap: 16px;
+}
+
+.headerInfo {
+  flex: 1;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.platform {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  background: rgba(168, 216, 234, 0.15);
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.status {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.description {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(168, 230, 207, 0.1);
+  border-radius: 8px;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background: rgba(244, 184, 197, 0.3);
+  color: #c75a5a;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.workPreview {
+  background: linear-gradient(135deg, rgba(254, 249, 243, 0.8) 0%, white 100%);
+  border: 1px solid rgba(168, 230, 207, 0.2);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.previewHeader {
+  padding: 12px 16px;
+  background: rgba(168, 230, 207, 0.1);
+  border-bottom: 1px solid rgba(168, 230, 207, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.previewLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.revisionBadge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: rgba(168, 216, 234, 0.3);
+  color: #5a9ab3;
+  border-radius: 8px;
+}
+
+.previewContent {
+  padding: 20px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.previewLine {
+  margin: 0;
+  min-height: 1.7em;
+}
+
+.previousFeedback {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: rgba(249, 231, 159, 0.15);
+  border: 1px solid rgba(249, 231, 159, 0.3);
+  border-radius: 12px;
+}
+
+.feedbackLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.feedbackText {
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.meta {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metaLabel {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.metaValue {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.teamAvatars {
+  display: flex;
+  gap: 2px;
+}
+
+.teamAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--color-lavender-light) 0%, var(--color-lavender) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  margin-right: -6px;
+  border: 2px solid white;
+}
+
+.teamAvatar:last-child {
+  margin-right: 0;
+}
+
+.footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(168, 230, 207, 0.2);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.revisionButton {
+  padding: 12px 20px;
+  background: rgba(249, 231, 159, 0.3);
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #c9a227;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.revisionButton:hover {
+  background: rgba(249, 231, 159, 0.5);
+}
+
+.approveButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(168, 230, 207, 0.4);
+}
+
+.approveButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(168, 230, 207, 0.5);
+}
+
+.feedbackForm {
+  width: 100%;
+}
+
+.feedbackInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid rgba(168, 230, 207, 0.2);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  resize: none;
+  transition: border-color 0.2s ease;
+  margin-bottom: 12px;
+}
+
+.feedbackInput:focus {
+  outline: none;
+  border-color: var(--color-mint);
+}
+
+.feedbackInput::placeholder {
+  color: var(--text-light);
+}
+
+.feedbackActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancelButton {
+  padding: 10px 18px;
+  background: transparent;
+  border: 1px solid rgba(168, 230, 207, 0.3);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: rgba(168, 230, 207, 0.1);
+}
+
+.sendButton {
+  padding: 10px 18px;
+  background: rgba(168, 230, 207, 0.3);
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+}
+
+.sendButton.active {
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.sendButton.active:hover {
+  transform: translateY(-1px);
+}
+
+.approvedFooter {
+  padding: 20px 24px;
+  border-top: 1px solid rgba(168, 230, 207, 0.2);
+  background: linear-gradient(135deg, rgba(168, 230, 207, 0.1) 0%, rgba(168, 216, 234, 0.1) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.approvedIcon {
+  font-size: 1.25rem;
+}
+
+.approvedText {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #5a9a7a;
+}
