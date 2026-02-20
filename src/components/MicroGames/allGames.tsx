@@ -1,4 +1,3 @@
-import React from 'react';
 import type { GameDef } from './types';
 import {
   shuffle,

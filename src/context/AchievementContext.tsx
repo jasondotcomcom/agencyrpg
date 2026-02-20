@@ -130,7 +130,7 @@ function loadAppsOpened(): string[] {
 export function AchievementProvider({ children }: { children: React.ReactNode }) {
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>(loadUnlocked);
   const [counters, setCounters] = useState<Record<string, number>>(loadCounters);
-  const [appsOpened, setAppsOpened] = useState<string[]>(loadAppsOpened);
+  const [, setAppsOpened] = useState<string[]>(loadAppsOpened);
 
   const unlockAchievement = useCallback((id: string): boolean => {
     let isNew = false;
@@ -171,18 +171,6 @@ export function AchievementProvider({ children }: { children: React.ReactNode })
     return counters[key] ?? 0;
   }, [counters]);
 
-  const recordAppOpened = useCallback((appId: string): void => {
-    setAppsOpened(prev => {
-      if (prev.includes(appId)) return prev;
-      const updated = [...prev, appId];
-      try { localStorage.setItem(APPS_OPENED_KEY, JSON.stringify(updated)); } catch { /* non-fatal */ }
-      return updated;
-    });
-  }, []);
-
-  // Expose current appsOpened for the Explorer achievement check
-  // Callers read from recordAppOpened's return value isn't ideal — expose via getCounter trick
-  // Instead, we expose a stable check via the context
   const value: AchievementContextValue = {
     unlockedAchievements,
     unlockAchievement,

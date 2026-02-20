@@ -213,25 +213,6 @@ const REJECTION_CELEBRATION: ChatMsg[] = [
   { authorId: 'strategist',   text: "Alright alright. Back to work. We've got a reputation to live up to now. 💪",   delay: 30000 },
 ];
 
-const HOSTILE_DEVASTATION: ChatMsg[] = [
-  { authorId: 'pm',           text: 'Did you see the email from legal?',                         delay: 0 },
-  { authorId: 'strategist',   text: 'They went around us. The investors sold.',                  delay: 2000 },
-  { authorId: 'art-director', text: "This can't be real.",                                        delay: 4000 },
-  { authorId: 'suit',         text: "It's real. I've seen this before.",                          delay: 6000 },
-  { authorId: 'copywriter',   text: "So... that's it? We don't get a say?",                      delay: 8000 },
-  { authorId: 'media',        text: 'We never did. Not really.',                                  delay: 10000 },
-  { authorId: 'technologist', text: 'Maybe we can still make this work. Find the upside.',       delay: 12000 },
-  { authorId: 'suit',         text: '...',                                                        delay: 14000 },
-  { authorId: 'suit',         text: 'It was a hell of a run, everyone.',                          delay: 16000 },
-  { authorId: 'strategist',   text: '🥂',                                                        delay: 19000 },
-  { authorId: 'art-director', text: '🥂',                                                        delay: 19500 },
-  { authorId: 'copywriter',   text: '🥂',                                                        delay: 20000 },
-  { authorId: 'media',        text: '🥂',                                                        delay: 20500 },
-  { authorId: 'pm',           text: '🥂',                                                        delay: 21000 },
-  { authorId: 'technologist', text: '🥂',                                                        delay: 21500 },
-  { authorId: 'suit',         text: '🥂 To the best damn team I ever worked with.',              delay: 23000 },
-];
-
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 interface EndingContextValue {

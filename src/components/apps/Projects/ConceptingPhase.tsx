@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Campaign, TeamMember } from '../../../types/campaign';
 import { calculateTeamCost, formatBudget } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
