@@ -1,11 +1,10 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import type { Campaign, TeamMember } from '../../../types/campaign';
 import { calculateTeamCost, formatBudget } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { useChatContext } from '../../../context/ChatContext';
 import { teamMembers } from '../../../data/team';
 import MicroGames from '../../MicroGames/MicroGames';
-import HelpToast from './HelpToast';
 import styles from './ConceptingPhase.module.css';
 
 interface ConceptingPhaseProps {
@@ -262,13 +261,15 @@ export default function ConceptingPhase({ campaign }: ConceptingPhaseProps): Rea
 
 function ConceptingWait({ members }: { members: TeamMember[] }) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showToast, setShowToast] = useState(true);
   const ctaRef = useRef<HTMLButtonElement>(null);
 
-  const handleHelpFromToast = () => {
-    setShowToast(false);
-    ctaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
+  // Auto-scroll to the mini-game CTA on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      ctaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isPlaying) {
     return (
@@ -290,37 +291,22 @@ function ConceptingWait({ members }: { members: TeamMember[] }) {
   }
 
   return (
-    <>
-      {showToast && (
-        <HelpToast
-          phase="concepting"
-          onHelp={handleHelpFromToast}
-          onDismiss={() => setShowToast(false)}
-        />
-      )}
-      <div className={styles.conceptingWait}>
-        <div className={styles.waitIcon}>⏳</div>
-        <div className={styles.waitTitle}>Team is brainstorming...</div>
-        <div className={styles.waitSubtitle}>Usually takes 1-2 minutes</div>
+    <div className={styles.conceptingWait}>
+      <div className={styles.waitIcon}>⏳</div>
+      <div className={styles.waitTitle}>Team is brainstorming...</div>
+      <div className={styles.waitSubtitle}>Usually takes 1-2 minutes</div>
 
-        <>
-          <div className={styles.scrollHint}>
-            <span className={styles.scrollArrow}>↓</span>
-          </div>
+      <div className={styles.ctaDivider} />
 
-          <div className={styles.ctaDivider} />
-
-          <div className={styles.ctaPrompt}>Want to help while you wait?</div>
-          <button
-            ref={ctaRef}
-            className={styles.playButton}
-            onClick={() => setIsPlaying(true)}
-          >
-            💡 HELP WITH CONCEPTING
-          </button>
-          <div className={styles.ctaAlt}>or just watch the team work</div>
-        </>
-      </div>
-    </>
+      <div className={styles.ctaPrompt}>Want to help while you wait?</div>
+      <button
+        ref={ctaRef}
+        className={styles.playButton}
+        onClick={() => setIsPlaying(true)}
+      >
+        💡 HELP WITH CONCEPTING
+      </button>
+      <div className={styles.ctaAlt}>or just watch the team work</div>
+    </div>
   );
 }

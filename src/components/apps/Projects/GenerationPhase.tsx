@@ -1,10 +1,9 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import type { Campaign } from '../../../types/campaign';
 import { DELIVERABLE_TYPES, PLATFORMS } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { getTeamMembers } from '../../../data/team';
 import MicroGames from '../../MicroGames/MicroGames';
-import HelpToast from './HelpToast';
 import styles from './GenerationPhase.module.css';
 
 interface GenerationPhaseProps {
@@ -14,8 +13,15 @@ interface GenerationPhaseProps {
 export default function GenerationPhase({ campaign }: GenerationPhaseProps): React.ReactElement {
   const { generatingProgress, retryDeliverableGeneration } = useCampaignContext();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showHelpToast, setShowHelpToast] = useState(true);
   const ctaRef = useRef<HTMLButtonElement>(null);
+
+  // Auto-scroll to the mini-game CTA on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      ctaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Memoize by string key so campaign re-renders don't create new array references
   // (which would trigger MicroGames' pickMember useCallback and reset the active game)
@@ -32,14 +38,6 @@ export default function GenerationPhase({ campaign }: GenerationPhaseProps): Rea
 
   return (
     <div className={styles.generationPhase}>
-      {showHelpToast && !isComplete && !isPlaying && (
-        <HelpToast
-          phase="generating"
-          onHelp={() => { setShowHelpToast(false); ctaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}
-          onDismiss={() => setShowHelpToast(false)}
-        />
-      )}
-
       <div className={styles.headerCompact}>
         <span className={styles.headerIcon}>{isRevision ? '🔄' : '⚡'}</span>
         <span className={styles.headerTitle}>
@@ -84,10 +82,6 @@ export default function GenerationPhase({ campaign }: GenerationPhaseProps): Rea
             </div>
 
             <>
-              <div className={styles.scrollHint}>
-                <span className={styles.scrollArrow}>↓</span>
-              </div>
-
               <div className={styles.ctaDivider} />
 
               <div className={styles.ctaSection}>
