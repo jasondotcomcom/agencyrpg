@@ -17,6 +17,7 @@ import {
   MILESTONES,
   REPUTATION_TIERS,
 } from '../types/reputation';
+import { emitSave } from '../utils/saveSignal';
 
 // State interface
 interface ReputationState {
@@ -52,17 +53,27 @@ type ReputationAction =
   | { type: 'ACHIEVE_MILESTONE'; milestoneId: string }
   | { type: 'SHOW_LEVEL_UP'; tier: ReputationTier }
   | { type: 'HIDE_LEVEL_UP' }
-  | { type: 'CLEAR_REPUTATION_CHANGE' }
-  | { type: 'LOAD_STATE'; state: Partial<ReputationState> };
+  | { type: 'CLEAR_REPUTATION_CHANGE' };
 
-// Initial state
+function loadReputation(): Partial<ReputationState> | null {
+  try {
+    const saved = localStorage.getItem('agencyrpg_reputation');
+    if (!saved) return null;
+    return JSON.parse(saved);
+  } catch {
+    return null;
+  }
+}
+
+// Initial state — hydrate from localStorage if available
+const savedRep = loadReputation();
 const initialState: ReputationState = {
-  currentReputation: 0,
-  currentTier: REPUTATION_TIERS[0],
-  pendingBonusEvents: [],
-  deliveredBonusEvents: [],
-  completedCampaigns: [],
-  achievedMilestones: [],
+  currentReputation: savedRep?.currentReputation ?? 0,
+  currentTier: getReputationTier(savedRep?.currentReputation ?? 0),
+  pendingBonusEvents: savedRep?.pendingBonusEvents ?? [],
+  deliveredBonusEvents: savedRep?.deliveredBonusEvents ?? [],
+  completedCampaigns: savedRep?.completedCampaigns ?? [],
+  achievedMilestones: savedRep?.achievedMilestones ?? [],
   showLevelUp: false,
   levelUpTier: null,
   recentReputationChange: null,
@@ -167,14 +178,6 @@ function reputationReducer(state: ReputationState, action: ReputationAction): Re
       };
     }
 
-    case 'LOAD_STATE': {
-      return {
-        ...state,
-        ...action.state,
-        currentTier: getReputationTier(action.state.currentReputation ?? state.currentReputation),
-      };
-    }
-
     default:
       return state;
   }
@@ -209,19 +212,6 @@ export function ReputationProvider({ children }: { children: React.ReactNode }) 
   const [state, dispatch] = useReducer(reputationReducer, initialState);
   const eventTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
-  // Load state from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        dispatch({ type: 'LOAD_STATE', state: parsed });
-      }
-    } catch (e) {
-      console.error('Failed to load reputation state:', e);
-    }
-  }, []);
-
   // Save state to localStorage on changes
   useEffect(() => {
     try {
@@ -233,6 +223,7 @@ export function ReputationProvider({ children }: { children: React.ReactNode }) 
         deliveredBonusEvents: state.deliveredBonusEvents,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+      emitSave();
     } catch (e) {
       console.error('Failed to save reputation state:', e);
     }

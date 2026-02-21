@@ -39,14 +39,10 @@ async function generateDeliverableText(
 
 // ─── DALL-E Image Generation ─────────────────────────────────────────────────
 
-let _openaiKeyMissing = false;
-
 async function generateDeliverableImage(
   visualDescription: string,
   deliverableType: DeliverableType
 ): Promise<string | undefined> {
-  if (_openaiKeyMissing) return undefined;
-
   const size = getSizeForDeliverableType(deliverableType);
 
   try {
@@ -64,13 +60,6 @@ async function generateDeliverableImage(
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');
-      if (response.status === 401 || errorText.includes('invalid_api_key')) {
-        _openaiKeyMissing = true;
-        console.warn(
-          'DALL-E image generation requires OPENAI_API_KEY. Add it to .env.local.'
-        );
-        return undefined;
-      }
       throw new Error(`DALL-E API error ${response.status}: ${errorText}`);
     }
 

@@ -80,7 +80,7 @@ export default function Window({ window: windowState, children }: WindowProps) {
   }, [isActive, closeWindow, windowState.id]);
 
   const windowStyle: React.CSSProperties = windowState.isMaximized
-    ? { opacity: windowOpacity }
+    ? { zIndex: windowState.zIndex, opacity: windowOpacity }
     : {
         left: windowState.position.x,
         top: windowState.position.y,

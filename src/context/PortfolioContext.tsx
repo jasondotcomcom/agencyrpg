@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { emitSave } from '../utils/saveSignal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   // Persist on change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    emitSave();
   }, [entries]);
 
   const addEntry = useCallback((entry: PortfolioEntry) => {

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { formatBudget } from '../types/campaign';
+import { emitSave } from '../utils/saveSignal';
 
 interface CampaignProfit {
   campaignId: string;
@@ -16,15 +17,25 @@ interface AgencyFundsState {
 
 type AgencyFundsAction =
   | { type: 'ADD_PROFIT'; payload: CampaignProfit }
-  | { type: 'CLEAR_CHANGE' }
-  | { type: 'LOAD_STATE'; payload: Partial<AgencyFundsState> };
+  | { type: 'CLEAR_CHANGE' };
 
 const STORAGE_KEY = 'agencyrpg_funds';
 const STARTING_FUNDS = 100000;
 
+function loadFunds(): Partial<AgencyFundsState> | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
+    return JSON.parse(saved);
+  } catch {
+    return null;
+  }
+}
+
+const savedFunds = loadFunds();
 const initialState: AgencyFundsState = {
-  totalFunds: STARTING_FUNDS,
-  campaignProfits: [],
+  totalFunds: savedFunds?.totalFunds ?? STARTING_FUNDS,
+  campaignProfits: savedFunds?.campaignProfits ?? [],
   recentChange: null,
 };
 
@@ -41,8 +52,6 @@ function fundsReducer(state: AgencyFundsState, action: AgencyFundsAction): Agenc
     }
     case 'CLEAR_CHANGE':
       return { ...state, recentChange: null };
-    case 'LOAD_STATE':
-      return { ...state, ...action.payload };
     default:
       return state;
   }
@@ -60,19 +69,6 @@ const AgencyFundsContext = createContext<AgencyFundsContextType | null>(null);
 export function AgencyFundsProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(fundsReducer, initialState);
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        dispatch({ type: 'LOAD_STATE', payload: parsed });
-      }
-    } catch (e) {
-      console.error('Failed to load agency funds:', e);
-    }
-  }, []);
-
   // Persist to localStorage
   useEffect(() => {
     try {
@@ -80,6 +76,7 @@ export function AgencyFundsProvider({ children }: { children: React.ReactNode })
         totalFunds: state.totalFunds,
         campaignProfits: state.campaignProfits,
       }));
+      emitSave();
     } catch (e) {
       console.error('Failed to save agency funds:', e);
     }

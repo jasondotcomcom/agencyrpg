@@ -49,6 +49,13 @@
   transform: translateY(0) scale(0.98);
 }
 
+.composeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .composeIcon {
   font-size: 1rem;
 }

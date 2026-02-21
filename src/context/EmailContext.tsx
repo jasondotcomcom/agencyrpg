@@ -1,6 +1,25 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import type { Email, EmailFilter, EmailSort } from '../types/email';
 import { initialEmails } from '../data/initialEmails';
+import { emitSave } from '../utils/saveSignal';
+
+const STORAGE_KEY = 'agencyrpg_emails';
+
+function loadEmails(): Email[] | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
+    const parsed: Email[] = JSON.parse(saved);
+    // Revive Date objects
+    const savedEmails = parsed.map(e => ({ ...e, timestamp: new Date(e.timestamp) }));
+    // Merge in any new initial emails not present in saved data (for game updates)
+    const savedIds = new Set(savedEmails.map(e => e.id));
+    const newEmails = initialEmails.filter(e => !savedIds.has(e.id));
+    return [...newEmails, ...savedEmails];
+  } catch {
+    return null;
+  }
+}
 
 interface EmailState {
   emails: Email[];
@@ -22,8 +41,9 @@ type EmailAction =
   | { type: 'ADD_EMAIL'; payload: Email }
   | { type: 'ACCEPT_BRIEF'; payload: string };
 
+const savedEmails = loadEmails();
 const initialState: EmailState = {
-  emails: initialEmails,
+  emails: savedEmails ?? initialEmails,
   selectedEmailId: null,
   filter: 'all',
   sort: 'date_desc',
@@ -118,6 +138,16 @@ const EmailContext = createContext<EmailContextValue | null>(null);
 
 export function EmailProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(emailReducer, initialState);
+
+  // Persist emails to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.emails));
+      emitSave();
+    } catch (e) {
+      console.error('Failed to save emails:', e);
+    }
+  }, [state.emails]);
 
   const selectEmail = useCallback((id: string | null) => {
     dispatch({ type: 'SELECT_EMAIL', payload: id });

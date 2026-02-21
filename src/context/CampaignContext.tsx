@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import type {
   Campaign,
   Deliverable,
@@ -13,6 +13,38 @@ import { calculateTeamCost, getProductionCost } from '../types/campaign';
 import type { CampaignBrief } from '../types/email';
 import { generateConcepts as generateConceptsFromBrief, tweakConcept as tweakConceptAPI } from '../utils/conceptGenerator';
 import { generateDeliverable as generateDeliverableAI } from '../utils/apiService';
+import { emitSave } from '../utils/saveSignal';
+
+const STORAGE_KEY = 'agencyrpg_campaigns';
+
+function reviveDates(campaign: Campaign): Campaign {
+  return {
+    ...campaign,
+    startDate: new Date(campaign.startDate),
+    deadline: new Date(campaign.deadline),
+    submittedAt: campaign.submittedAt ? new Date(campaign.submittedAt) : undefined,
+    deliverables: campaign.deliverables.map(d => ({
+      ...d,
+      generatedWork: d.generatedWork
+        ? { ...d.generatedWork, generatedAt: new Date(d.generatedWork.generatedAt) }
+        : null,
+    })),
+  };
+}
+
+function loadCampaigns(): { campaigns: Campaign[]; selectedCampaignId: string | null } | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    return {
+      campaigns: (parsed.campaigns || []).map(reviveDates),
+      selectedCampaignId: parsed.selectedCampaignId || null,
+    };
+  } catch {
+    return null;
+  }
+}
 
 // State
 interface CampaignState {
@@ -53,10 +85,11 @@ type CampaignAction =
   | { type: 'UPDATE_CONCEPT'; payload: { campaignId: string; conceptId: string; concept: CampaignConcept } }
   | { type: 'RECORD_TOOL_USED'; payload: { campaignId: string; toolId: string } };
 
-// Initial state
+// Initial state — hydrate from localStorage if available
+const savedCampaigns = loadCampaigns();
 const initialState: CampaignState = {
-  campaigns: [],
-  selectedCampaignId: null,
+  campaigns: savedCampaigns?.campaigns ?? [],
+  selectedCampaignId: savedCampaigns?.selectedCampaignId ?? null,
   isGenerating: false,
   generatingDeliverableId: null,
   isGeneratingConcepts: false,
@@ -574,6 +607,19 @@ interface CampaignProviderProps {
 export function CampaignProvider({ children }: CampaignProviderProps): React.ReactElement {
   const [state, dispatch] = useReducer(campaignReducer, initialState);
   const [generatingProgress, setGeneratingProgress] = React.useState<{ current: number; total: number } | null>(null);
+
+  // Persist campaigns to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        campaigns: state.campaigns,
+        selectedCampaignId: state.selectedCampaignId,
+      }));
+      emitSave();
+    } catch (e) {
+      console.error('Failed to save campaigns:', e);
+    }
+  }, [state.campaigns, state.selectedCampaignId]);
 
   const createCampaign = useCallback((
     briefId: string,

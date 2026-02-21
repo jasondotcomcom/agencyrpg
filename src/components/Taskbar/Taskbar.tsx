@@ -3,6 +3,7 @@ import TaskbarButton from './TaskbarButton';
 import Clock from './Clock';
 import ReputationDisplay from './ReputationDisplay';
 import AgencyFundsDisplay from './AgencyFundsDisplay';
+import SaveIndicator from './SaveIndicator';
 import { loadLegacy } from '../Ending/EndingSequence';
 import styles from './Taskbar.module.css';
 
@@ -39,6 +40,7 @@ export default function Taskbar() {
       </div>
 
       <div className={styles.systemTray}>
+        <SaveIndicator />
         {legacy && (
           <div
             className={styles.ngBadge}

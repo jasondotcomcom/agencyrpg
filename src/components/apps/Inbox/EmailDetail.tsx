@@ -40,7 +40,7 @@ function renderMarkdown(text: string): string {
 export default function EmailDetail({ email }: EmailDetailProps) {
   const { toggleStar, deleteEmail, acceptBrief, markRead, markUnread } = useEmailContext();
   const { addNotification, openWindow, focusWindow, restoreWindow, windows } = useWindowContext();
-  const { createCampaign } = useCampaignContext();
+  const { createCampaign, campaigns } = useCampaignContext();
   const { addReputation, subtractReputation, state: repState } = useReputationContext();
   const { triggerCampaignEvent } = useChatContext();
   const { handleAcquisitionAccept, handleAcquisitionReject, handleHostileTakeoverAccept, acquisitionState } = useEndingContext();
@@ -68,8 +68,12 @@ export default function EmailDetail({ email }: EmailDetailProps) {
     ? styles.bonus
     : '';
 
+  // Check if a campaign already exists for this brief (any phase)
+  const existingCampaign = campaigns.find(c => c.briefId === email.id);
+  const briefAlreadyAccepted = !!existingCampaign;
+
   const handleAcceptBrief = () => {
-    if (!email.campaignBrief) return;
+    if (!email.campaignBrief || briefAlreadyAccepted) return;
 
     acceptBrief(email.id);
 
@@ -305,12 +309,18 @@ export default function EmailDetail({ email }: EmailDetailProps) {
       {/* Footer with Actions */}
       {email.type === 'campaign_brief' && (
         <div className={styles.footer}>
-          <button className={styles.secondaryButton}>
+          <button className={styles.secondaryButton} disabled title="Coming soon">
             📤 Forward
           </button>
-          <button className={styles.primaryButton} onClick={handleAcceptBrief}>
-            ✅ Accept Brief
-          </button>
+          {briefAlreadyAccepted ? (
+            <span className={styles.briefAcceptedLabel}>
+              {existingCampaign?.phase === 'completed' ? '✅ Campaign Delivered' : '✅ Brief Accepted'}
+            </span>
+          ) : (
+            <button className={styles.primaryButton} onClick={handleAcceptBrief}>
+              ✅ Accept Brief
+            </button>
+          )}
         </div>
       )}
 

@@ -75,7 +75,7 @@ function AppContent() {
   const { triggerCampaignEvent, morale } = useChatContext();
   const { unlockAchievement } = useAchievementContext();
   const { playerName, setPlayerName } = usePlayerContext();
-  const prevCompletedCountRef = useRef(0);
+  const prevCompletedCountRef = useRef(campaigns.filter(c => c.phase === 'completed').length);
   const welcomeFiredRef = useRef(false);
 
   // Cmd+Shift+R (Mac) / Ctrl+Shift+R (Win/Linux) — full reset including legacy data
@@ -134,10 +134,16 @@ function AppContent() {
         );
       }, 3500));
     } else {
+      // Check for existing save data — returning session vs first time
+      const hasSaveData = !!localStorage.getItem('agencyrpg_campaigns');
       timers.push(setTimeout(() => {
         addNotification(
-          `Hey ${playerName} — welcome to the agency`,
-          'The team is here and ready to go. Check your inbox for incoming briefs.'
+          hasSaveData
+            ? `Welcome back, ${playerName}`
+            : `Hey ${playerName} — welcome to the agency`,
+          hasSaveData
+            ? 'Your progress has been saved. Pick up where you left off.'
+            : 'The team is here and ready to go. Check your inbox for incoming briefs.'
         );
       }, 500));
     }
