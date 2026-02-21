@@ -353,7 +353,7 @@ function CreditsPhase({ onComplete }: { onComplete: () => void }) {
               <div className={styles.creditsValue}>{playerName || 'You'}</div>
             </div>
             <div className={styles.creditsEntry}>
-              <div className={styles.creditsLabel}>Special Thanks</div>
+              <div className={styles.creditsLabel}>Special Thanks To</div>
               <div className={styles.creditsValue}>The advertising industry</div>
               <div className={styles.creditsSubValue}>for being absolutely unhinged</div>
             </div>
