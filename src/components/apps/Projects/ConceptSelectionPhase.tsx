@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import type { Campaign, CampaignConcept } from '../../../types/campaign';
 import { DELIVERABLE_TYPES, PLATFORMS } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { useChatContext } from '../../../context/ChatContext';
 import styles from './ConceptSelectionPhase.module.css';
+
+const BUILD_CTA_LABELS = [
+  '🚀 This is the winner',
+  '🚀 I choose you',
+  '🚀 Let\'s build this',
+  '🚀 Ship it',
+  '🚀 This one slaps',
+  '🚀 Lock it in',
+  '🚀 Winner winner',
+];
 
 interface ConceptSelectionPhaseProps {
   campaign: Campaign;
@@ -18,6 +28,22 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
   const [tweakModalConceptId, setTweakModalConceptId] = useState<string | null>(null);
   const [tweakNote, setTweakNote] = useState('');
   const [tweakingConceptId, setTweakingConceptId] = useState<string | null>(null);
+  const confirmationRef = useRef<HTMLDivElement>(null);
+
+  const buildCtaLabel = useMemo(
+    () => BUILD_CTA_LABELS[Math.floor(Math.random() * BUILD_CTA_LABELS.length)],
+    []
+  );
+
+  // Auto-scroll to confirmation panel when it appears
+  useEffect(() => {
+    if (showConfirmation) {
+      const timer = setTimeout(() => {
+        confirmationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showConfirmation]);
 
   const selectedConceptId = campaign.selectedConceptId;
   const selectedConcept = campaign.generatedConcepts.find(c => c.id === selectedConceptId);
@@ -113,7 +139,7 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
           onClick={handleBuildCampaign}
           disabled={!selectedConceptId}
         >
-          🚀 Generate Campaign
+          {buildCtaLabel}
         </button>
       </div>
 
@@ -131,7 +157,7 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
 
       {/* Pre-Generation Confirmation */}
       {showConfirmation && selectedConcept && (
-        <div className={styles.confirmationPanel}>
+        <div ref={confirmationRef} className={styles.confirmationPanel}>
           <h3 className={styles.confirmationTitle}>Ready to build this campaign?</h3>
           <p className={styles.confirmationSubtitle}>
             Based on "{selectedConcept.name}", we'll create:
