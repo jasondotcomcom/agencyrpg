@@ -40,19 +40,24 @@ export function PickOneGame({
 }: {
   options: { emoji: string; label: string; sub?: string; correct: boolean }[];
   context?: string;
-  onWin: () => void;
-  onFail: () => void;
+  onWin: (meta?: { wrongPicks?: number; elapsedMs?: number }) => void;
+  onFail: (meta?: { wrongPicks?: number; elapsedMs?: number }) => void;
 }) {
   const [picked, setPicked] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const startTimeRef = useRef(Date.now());
+  const wrongCountRef = useRef(0);
 
   const handlePick = (i: number) => {
     if (picked !== null) return;
     const opt = options[i];
+    const elapsed = Date.now() - startTimeRef.current;
     setPicked(i);
     setRevealed(true);
+    if (!opt.correct) wrongCountRef.current += 1;
     setTimeout(() => {
-      if (opt.correct) onWin(); else onFail();
+      const meta = { wrongPicks: wrongCountRef.current, elapsedMs: elapsed };
+      if (opt.correct) onWin(meta); else onFail(meta);
     }, 1500);
   };
 
@@ -457,13 +462,14 @@ export function AvoidGame({
   baseCount: number;
   baseSpeed: number;
   movementPattern: MovementPattern;
-  onFail: () => void;
+  onFail: (meta?: { hits?: number }) => void;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const playerPos = useRef({ x: 220, y: 130 });
   const [renderTick, setRenderTick] = useState(0);
   const obstaclesRef = useRef<Obstacle[]>([]);
   const failedRef = useRef(false);
+  const hitCountRef = useRef(0);
 
   useEffect(() => {
     // Wave 1: slow sparse obstacles
@@ -536,7 +542,8 @@ export function AvoidGame({
         const dy = py - o.y;
         if (Math.sqrt(dx * dx + dy * dy) < 28) {
           failedRef.current = true;
-          onFail();
+          hitCountRef.current += 1;
+          onFail({ hits: hitCountRef.current });
           return;
         }
       }
@@ -593,7 +600,9 @@ interface BubbleItem { text: string; bad: boolean }
 export function BubblePopGame({
   items, onWin, onFail,
 }: {
-  items: BubbleItem[]; onWin: () => void; onFail: () => void;
+  items: BubbleItem[];
+  onWin: (meta?: { wrongPicks?: number }) => void;
+  onFail: (meta?: { wrongPicks?: number }) => void;
 }) {
   const [bubbles] = useState(() =>
     items.map((item, i) => ({
@@ -607,6 +616,7 @@ export function BubblePopGame({
   );
   const [popped, setPopped] = useState<Set<number>>(new Set());
   const resolvedRef = useRef(false);
+  const wrongPopRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const positionsRef = useRef(bubbles.map(b => ({ x: b.x, y: b.y })));
   const [, forceRender] = useState(0);
@@ -639,8 +649,9 @@ export function BubblePopGame({
     if (!item.bad) {
       // Popped a good one = fail
       resolvedRef.current = true;
+      wrongPopRef.current += 1;
       setPopped(prev => new Set(prev).add(idx));
-      onFail();
+      onFail({ wrongPicks: wrongPopRef.current });
       return;
     }
     const newPopped = new Set(popped).add(idx);
@@ -649,7 +660,7 @@ export function BubblePopGame({
     const allBadPopped = bubbles.every(b => !b.bad || newPopped.has(b.id));
     if (allBadPopped) {
       resolvedRef.current = true;
-      onWin();
+      onWin({ wrongPicks: wrongPopRef.current });
     }
   }, [popped, bubbles, onWin, onFail]);
 
@@ -783,7 +794,9 @@ export function TimingMeterGame({
   sweetSpotStart, sweetSpotEnd, speed, label, onWin, onFail,
 }: {
   sweetSpotStart: number; sweetSpotEnd: number; speed: number;
-  label: string; onWin: () => void; onFail: () => void;
+  label: string;
+  onWin: (meta?: { exactCenter?: boolean; missMargin?: number }) => void;
+  onFail: (meta?: { exactCenter?: boolean; missMargin?: number }) => void;
 }) {
   const [needlePos, setNeedlePos] = useState(0);
   const [clicked, setClicked] = useState(false);
@@ -805,10 +818,18 @@ export function TimingMeterGame({
   const handleClick = () => {
     if (clicked) return;
     setClicked(true);
+    const center = (sweetSpotStart + sweetSpotEnd) / 2;
+    const halfWidth = (sweetSpotEnd - sweetSpotStart) / 2;
+    const distFromCenter = Math.abs(needlePos - center);
+    const exactCenter = distFromCenter < 0.02;
     if (needlePos >= sweetSpotStart && needlePos <= sweetSpotEnd) {
-      onWin();
+      onWin({ exactCenter, missMargin: 0 });
     } else {
-      onFail();
+      // missMargin: 0 = very close, 1 = far away
+      const distFromEdge = needlePos < sweetSpotStart
+        ? sweetSpotStart - needlePos
+        : needlePos - sweetSpotEnd;
+      onFail({ exactCenter: false, missMargin: Math.min(1, distFromEdge / (1 - halfWidth * 2)) });
     }
   };
 
@@ -1090,7 +1111,8 @@ export function SpinStopGame({
   targetAngle, tolerance, emoji, onWin, onFail,
 }: {
   targetAngle: number; tolerance: number; emoji: string;
-  onWin: () => void; onFail: () => void;
+  onWin: (meta?: { missMargin?: number }) => void;
+  onFail: (meta?: { missMargin?: number }) => void;
 }) {
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(true);
@@ -1112,9 +1134,9 @@ export function SpinStopGame({
     // Check if within target zone
     const diff = Math.abs(((angle - targetAngle + 540) % 360) - 180);
     if (diff < tolerance) {
-      onWin();
+      onWin({ missMargin: 0 });
     } else {
-      onFail();
+      onFail({ missMargin: Math.min(1, diff / 180) });
     }
   };
 
@@ -1153,7 +1175,8 @@ export function SpinBuildGame({
 }: {
   targetAngle: number; tolerance: number; emoji: string;
   themeLabel?: string;
-  onWin: () => void; onFail: () => void;
+  onWin: (meta?: { missMargin?: number }) => void;
+  onFail: (meta?: { missMargin?: number }) => void;
 }) {
   const angleRef = useRef(0);
   const speedRef = useRef(0);
@@ -1190,9 +1213,9 @@ export function SpinBuildGame({
         resolvedRef.current = true;
         const diff = Math.abs(((angleRef.current - targetAngle + 540) % 360) - 180);
         if (diff < tolerance) {
-          onWin();
+          onWin({ missMargin: 0 });
         } else {
-          onFail();
+          onFail({ missMargin: Math.min(1, diff / 180) });
         }
         return;
       }
@@ -1212,7 +1235,7 @@ export function SpinBuildGame({
     if (diff < tolerance) {
       resolvedRef.current = true;
       speedRef.current = 0; // freeze the display
-      onWin();
+      onWin({ missMargin: 0 });
       return;
     }
 

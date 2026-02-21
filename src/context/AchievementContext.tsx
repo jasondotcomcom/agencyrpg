@@ -81,6 +81,87 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'achievement-hunter',   name: 'Achievement Hunter',      icon: '🔍', description: 'Checked the achievements tab 10 times.' },
   { id: 'half-achievements',    name: 'Halfway There',           icon: '📈', description: 'Unlocked half of all achievements.' },
   { id: 'all-achievements',     name: 'Completionist Supreme',   icon: '👑', description: 'Unlocked every achievement. Touch grass.' },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MINI-GAME ACHIEVEMENTS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Mini-Game: Skill-Based Wins ─────────────────────────────────────────
+  { id: 'first-win',            name: 'Rookie Win',              icon: '🎮', description: 'Won your first mini-game.' },
+  { id: 'ten-wins',             name: 'Getting Good',            icon: '🏅', description: 'Won 10 mini-games.' },
+  { id: 'twenty-five-wins',     name: 'Quarter Century',         icon: '🎖️', description: 'Won 25 mini-games.' },
+  { id: 'fifty-wins',           name: 'Half Century',            icon: '🏆', description: 'Won 50 mini-games.' },
+  { id: 'hundred-wins',         name: 'Centurion',               icon: '💎', description: 'Won 100 mini-games.' },
+  { id: 'pixel-perfect',        name: 'Pixel Perfect',           icon: '🎯', description: 'Won an avoiding game without getting hit once.' },
+  { id: 'dodge-master',         name: 'Dodge Master',            icon: '🏃', description: 'Won 10 avoiding games.' },
+  { id: 'untouchable',          name: 'Untouchable',             icon: '👻', description: 'Won 5 avoiding games with zero hits.' },
+  { id: 'timing-ace',           name: 'Timing Ace',              icon: '⏱️', description: 'Won 10 timing/wheel games.' },
+  { id: 'bullseye',             name: 'Bullseye',                icon: '🎯', description: 'Hit the exact center of a timing meter.' },
+  { id: 'word-nerd',            name: 'Word Nerd',               icon: '📖', description: 'Won 10 word/puzzle games.' },
+  { id: 'speed-reader',         name: 'Speed Reader',            icon: '⚡', description: 'Won a puzzle game in under 3 seconds.' },
+  { id: 'flawless-puzzler',     name: 'Flawless Puzzler',        icon: '🧩', description: 'Won a puzzle game with zero wrong picks.' },
+  { id: 'spin-doctor',          name: 'Spin Doctor',             icon: '🌀', description: 'Won 5 spin/wheel games in a row.' },
+  { id: 'bubble-surgeon',       name: 'Bubble Surgeon',          icon: '🫧', description: 'Popped all buzzwords without a single wrong pop.' },
+  { id: 'quick-draw',           name: 'Quick Draw',              icon: '🤠', description: 'Won a click game in under 1 second.' },
+  { id: 'iron-grip',            name: 'Iron Grip',               icon: '🦾', description: 'Won 5 hold-button games.' },
+
+  // ── Mini-Game: Fail-Based ───────────────────────────────────────────────
+  { id: 'first-fail',           name: 'Learning Experience',     icon: '📝', description: 'Failed your first mini-game.' },
+  { id: 'ten-fails',            name: 'Thick Skin',              icon: '🛡️', description: 'Failed 10 mini-games.' },
+  { id: 'twenty-five-fails',    name: 'Glutton for Games',       icon: '🎪', description: 'Failed 25 mini-games.' },
+  { id: 'fifty-fails',          name: 'Badge of Dishonor',       icon: '🏳️', description: 'Failed 50 mini-games.' },
+  { id: 'punching-bag',         name: 'Punching Bag',            icon: '🥊', description: 'Got hit 50 times total in avoiding games.' },
+  { id: 'hit-magnet',           name: 'Hit Magnet',              icon: '🧲', description: 'Got hit in 10 different avoiding games.' },
+  { id: 'so-close',             name: 'So Close!',               icon: '😤', description: 'Failed a timing game by less than 10%.' },
+  { id: 'not-even-close',       name: 'Not Even Close',          icon: '😬', description: 'Failed a timing game by more than 80%.' },
+  { id: 'wrong-answers-ten',    name: 'Process of Elimination',  icon: '🔢', description: 'Got 10 wrong answers total in puzzle games.' },
+  { id: 'wrong-answers-twenty-five', name: 'Guess Again',        icon: '🤔', description: 'Got 25 wrong answers total in puzzle games.' },
+  { id: 'triple-fail',          name: 'Triple Whammy',           icon: '💀', description: 'Failed 3 games in a row.' },
+  { id: 'five-fail-streak',     name: 'Cold Streak',             icon: '🥶', description: 'Failed 5 games in a row.' },
+  { id: 'instant-fail',         name: 'Instant Karma',           icon: '⚡', description: 'Failed within the first second of a game.' },
+  { id: 'timeout-king',         name: 'Timeout King',            icon: '⏰', description: 'Let 5 games expire without acting.' },
+  { id: 'bad-popper',           name: 'Friendly Fire',           icon: '💥', description: 'Popped a good word in a buzzword game.' },
+
+  // ── Mini-Game: Playstyle Insights ───────────────────────────────────────
+  { id: 'balanced-player',      name: 'Balanced Player',         icon: '⚖️', description: 'Win rate between 45% and 55% after 20+ games.' },
+  { id: 'overachiever',         name: 'Overachiever',            icon: '📊', description: 'Win rate above 80% after 20+ games.' },
+  { id: 'underdog',             name: 'Underdog',                icon: '🐕', description: 'Win rate below 30% after 20+ games.' },
+  { id: 'comeback-kid',         name: 'Comeback Kid',            icon: '🔥', description: 'Won a game right after a 3+ fail streak.' },
+  { id: 'alternator',           name: 'Alternator',              icon: '🔄', description: 'Alternated win-fail-win-fail for 6 games.' },
+  { id: 'avoid-specialist',     name: 'Avoid Specialist',        icon: '🏃', description: 'Won more avoiding games than any other type.' },
+  { id: 'timing-specialist',    name: 'Timing Specialist',       icon: '⏱️', description: 'Won more timing games than any other type.' },
+  { id: 'puzzle-specialist',    name: 'Puzzle Specialist',       icon: '🧩', description: 'Won more puzzle games than any other type.' },
+  { id: 'jack-of-all-trades',   name: 'Jack of All Trades',      icon: '🃏', description: 'Won at least 3 games in every category.' },
+  { id: 'night-gamer',          name: 'Night Gamer',             icon: '🌙', description: 'Played a mini-game between midnight and 5am.' },
+  { id: 'morning-grinder',      name: 'Morning Grinder',         icon: '☀️', description: 'Played a mini-game between 5am and 7am.' },
+  { id: 'marathon-runner',      name: 'Marathon Runner',          icon: '🏃', description: 'Played 50 mini-games total.' },
+
+  // ── Mini-Game: Rare/Funny ───────────────────────────────────────────────
+  { id: 'the-natural',          name: 'The Natural',             icon: '🌟', description: 'Won your first 5 games without failing.' },
+  { id: 'disaster-artist',      name: 'Disaster Artist',         icon: '🎨', description: 'Failed your first 5 games without winning.' },
+  { id: 'perfect-timing',       name: 'Dead Center',             icon: '🎯', description: 'Hit exact center on a timing meter 3 times.' },
+  { id: 'scar-tissue',          name: 'Scar Tissue',             icon: '🩹', description: 'Got hit 100 times total in avoiding games.' },
+  { id: 'close-shave',          name: 'Close Shave',             icon: '🪒', description: 'Failed 3 timing games by less than 10%.' },
+  { id: 'wrong-every-time',     name: 'Wrong Every Time',        icon: '🤡', description: 'Got 50 wrong answers total.' },
+  { id: 'lucky-seven',          name: 'Lucky Seven',             icon: '🍀', description: 'Won exactly 7 games in a row.' },
+  { id: 'unlucky-seven',        name: 'Unlucky Seven',           icon: '😱', description: 'Failed exactly 7 games in a row.' },
+  { id: 'perfectionist-campaign', name: 'Perfectionist',         icon: '💯', description: 'Won every mini-game in a single campaign.' },
+  { id: 'chaos-agent',          name: 'Chaos Agent',             icon: '🌪️', description: 'Failed every mini-game in a single campaign.' },
+  { id: 'speedrunner',          name: 'Speedrunner',             icon: '⚡', description: 'Average game time under 3 seconds in a campaign.' },
+  { id: 'took-your-time',       name: 'Took Your Time',          icon: '🐌', description: 'Average game time over 7 seconds in a campaign.' },
+  { id: 'flawless-victory',     name: 'Flawless Victory',        icon: '✨', description: 'Won every game in 3 separate campaigns.' },
+  { id: 'glass-cannon',         name: 'Glass Cannon',            icon: '💣', description: 'Won 3 games then failed 3 games in a row.' },
+  { id: 'no-scope',             name: 'No Scope',                icon: '🔭', description: 'Won an avoid game that lasted the full timer.' },
+  { id: 'buzzer-beater',        name: 'Buzzer Beater',           icon: '🚨', description: 'Won with less than 10% time remaining.' },
+  { id: 'button-masher',        name: 'Button Masher',           icon: '🕹️', description: 'Won 10 click/physical games.' },
+
+  // ── Mini-Game: Streaks & Milestones ─────────────────────────────────────
+  { id: 'three-streak',         name: 'Hat Trick',               icon: '🎩', description: 'Won 3 games in a row.' },
+  { id: 'five-streak',          name: 'On Fire',                 icon: '🔥', description: 'Won 5 games in a row.' },
+  { id: 'ten-streak',           name: 'Unstoppable',             icon: '⚡', description: 'Won 10 games in a row.' },
+  { id: 'hundred-games',        name: 'Century Club',            icon: '💯', description: 'Played 100 mini-games total.' },
+  { id: 'two-hundred-games',    name: 'Double Century',          icon: '🏏', description: 'Played 200 mini-games total.' },
+  { id: 'five-hundred-games',   name: 'Mini-Game Legend',        icon: '👑', description: 'Played 500 mini-games total.' },
 ];
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────
