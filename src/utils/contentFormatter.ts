@@ -3,8 +3,19 @@ export interface ContentSection {
   content: string;
 }
 
+// Strip markdown syntax (### headers, **bold**, *italic*) from a line
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/, '')        // ### Header → Header
+    .replace(/\*\*(.+?)\*\*/g, '$1')  // **bold** → bold
+    .replace(/\*(.+?)\*/g, '$1')      // *italic* → italic
+    .replace(/__(.+?)__/g, '$1')      // __bold__ → bold
+    .replace(/_(.+?)_/g, '$1');       // _italic_ → italic
+}
+
 // Patterns that indicate section headers in AI output
 const HEADER_PATTERNS = [
+  /^#{1,6}\s+(.+)$/,                        // ### Markdown headers
   /^([A-Z][A-Z\s&/]{2,}):(.*)$/,           // HEADLINE: ..., BODY COPY: ...
   /^\[([A-Z][A-Z\s&/]{2,})\]\s*(.*)$/,     // [HERO], [CTA]
   /^(SCENE\s*\d+)\s*[:\-—]\s*(.*)$/i,       // SCENE 1: ...
@@ -60,11 +71,11 @@ export function parseContent(raw: string): ContentSection[] {
         );
 
         if (!isHidden) {
-          sections.push({ type: 'header', content: headerName });
+          sections.push({ type: 'header', content: stripMarkdown(headerName) });
           // If there's inline content after the header label, add it
           const inline = match[2]?.trim();
           if (inline) {
-            currentText.push(inline);
+            currentText.push(stripMarkdown(inline));
           }
         }
         matched = true;
@@ -73,7 +84,7 @@ export function parseContent(raw: string): ContentSection[] {
     }
 
     if (!matched) {
-      currentText.push(line);
+      currentText.push(stripMarkdown(line));
     }
   }
 

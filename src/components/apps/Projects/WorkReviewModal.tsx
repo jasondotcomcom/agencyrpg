@@ -3,6 +3,7 @@ import type { Campaign, Deliverable } from '../../../types/campaign';
 import { DELIVERABLE_TYPES, PLATFORMS, STATUS_DISPLAY } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { getTeamMembers } from '../../../data/team';
+import { parseContent, isVideoType, stripTrailingVisualDescription } from '../../../utils/contentFormatter';
 import styles from './WorkReviewModal.module.css';
 
 interface WorkReviewModalProps {
@@ -88,11 +89,7 @@ export default function WorkReviewModal({
                 </span>
               )}
             </div>
-            <div className={styles.previewContent}>
-              {work.content.split('\n').map((line, i) => (
-                <p key={i} className={styles.previewLine}>{line || '\u00A0'}</p>
-              ))}
-            </div>
+            <ContentPreview content={work.content} type={deliverable.type} />
           </div>
 
           {work.feedback && (
@@ -174,6 +171,53 @@ export default function WorkReviewModal({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── Content Preview with collapsible long content ──────────────────────────
+
+const COLLAPSED_LINE_LIMIT = 8;
+
+function ContentPreview({ content, type }: { content: string; type: string }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (isVideoType(type)) {
+    return (
+      <div className={styles.previewContent}>
+        {stripTrailingVisualDescription(content).split('\n').map((line, i) => (
+          <p key={i} className={styles.previewLine}>{line || '\u00A0'}</p>
+        ))}
+      </div>
+    );
+  }
+
+  const sections = parseContent(content);
+  const allLines = sections.flatMap(s =>
+    s.type === 'header' ? [s] : s.content.split('\n').map(line => ({ type: 'text' as const, content: line }))
+  );
+  const isLong = allLines.length > COLLAPSED_LINE_LIMIT;
+  const visibleLines = isLong && !expanded ? allLines.slice(0, COLLAPSED_LINE_LIMIT) : allLines;
+
+  return (
+    <div className={styles.previewContent}>
+      {visibleLines.map((line, i) =>
+        line.type === 'header' ? (
+          <p key={i} className={styles.previewHeader}>{line.content}</p>
+        ) : (
+          <p key={i} className={styles.previewLine}>{line.content || '\u00A0'}</p>
+        )
+      )}
+      {isLong && !expanded && (
+        <button className={styles.readMoreButton} onClick={() => setExpanded(true)}>
+          Read more...
+        </button>
+      )}
+      {isLong && expanded && (
+        <button className={styles.readMoreButton} onClick={() => setExpanded(false)}>
+          Show less
+        </button>
+      )}
     </div>
   );
 }

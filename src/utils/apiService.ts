@@ -23,7 +23,7 @@ async function generateDeliverableText(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 3500,
+      max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }],
     }),
   });
@@ -178,11 +178,17 @@ PLATFORM: ${platform}
 
   const typePrompt = getTypeSpecificPrompt(type, platform);
 
+  const isScript = type === 'video' || type === 'tiktok_series';
+  const brevityNote = isScript
+    ? ''
+    : '\n\nIMPORTANT: Keep your response SHORT. 2-3 sentences for the core content. No markdown formatting (no ###, no **bold**). No section headers unless the type specifically calls for them. This is for a game — be punchy, not thorough.';
+
   return `You are a world-class creative team at an advertising agency. Generate content for the following deliverable.
 
 ${context}
 ${revisionNote}
 ${typePrompt}
+${brevityNote}
 
 End your response with a section labeled "VISUAL DESCRIPTION:" that describes a single compelling image to accompany this deliverable. Be specific about composition, colors, mood, style, lighting, and subject matter. This description will be used to generate the image via AI. Do NOT include any text or words in the visual description — describe only the visual elements.`;
 }
@@ -190,22 +196,11 @@ End your response with a section labeled "VISUAL DESCRIPTION:" that describes a 
 function getTypeSpecificPrompt(type: DeliverableType, platform: Platform): string {
   switch (type) {
     case 'social_post':
-      return `Create a ${platform} social media post.
+      return `Create a ${platform} social media post. Keep it punchy.
 
-Generate:
-1. Caption (2-3 engaging sentences, on-brand for the concept)
-2. Hashtags (5-8 relevant tags)
-3. Call-to-action
-
-Format your response as:
-CAPTION:
-[caption text]
-
-HASHTAGS:
-#tag1 #tag2 #tag3 ...
-
-CTA:
-[call to action]`;
+CAPTION: 2-3 sentences max, on-brand
+HASHTAGS: 5-8 tags
+CTA: one line`;
 
     case 'video':
       return `Create a professional production script (30-60 seconds).
@@ -280,300 +275,37 @@ TEXT OVERLAY: [on-screen text]
 HASHTAGS: #tag1 #tag2 #tag3 ...`;
 
     case 'twitter_thread':
-      return `Create a Twitter/X thread (5-7 tweets).
-
-Rules:
-- Tweet 1 must hook — make people want to read more
-- Each tweet under 280 characters
-- Mix of insight, story, and data
-- End with a clear CTA
-- Use thread mechanics (numbering, cliffhangers)
-
-Format your response as:
-1/ [tweet text]
-
-2/ [tweet text]
-
-3/ [tweet text]
-
-...continue...`;
+      return `Create a Twitter/X thread (4-5 tweets). Each under 280 characters. Hook first, CTA last. Format as: 1/ [text] 2/ [text] etc.`;
 
     case 'reddit_ama':
-      return `Create a Reddit AMA concept.
-
-Generate:
-1. AMA title
-2. Target subreddit
-3. Introduction post (authentic, non-corporate tone)
-4. 5-6 key talking points / prepared responses
-5. Rules for the brand team
-
-Format your response as:
-TITLE: [AMA title]
-SUBREDDIT: r/[subreddit]
-
-INTRO POST:
-[full introduction text]
-
-KEY TALKING POINTS:
-1. [topic]: [prepared answer]
-2. [topic]: [prepared answer]
-...
-
-TEAM RULES:
-- [rule 1]
-- [rule 2]
-...`;
+      return `Create a Reddit AMA concept in 2-3 sentences: the AMA title, target subreddit, and the core angle/hook. Keep it brief — just the concept, not a full brief.`;
 
     case 'billboard':
-      return `Create billboard creative.
-
-Constraints:
-- Headline: maximum 8 words (must be readable at 35mph)
-- Body copy: maximum 1 short line
-- Read time: under 3 seconds
-- One bold visual focal point
-
-Format your response as:
-HEADLINE:
-[main text — 8 words max]
-
-BODY:
-[one short supporting line]
-
-PLACEMENT: [ideal location type]
-FORMAT: 14' x 48' standard bulletin
-COLOR PALETTE: [2-3 colors]
-TYPOGRAPHY: [direction]`;
+      return `Create billboard creative. HEADLINE (8 words max) and one line of BODY copy. That's it — no logistics, no format specs.`;
 
     case 'email_campaign':
-      return `Create an email campaign.
-
-Generate:
-1. Subject line (compelling, under 60 chars)
-2. Preview text (40-90 chars)
-3. Email body with sections
-4. Primary CTA button text
-
-Format your response as:
-SUBJECT: [subject line]
-PREVIEW TEXT: [preview text]
-
-[HEADER IMAGE DIRECTION: brief visual note]
-
-BODY:
-[greeting]
-
-[paragraph 1 — hook/context]
-
-[paragraph 2 — value proposition]
-
-KEY BENEFITS:
-- [benefit 1]
-- [benefit 2]
-- [benefit 3]
-
-[CTA BUTTON: "button text"]
-
-[sign-off]`;
+      return `Create an email campaign. Just the SUBJECT line, one short BODY paragraph (2-3 sentences), and a CTA button text. No sections, no headers, no sign-offs.`;
 
     case 'landing_page':
-      return `Create landing page content.
-
-Generate section-by-section copy:
-1. Hero section (headline + subheadline + CTA)
-2. Problem section
-3. Solution section with 3 key points
-4. Social proof section
-5. Final CTA section
-
-Format your response as:
-[HERO]
-Headline: [text]
-Subheadline: [text]
-CTA Button: [text]
-
-[SECTION 1 — THE PROBLEM]
-Headline: [text]
-Copy: [paragraph]
-
-[SECTION 2 — THE SOLUTION]
-Headline: [text]
-Point 1: [headline + description]
-Point 2: [headline + description]
-Point 3: [headline + description]
-
-[SECTION 3 — SOCIAL PROOF]
-Headline: [text]
-Testimonial: [quote]
-Metrics: [key numbers]
-
-[FINAL CTA]
-Headline: [text]
-CTA Button: [text]`;
+      return `Create landing page content. Just the hero headline, a 2-sentence value proposition, and a CTA button text. No full page layouts or multiple sections.`;
 
     case 'experiential':
-      return `Create an experiential activation concept.
-
-Generate:
-1. Experience flow (discovery → engagement → peak moment → takeaway)
-2. Logistics (venue type, staffing, duration, capacity)
-3. Shareability moments (designed for social capture)
-
-Format your response as:
-CONCEPT: [one-line summary]
-
-EXPERIENCE FLOW:
-1. DISCOVERY (0-2 min): [description]
-2. ENGAGEMENT (2-10 min): [description]
-3. THE MOMENT (peak): [description]
-4. TAKEAWAY: [what participants leave with]
-
-LOGISTICS:
-Venue: [type and requirements]
-Staffing: [team needed]
-Duration: [hours]
-Capacity: [number]
-
-SHAREABILITY:
-[what makes this phone-out worthy]`;
+      return `Describe this experiential activation in 2-3 sentences. Just the core concept and the one moment that makes it special. No logistics, no staffing, no sections.`;
 
     case 'blog_post':
-      return `Create a blog post outline with key copy.
-
-Generate:
-1. Title and meta description
-2. Lede paragraph (hook the reader)
-3. 3-4 sections with headlines and copy direction
-4. Closing CTA
-
-Format your response as:
-TITLE: [title]
-META: [155-char description]
-READ TIME: ~[X] minutes
-
-LEDE:
-[opening paragraph]
-
-SECTION 1: [HEADLINE]
-[2-3 paragraph copy]
-
-SECTION 2: [HEADLINE]
-[2-3 paragraph copy]
-
-SECTION 3: [HEADLINE]
-[2-3 paragraph copy]
-
-CLOSING:
-[final paragraph with CTA]`;
+      return `Create a blog post concept. Just the TITLE and a 2-3 sentence summary of the angle and key argument. No full outline or section breakdowns.`;
 
     case 'podcast_ad':
-      return `Create a podcast ad script (60-second host-read, mid-roll).
-
-Rules:
-- Should feel natural, not scripted
-- Host endorsement tone
-- Clear CTA with tracking mechanism
-
-Format your response as:
-FORMAT: Host-read, 60 seconds, mid-roll
-
-[HOST SCRIPT]
-"[full script text — conversational, authentic]"
-
-KEY MESSAGES:
-- [message 1]
-- [message 2]
-- [message 3]
-
-CTA: [specific call to action with URL/code]`;
+      return `Write a podcast host-read ad script (30 seconds max). Just the script text in quotes — conversational and authentic. End with a short CTA. No sections or key messages lists.`;
 
     case 'influencer_collab':
-      return `Create an influencer collaboration brief.
-
-Generate:
-1. Creator brief (what we need, brand voice)
-2. Do's and Don'ts
-3. Deliverable requirements
-4. Key messages (for the creator to express in their own voice)
-
-Format your response as:
-CREATOR BRIEF:
-Brand: [name]
-Campaign: [name]
-What we need: [description]
-
-KEY MESSAGES (express in your own voice):
-- [message 1]
-- [message 2]
-
-DO:
-- [guideline]
-- [guideline]
-
-DON'T:
-- [restriction]
-- [restriction]
-
-DELIVERABLES:
-- [deliverable 1]
-- [deliverable 2]
-Usage rights: [terms]
-
-HASHTAGS: [required tags]`;
+      return `Describe this influencer collaboration in 2-3 sentences: what the creator does, the key message they convey, and the content format. No briefs, no do's/don'ts lists.`;
 
     case 'guerrilla':
-      return `Create a guerrilla marketing activation concept.
-
-Generate:
-1. The setup (location, timing, element of surprise)
-2. The execution (what happens, how people encounter it)
-3. The reveal (brand moment)
-4. Documentation plan (how to capture for social)
-
-Format your response as:
-CONCEPT: [one-line summary]
-
-THE SETUP:
-Location: [where]
-Timing: [when]
-Surprise element: [what's unexpected]
-
-THE EXECUTION:
-[step-by-step description of what happens]
-
-THE REVEAL:
-[how the brand is revealed]
-[tagline moment]
-
-DOCUMENTATION:
-[how to capture content for social amplification]
-
-LEGAL: [permit/clearance notes]`;
+      return `Describe this guerrilla marketing activation in 2-3 sentences. Just the concept: what happens, where, and the surprise/reveal moment. No logistics, documentation plans, or legal notes.`;
 
     case 'print_ad':
-      return `Create a print advertisement.
-
-Generate:
-1. Headline (punchy, memorable)
-2. Body copy (concise — 2-3 sentences max)
-3. Visual concept and layout direction
-4. Tagline placement
-
-Format your response as:
-HEADLINE:
-[main headline]
-
-BODY COPY:
-[2-3 sentences]
-
-TAGLINE:
-[tagline]
-
-LAYOUT DIRECTION:
-[describe composition, visual hierarchy, where elements sit]
-
-PUBLICATION TARGETS: [where this should run]`;
+      return `Create a print ad. Just the HEADLINE and 1-2 sentences of BODY COPY. No layout direction, no publication targets.`;
 
     default: {
       const _exhaustive: never = type;
