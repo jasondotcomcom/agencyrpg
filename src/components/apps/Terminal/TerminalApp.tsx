@@ -338,6 +338,7 @@ export default function TerminalApp(): React.ReactElement {
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const konamiWindowRef = useRef<string[]>([]);
+  const pendingActionRef = useRef<string | null>(null);
 
   // Persist tools to localStorage and notify other components
   useEffect(() => {
@@ -590,6 +591,27 @@ export default function TerminalApp(): React.ReactElement {
 
     // Echo input
     addLine('input', `agency@os:~$ ${trimmed}`);
+
+    // ─── Pending confirmation handler ───────────────────────────────────
+    if (pendingActionRef.current === 'reset') {
+      pendingActionRef.current = null;
+      if (trimmed === 'CONFIRM') {
+        addLine('success', 'All data deleted. Refreshing...');
+        setTimeout(() => {
+          try {
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('agencyrpg_') || key.startsWith('agencyrpg-')) {
+                localStorage.removeItem(key);
+              }
+            });
+          } catch { /* non-fatal */ }
+          window.location.reload();
+        }, 1500);
+      } else {
+        addLine('info', 'Reset cancelled.');
+      }
+      return;
+    }
 
     // History tracking
     setHistory(prev => [trimmed, ...prev.filter(h => h !== trimmed).slice(0, 48)]);
@@ -1650,6 +1672,23 @@ Human Resources
           addLine('success', `✓ Deleted: ${deleted.icon} ${deleted.name}`);
         }
       }
+    }
+
+    // ─── Game reset ───────────────────────────────────────────────────────
+
+    else if (['reset', 'wipe', 'startover', 'deletesave', 'startfresh', 'deletealldata'].includes(command)) {
+      pendingActionRef.current = 'reset';
+      addLines([
+        ['ascii',   '⚠️  WARNING'],
+        ['blank',   ''],
+        ['output',  'This will permanently delete all saved data including:'],
+        ['output',  '  - Your portfolio'],
+        ['output',  '  - Achievements'],
+        ['output',  '  - Budget & reputation'],
+        ['output',  '  - All progress'],
+        ['blank',   ''],
+        ['error',   "Type 'CONFIRM' to proceed or anything else to cancel."],
+      ]);
     }
 
     // ─── Natural language fallback ────────────────────────────────────────
