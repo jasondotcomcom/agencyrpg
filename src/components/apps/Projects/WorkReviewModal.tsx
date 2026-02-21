@@ -3,7 +3,7 @@ import type { Campaign, Deliverable } from '../../../types/campaign';
 import { DELIVERABLE_TYPES, PLATFORMS, STATUS_DISPLAY } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { getTeamMembers } from '../../../data/team';
-import { parseContent, isVideoType, stripTrailingVisualDescription } from '../../../utils/contentFormatter';
+import { parseContent, isVideoType, stripTrailingVisualDescription, generateScriptSummary } from '../../../utils/contentFormatter';
 import styles from './WorkReviewModal.module.css';
 
 interface WorkReviewModalProps {
@@ -181,13 +181,36 @@ const COLLAPSED_LINE_LIMIT = 8;
 
 function ContentPreview({ content, type }: { content: string; type: string }) {
   const [expanded, setExpanded] = useState(false);
+  const [showFullScript, setShowFullScript] = useState(false);
 
   if (isVideoType(type)) {
     return (
       <div className={styles.previewContent}>
-        {stripTrailingVisualDescription(content).split('\n').map((line, i) => (
-          <p key={i} className={styles.previewLine}>{line || '\u00A0'}</p>
-        ))}
+        <div className={styles.scriptToggle}>
+          <button
+            className={`${styles.scriptToggleBtn} ${!showFullScript ? styles.activeToggle : ''}`}
+            onClick={() => setShowFullScript(false)}
+          >
+            Quick View
+          </button>
+          <button
+            className={`${styles.scriptToggleBtn} ${showFullScript ? styles.activeToggle : ''}`}
+            onClick={() => setShowFullScript(true)}
+          >
+            Full Script
+          </button>
+        </div>
+        {showFullScript ? (
+          <div className={styles.scriptFull}>
+            {stripTrailingVisualDescription(content).split('\n').map((line, i) => (
+              <p key={i} className={styles.previewLine}>{line || '\u00A0'}</p>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.scriptSummary}>
+            {generateScriptSummary(content)}
+          </div>
+        )}
       </div>
     );
   }

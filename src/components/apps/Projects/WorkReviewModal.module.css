@@ -194,6 +194,51 @@
   opacity: 0.7;
 }
 
+.scriptToggle {
+  display: flex;
+  gap: 0;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  padding: 3px;
+  align-self: flex-start;
+  margin-bottom: 12px;
+}
+
+.scriptToggleBtn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.scriptToggleBtn.activeToggle {
+  background: white;
+  color: var(--text-dark);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.scriptSummary {
+  font-size: 0.875rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  color: var(--text-dark);
+}
+
+.scriptFull {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
 .previousFeedback {
   margin-top: 16px;
   padding: 14px 16px;
