@@ -178,7 +178,7 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
           </div>
 
           <p className={styles.confirmationNote}>
-            This will use Claude (text) and DALL-E (images). Should take about 30-60 seconds.
+            This will use Claude (text) and DALL-E (images).
           </p>
 
           <div className={styles.confirmationActions}>
