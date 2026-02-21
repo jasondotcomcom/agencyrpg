@@ -15,7 +15,6 @@ import {
   getEventDelay,
   BONUS_EVENT_CONFIG,
   MILESTONES,
-  REPUTATION_TIERS,
 } from '../types/reputation';
 import { emitSave } from '../utils/saveSignal';
 
