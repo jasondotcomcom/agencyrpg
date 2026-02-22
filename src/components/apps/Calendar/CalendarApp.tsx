@@ -120,7 +120,6 @@ export default function CalendarApp() {
 
   const [phase, setPhase] = useState<'messy' | 'playing' | 'solved' | 'failed'>('messy');
   const [scenario, setScenario] = useState<CalScenario>(() => pickScenario());
-  const [solvedGrid, setSolvedGrid] = useState<(string | null)[][]>([]);
   const [solvedPlacements, setSolvedPlacements] = useState<Map<string, { day: number; slot: number }>>(new Map());
 
   const startGame = useCallback(() => {
@@ -150,8 +149,7 @@ export default function CalendarApp() {
       <div className={styles.container}>
         <CalendarShuffleEnhanced
           scenario={scenario}
-          onWin={(grid, placements, meta) => {
-            setSolvedGrid(grid);
+          onWin={(_grid, placements, meta) => {
             setSolvedPlacements(placements);
             handleWin(meta);
           }}
@@ -175,7 +173,6 @@ export default function CalendarApp() {
         </div>
         <SolvedCalendarView
           scenario={scenario}
-          grid={solvedGrid}
           placements={solvedPlacements}
         />
       </div>
@@ -251,11 +248,9 @@ function MessyCalendarPreview({ scenario }: { scenario: CalScenario }) {
 
 function SolvedCalendarView({
   scenario,
-  grid,
   placements,
 }: {
   scenario: CalScenario;
-  grid: (string | null)[][];
   placements: Map<string, { day: number; slot: number }>;
 }) {
   return (

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { GameResultMeta } from './types';
 import styles from './MicroGames.module.css';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

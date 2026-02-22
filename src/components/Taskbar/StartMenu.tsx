@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePlayerContext } from '../../context/PlayerContext';
 import { useWindowContext } from '../../context/WindowContext';
 import { useAchievementContext } from '../../context/AchievementContext';
@@ -26,7 +26,7 @@ export default function StartMenu({ onClose }: { onClose: () => void }) {
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState<'newgame' | 'logoff' | null>(null);
   const [copied, setCopied] = useState(false);
-  const submenuTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const submenuTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Close on click outside
   useEffect(() => {

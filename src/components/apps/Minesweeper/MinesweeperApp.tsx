@@ -77,7 +77,7 @@ export default function MinesweeperApp() {
   const [firstClick, setFirstClick] = useState(true);
   const [time, setTime] = useState(0);
   const [flagCount, setFlagCount] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
   const hitMineRef = useRef(false);
 
   // Timer
