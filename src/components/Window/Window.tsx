@@ -13,6 +13,7 @@ import PortfolioApp from '../apps/Portfolio/PortfolioApp';
 import SettingsApp from '../apps/Settings/SettingsApp';
 import TerminalApp from '../apps/Terminal/TerminalApp';
 import NotesApp from '../apps/Notes/NotesApp';
+import CalendarApp from '../apps/Calendar/CalendarApp';
 import SolitaireApp from '../apps/Solitaire/SolitaireApp';
 import MinesweeperApp from '../apps/Minesweeper/MinesweeperApp';
 import { lazy, Suspense } from 'react';
@@ -143,6 +144,8 @@ function AppContent({ appId }: { appId: string }) {
       return <TerminalApp />;
     case 'notes':
       return <NotesApp />;
+    case 'calendar':
+      return <CalendarApp />;
     case 'solitaire':
       return <SolitaireApp />;
     case 'minesweeper':

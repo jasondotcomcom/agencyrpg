@@ -239,13 +239,6 @@ export default function MicroGames({
         unlockAchievement('bubble-surgeon');
       }
 
-      // Calendar Shuffle achievements
-      if (game.id === 'calendar-shuffle' && meta?.customFlags) {
-        if (meta.customFlags.includes('no-invalid')) unlockAchievement('calendar-tetris');
-        if (meta.customFlags.includes('focus-placed')) unlockAchievement('protected-my-peace');
-        if (meta.customFlags.includes('trashed-email')) unlockAchievement('that-was-an-email');
-      }
-
     } else {
       // ── Fail path ───────────────────────────────────────────────────
       incrementCounter('mg-total-fails');
