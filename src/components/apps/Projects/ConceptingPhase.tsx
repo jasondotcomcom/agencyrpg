@@ -45,6 +45,7 @@ export default function ConceptingPhase({ campaign }: ConceptingPhaseProps): Rea
     triggerCampaignEvent('CONCEPTING', {
       campaignName: campaign.campaignName,
       clientName: campaign.clientName,
+      assignedTeamIds: selectedTeamIds,
     });
     await generateConcepts(campaign.id);
   };

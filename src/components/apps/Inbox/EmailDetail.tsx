@@ -98,6 +98,7 @@ export default function EmailDetail({ email }: EmailDetailProps) {
     triggerCampaignEvent('BRIEF_ACCEPTED', {
       campaignName: email.subject.replace(' - Campaign Brief', '').replace('Campaign Brief', email.campaignBrief.clientName),
       clientName: email.campaignBrief.clientName,
+      assignedTeamIds: [],
     });
 
     // Auto-open Projects window (or bring to front if already open)

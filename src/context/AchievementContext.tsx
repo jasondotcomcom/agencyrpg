@@ -105,6 +105,12 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'calendar-tetris',      name: 'Calendar Tetris',         icon: '📅', description: 'Scheduled all meetings without any invalid placements.' },
   { id: 'protected-my-peace',   name: 'Protected My Peace',      icon: '🧘', description: 'Successfully scheduled Focus Time.' },
   { id: 'that-was-an-email',    name: 'That Meeting Was An Email', icon: '📧', description: 'Trashed the meeting that should have been an email.' },
+  { id: 'schedule-survivor',    name: 'Schedule Survivor',       icon: '🗓️', description: 'Won after an interruption reshuffled your week.' },
+  { id: 'master-groveler',      name: 'Master Groveler',         icon: '🙇', description: 'Used Grovel 3 times in one game.' },
+  { id: 'delegation-king',      name: 'Delegation King',         icon: '👑', description: 'Used all delegate charges in one game.' },
+  { id: 'chaos-calendar',       name: 'Chaos Calendar',          icon: '🌪️', description: 'Won chaos mode with 5+ seconds left.' },
+  { id: 'zero-trash',           name: 'Zero Waste',              icon: '♻️', description: 'Won without trashing any meetings.' },
+  { id: 'recurring-champion',   name: 'Recurring Champion',      icon: '🔁', description: 'Placed a recurring meeting on all 5 days in one drop.' },
   { id: 'quick-draw',           name: 'Quick Draw',              icon: '🤠', description: 'Won a click game in under 1 second.' },
   { id: 'iron-grip',            name: 'Iron Grip',               icon: '🦾', description: 'Won 5 hold-button games.' },
 

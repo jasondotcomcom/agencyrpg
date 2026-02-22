@@ -318,9 +318,28 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  pointer-events: none;
   z-index: 1;
   animation: calSnapIn 0.2s ease;
+}
+
+.gamePlacedClickable {
+  pointer-events: auto;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.gamePlacedClickable:hover {
+  filter: brightness(1.15);
+}
+
+.gamePlacedLocked {
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.lockIcon {
+  font-size: 0.5rem;
+  opacity: 0.8;
 }
 
 @keyframes calSnapIn {
@@ -544,4 +563,252 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ─── Urgent Queue Items ─────────────────────── */
+
+.gameQueueItemUrgent {
+  border-left-color: #e74c3c !important;
+  animation: urgentPulse 1s ease infinite;
+}
+
+@keyframes urgentPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+  50%  { box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+
+.urgentBadge {
+  display: inline-block;
+  font-size: 0.5rem;
+  font-weight: 800;
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-right: 4px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Dimmed / Dependency Labels ─────────────── */
+
+.gameQueueItemDimmed {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.dependencyLabel {
+  font-size: 0.5rem;
+  color: #e67e22;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ─── Recurring Badges ───────────────────────── */
+
+.recurringBadge {
+  display: inline-block;
+  font-size: 0.5rem;
+  font-weight: 800;
+  color: #3498db;
+  background: rgba(52, 152, 219, 0.12);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.recurringGhostBadge {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  color: #3498db;
+  margin-left: 4px;
+}
+
+/* ─── Score Bar ──────────────────────────────── */
+
+.scoreBar {
+  display: flex;
+  align-items: center;
+  padding: 3px 12px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--text-secondary, #666);
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  flex-shrink: 0;
+}
+
+/* ─── Interruption Banner ────────────────────── */
+
+.interruptionBanner {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #fff3cd, #ffeeba);
+  border-bottom: 2px solid #f0ad4e;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #856404;
+  z-index: 100;
+  animation: bannerSlideIn 0.35s cubic-bezier(0.17, 0.67, 0.35, 1.2);
+}
+
+@keyframes bannerSlideIn {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.interruptionEmoji {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.interruptionMsg {
+  flex: 1;
+}
+
+.interruptionDismiss {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  font-family: inherit;
+  padding: 4px 12px;
+  border: none;
+  border-radius: 5px;
+  background: #f0ad4e;
+  color: white;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.interruptionDismiss:hover {
+  background: #ec971f;
+}
+
+/* ─── Conflict Resolution Modal ──────────────── */
+
+.conflictOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.conflictModal {
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  width: 260px;
+  max-width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.conflictTitle {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #e74c3c;
+  margin-bottom: 6px;
+}
+
+.conflictDesc {
+  font-size: 0.6875rem;
+  color: var(--text-secondary, #666);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.conflictOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.conflictOption {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 8px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  background: white;
+  color: var(--text-dark, #333);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.conflictOption:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.03);
+  transform: translateY(-1px);
+}
+
+.conflictOptionDisabled,
+.conflictOption:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ─── Chaos Mode ─────────────────────────────── */
+
+.timerBarChaos {
+  animation: chaosPulse 0.5s ease infinite;
+}
+
+@keyframes chaosPulse {
+  0%   { background: rgba(231, 76, 60, 0.1); }
+  50%  { background: rgba(231, 76, 60, 0.25); }
+  100% { background: rgba(231, 76, 60, 0.1); }
+}
+
+.gameQueueChaos {
+  animation: queueFlash 1s ease infinite;
+}
+
+@keyframes queueFlash {
+  0%   { background: var(--color-surface, #fafafa); }
+  50%  { background: rgba(231, 76, 60, 0.05); }
+  100% { background: var(--color-surface, #fafafa); }
+}
+
+/* ─── Trash Penalties ────────────────────────── */
+
+.gameTrashPenalty {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  color: #e74c3c;
+  margin-left: 4px;
+}
+
+.trashShake {
+  animation: trashShake 0.4s ease;
+  border-color: #e74c3c !important;
+  background: rgba(231, 76, 60, 0.08) !important;
+}
+
+@keyframes trashShake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-6px); }
+  40%  { transform: translateX(6px); }
+  60%  { transform: translateX(-4px); }
+  80%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
 }

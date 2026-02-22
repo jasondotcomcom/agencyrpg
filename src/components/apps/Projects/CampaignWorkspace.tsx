@@ -209,6 +209,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
           clientName: campaign.clientName,
           score: campaignScore.total,
           awardName: award.name,
+          assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
         });
         // Check if this award triggers the ending (Cannes + 5 campaigns + 80 rep)
         const newReputation = repState.currentReputation + award.repBonus;
@@ -226,12 +227,14 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
         campaignName: campaign.campaignName,
         clientName: campaign.clientName,
         score: campaignScore.total,
+        assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
       });
     } else if (campaignScore.total < 75) {
       triggerCampaignEvent('CAMPAIGN_SCORED_POORLY', {
         campaignName: campaign.campaignName,
         clientName: campaign.clientName,
         score: campaignScore.total,
+        assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
       });
     }
   };

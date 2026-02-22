@@ -48,6 +48,7 @@ export interface ChatEventContext {
   clientName: string;
   score?: number;
   awardName?: string;
+  assignedTeamIds?: string[];
 }
 
 // ─── Message Template (used by chatMessages.ts) ──────────────────────────────

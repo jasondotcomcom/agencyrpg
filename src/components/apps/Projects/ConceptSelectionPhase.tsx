@@ -62,12 +62,14 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
     triggerCampaignEvent('CONCEPT_CHOSEN', {
       campaignName: campaign.campaignName,
       clientName: campaign.clientName,
+      assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
     });
     generateCampaignDeliverables(campaign.id);
     setTimeout(() => {
       triggerCampaignEvent('DELIVERABLES_GENERATING', {
         campaignName: campaign.campaignName,
         clientName: campaign.clientName,
+        assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
       });
     }, 8000);
   };
