@@ -48,7 +48,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
   const { addEntry, attachAward } = usePortfolioContext();
   const { checkForEnding, checkForHostileTakeover } = useEndingContext();
   const { cheat, consumeOneTimeBonus } = useCheatContext();
-  const { unlockAchievement } = useAchievementContext();
+  const { unlockAchievement, incrementCounter, resetCounter, getCounter } = useAchievementContext();
   const campaign = getCampaign(campaignId);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,7 +87,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
       id: campaign.id,
       name: campaign.campaignName,
       clientName: campaign.clientName,
-      industry: campaign.brief.clientName, // Using client name as industry proxy for now
+      industry: campaign.brief.industry || campaign.brief.clientName,
       wasUnderBudget,
       conceptBoldness: 0.5, // Could be calculated from concept selection
     });
@@ -157,6 +157,84 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
     if (campaignScore.total < 50) unlockAchievement('disaster');
     if (earnedAwards.length > 0) unlockAchievement('award-winner');
     if (earnedAwards.some(a => a.id === 'cannes')) unlockAchievement('cannes-shortlist');
+
+    // ── Score-based achievements ──────────────────────────────────────────
+    const score = campaignScore.total;
+    if (score >= 80) unlockAchievement('solid-work');
+    if (score >= 90) unlockAchievement('agency-quality');
+    if (score >= 95) unlockAchievement('instant-classic');
+
+    // Streak tracking
+    if (score >= 80) { incrementCounter('streak-80'); } else { resetCounter('streak-80'); }
+    if (score >= 90) { incrementCounter('streak-90'); } else { resetCounter('streak-90'); }
+    if (getCounter('streak-80') >= 3) unlockAchievement('consistent-performer');
+    if (getCounter('streak-90') >= 3) unlockAchievement('hot-streak');
+
+    // Average score across 5+ campaigns
+    const allScores = [...repState.completedCampaigns.map(c => c.score), score];
+    if (allScores.length >= 5) {
+      const avg = allScores.reduce((s, v) => s + v, 0) / allScores.length;
+      if (avg >= 85) unlockAchievement('the-standard');
+    }
+
+    // ── Budget achievements ───────────────────────────────────────────────
+    if (wasUnderBudget) {
+      unlockAchievement('under-budget');
+      incrementCounter('streak-under-budget');
+      if (getCounter('streak-under-budget') >= 3) unlockAchievement('budget-streak');
+    } else {
+      resetCounter('streak-under-budget');
+      if (campaign.productionSpent > campaign.productionBudget) unlockAchievement('over-budget');
+    }
+
+    // ── "Needs Work" streak (The Closer) ──────────────────────────────────
+    if (campaignScore.tier !== 'needs_improvement') {
+      incrementCounter('streak-no-needs-work');
+      if (getCounter('streak-no-needs-work') >= 3) unlockAchievement('the-closer');
+    } else {
+      resetCounter('streak-no-needs-work');
+    }
+
+    // ── Industry tracking ─────────────────────────────────────────────────
+    const industry = campaign.brief.industry || campaign.clientName;
+    incrementCounter(`industry-${industry}`);
+    if (getCounter(`industry-${industry}`) >= 3) unlockAchievement('specialist');
+    const industries = new Set([...repState.completedCampaigns.map(c => c.industry), industry]);
+    if (industries.size >= 3) unlockAchievement('range');
+
+    // ── Tools used ────────────────────────────────────────────────────────
+    if ((campaign.toolsUsed?.length ?? 0) >= 3) unlockAchievement('big-spender-tools');
+
+    // ── Workaholic (3+ active at moment of completion) ────────────────────
+    const activeCampaigns = campaigns.filter(c => c.phase !== 'completed');
+    if (activeCampaigns.length >= 3) unlockAchievement('workaholic');
+
+    // ── Team achievements ─────────────────────────────────────────────────
+    const teamIds = campaign.conceptingTeam?.memberIds ?? [];
+    if (teamIds.length === 4) unlockAchievement('full-house');
+    if (teamIds.length === 2 && score >= 85) unlockAchievement('dynamic-duo');
+
+    // Delegation Master — track all 8 team member IDs used across campaigns
+    teamIds.forEach(id => incrementCounter(`team-used-${id}`));
+    const allTeamMemberIds = ['copywriter', 'art-director', 'strategist', 'technologist', 'suit', 'media', 'pm', 'hr'];
+    if (allTeamMemberIds.every(id => getCounter(`team-used-${id}`) > 0)) unlockAchievement('delegation-master');
+
+    // Ride or Die — same team composition 3x
+    if (teamIds.length > 0) {
+      const teamKey = [...teamIds].sort().join(',');
+      incrementCounter(`team-combo-${teamKey}`);
+      if (getCounter(`team-combo-${teamKey}`) >= 3) unlockAchievement('ride-or-die');
+    }
+
+    // ── Deadline achievements ─────────────────────────────────────────────
+    const daysLeft = Math.floor((new Date(campaign.deadline).getTime() - Date.now()) / 86400000);
+    if (daysLeft >= 10) unlockAchievement('speed-run');
+    if (daysLeft <= 1) unlockAchievement('down-to-wire');
+
+    // ── One at a Time ─────────────────────────────────────────────────────
+    if (newCompletedCount >= 5 && getCounter('had-overlapping-campaigns') === 0) {
+      unlockAchievement('one-at-a-time');
+    }
 
     // Add to portfolio
     addEntry({

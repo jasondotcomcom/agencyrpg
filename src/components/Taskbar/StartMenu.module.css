@@ -5,8 +5,6 @@
   bottom: 64px;
   left: 12px;
   width: 260px;
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 248, 252, 0.98) 100%);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(168, 230, 207, 0.3);
@@ -16,6 +14,8 @@
   padding: 6px 0;
   animation: menuSlideUp 0.15s ease;
   font-family: inherit;
+  /* No overflow clipping — submenus need to fly out to the right.
+     Menu content is ~530px which fits on any desktop viewport. */
 }
 
 @keyframes menuSlideUp {
@@ -84,8 +84,13 @@
   position: relative;
 }
 
-.item:hover {
+.item:hover:not(:disabled) {
   background: rgba(168, 230, 207, 0.15);
+}
+
+.item:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .itemIcon {

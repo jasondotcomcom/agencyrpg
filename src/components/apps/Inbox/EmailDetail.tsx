@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Email } from '../../../types/email';
 import { useEmailContext } from '../../../context/EmailContext';
 import { useWindowContext } from '../../../context/WindowContext';
@@ -6,6 +6,7 @@ import { useCampaignContext } from '../../../context/CampaignContext';
 import { useReputationContext } from '../../../context/ReputationContext';
 import { useChatContext } from '../../../context/ChatContext';
 import { useEndingContext } from '../../../context/EndingContext';
+import { useAchievementContext } from '../../../context/AchievementContext';
 import styles from './EmailDetail.module.css';
 
 interface EmailDetailProps {
@@ -44,8 +45,19 @@ export default function EmailDetail({ email }: EmailDetailProps) {
   const { addReputation, subtractReputation, state: repState } = useReputationContext();
   const { triggerCampaignEvent } = useChatContext();
   const { handleAcquisitionAccept, handleAcquisitionReject, handleHostileTakeoverAccept, acquisitionState } = useEndingContext();
+  const { unlockAchievement, incrementCounter } = useAchievementContext();
   const [reputationApplied, setReputationApplied] = useState(false);
   const [acquisitionActioned, setAcquisitionActioned] = useState(false);
+  const briefOpenedAtRef = useRef<number>(email.type === 'campaign_brief' ? Date.now() : 0);
+
+  // "Actually Read the Brief" achievement — 30+ seconds viewing a brief
+  useEffect(() => {
+    if (email.type !== 'campaign_brief') return;
+    const timer = setTimeout(() => {
+      unlockAchievement('actually-read-brief');
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, [email.id, email.type, unlockAchievement]);
 
   // Apply reputation bonus when email is first read
   useEffect(() => {
@@ -75,11 +87,19 @@ export default function EmailDetail({ email }: EmailDetailProps) {
   const handleAcceptBrief = () => {
     if (!email.campaignBrief || briefAlreadyAccepted) return;
 
+    // "TL;DR" achievement — accepted brief within 5 seconds
+    const elapsed = Date.now() - briefOpenedAtRef.current;
+    if (elapsed < 5000) unlockAchievement('tldr');
+
     acceptBrief(email.id);
 
     // Create campaign from the brief
     const deadline = new Date();
     deadline.setDate(deadline.getDate() + 28); // 4 weeks from now
+
+    // Track overlapping campaigns for "One at a Time" achievement
+    const activeCampaignCount = campaigns.filter(c => c.phase !== 'completed').length;
+    if (activeCampaignCount > 0) incrementCounter('had-overlapping-campaigns');
 
     createCampaign(
       email.id,

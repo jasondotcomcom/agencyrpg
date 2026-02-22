@@ -3,6 +3,7 @@ import type { Campaign, CampaignConcept } from '../../../types/campaign';
 import { DELIVERABLE_TYPES, PLATFORMS } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { useChatContext } from '../../../context/ChatContext';
+import { useAchievementContext } from '../../../context/AchievementContext';
 import styles from './ConceptSelectionPhase.module.css';
 
 const BUILD_CTA_LABELS = [
@@ -22,6 +23,7 @@ interface ConceptSelectionPhaseProps {
 export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhaseProps): React.ReactElement {
   const { selectConcept, generateCampaignDeliverables, generateConcepts, tweakConcept, isGeneratingConcepts } = useCampaignContext();
   const { triggerCampaignEvent } = useChatContext();
+  const { unlockAchievement, incrementCounter } = useAchievementContext();
   const [showReviseModal, setShowReviseModal] = useState(false);
   const [revisionFeedback, setRevisionFeedback] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -54,6 +56,10 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
 
   const handleBuildCampaign = () => {
     if (!selectedConceptId || !selectedConcept) return;
+    // First Thought Best Thought: selected concept is the first one generated
+    if (campaign.generatedConcepts.length > 0 && selectedConceptId === campaign.generatedConcepts[0].id) {
+      unlockAchievement('first-thought');
+    }
     setShowConfirmation(true);
   };
 
@@ -77,7 +83,9 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
   const handleRevise = async () => {
     if (!revisionFeedback.trim()) return;
     setShowReviseModal(false);
-    // In a real implementation, this would pass the feedback to the AI
+    // Track regeneration count for "Never Satisfied" achievement
+    const newCount = incrementCounter(`regen-${campaign.id}`);
+    if (newCount >= 3) unlockAchievement('perfectionist-concepts');
     await generateConcepts(campaign.id);
     setRevisionFeedback('');
   };
@@ -95,6 +103,7 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
     setTweakingConceptId(conceptId);
     try {
       await tweakConcept(campaign.id, conceptId, tweakNote.trim());
+      unlockAchievement('tweaker');
     } finally {
       setTweakingConceptId(null);
     }

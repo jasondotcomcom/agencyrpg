@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -8,6 +8,14 @@ export interface PlayerContextValue {
   playerName: string | null;
   setPlayerName: (name: string) => void;
   clearPlayerName: () => void;
+  /** True while the screensaver overlay should be shown (between log-off and sign-in). */
+  showScreensaver: boolean;
+  /** Log off: save → clear name → show screensaver. */
+  logOff: () => void;
+  /** Dismiss screensaver → reveal onboarding. */
+  dismissScreensaver: () => void;
+  /** The player name at the time of log-off (for screensaver display). */
+  screensaverName: string;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -18,6 +26,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [playerName, setPlayerNameState] = useState<string | null>(
     () => localStorage.getItem(STORAGE_KEY),
   );
+  const [showScreensaver, setShowScreensaver] = useState(false);
+  const screensaverNameRef = useRef('Agency');
 
   const setPlayerName = useCallback((name: string) => {
     localStorage.setItem(STORAGE_KEY, name);
@@ -29,8 +39,27 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     setPlayerNameState(null);
   }, []);
 
+  const logOff = useCallback(() => {
+    if (playerName) screensaverNameRef.current = playerName;
+    localStorage.removeItem(STORAGE_KEY);
+    setPlayerNameState(null);
+    setShowScreensaver(true);
+  }, [playerName]);
+
+  const dismissScreensaver = useCallback(() => {
+    setShowScreensaver(false);
+  }, []);
+
   return (
-    <PlayerContext.Provider value={{ playerName, setPlayerName, clearPlayerName }}>
+    <PlayerContext.Provider value={{
+      playerName,
+      setPlayerName,
+      clearPlayerName,
+      showScreensaver,
+      logOff,
+      dismissScreensaver,
+      screensaverName: screensaverNameRef.current,
+    }}>
       {children}
     </PlayerContext.Provider>
   );

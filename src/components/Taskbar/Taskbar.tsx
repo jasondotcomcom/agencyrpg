@@ -16,7 +16,8 @@ export default function Taskbar() {
 
   const windowList = Array.from(windows.values());
 
-  const toggleMenu = useCallback(() => {
+  const toggleMenu = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent StartMenu's outside-click handler from catching this
     setMenuOpen(prev => !prev);
   }, []);
 
@@ -26,7 +27,7 @@ export default function Taskbar() {
 
   return (
     <div className={styles.taskbar}>
-      <button className={`${styles.startButton} ${menuOpen ? styles.startButtonActive : ''}`} onClick={toggleMenu}>
+      <button className={`${styles.startButton} ${menuOpen ? styles.startButtonActive : ''}`} onMouseDown={toggleMenu}>
         <div className={styles.startLogo}>
           <svg viewBox="0 0 24 24" fill="none">
             {/* Cute star/sparkle logo */}

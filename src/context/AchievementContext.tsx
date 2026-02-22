@@ -34,6 +34,44 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'barely-passed',        name: 'Squeaked By',             icon: '😅', description: 'Completed a campaign with exactly 70.' },
   { id: 'disaster',             name: 'Dumpster Fire',           icon: '🗑️', description: 'Scored below 50 on a campaign.' },
 
+  // ── Score achievements (extended) ─────────────────────────────────────────
+  { id: 'solid-work',           name: 'Solid Work',              icon: '📊', description: 'Scored 80+ on a campaign.' },
+  { id: 'agency-quality',       name: 'Agency Quality',          icon: '🏆', description: 'Scored 90+ on a campaign.' },
+  { id: 'instant-classic',      name: 'Instant Classic',         icon: '💎', description: 'Scored 95+ on a campaign.' },
+  { id: 'consistent-performer', name: 'Consistent Performer',    icon: '📈', description: 'Scored 80+ on 3 campaigns in a row.' },
+  { id: 'hot-streak',           name: 'Hot Streak',              icon: '🔥', description: 'Scored 90+ on 3 campaigns in a row.' },
+  { id: 'the-standard',         name: 'The Standard',            icon: '⭐', description: 'Average score of 85+ across 5 campaigns.' },
+
+  // ── Creative style ──────────────────────────────────────────────────────
+  { id: 'first-thought',        name: 'First Thought Best Thought', icon: '⚡', description: 'Selected the first concept without viewing others.' },
+  { id: 'perfectionist-concepts', name: 'Never Satisfied',       icon: '🔄', description: 'Regenerated concepts 3+ times on one campaign.' },
+  { id: 'tweaker',              name: 'The Tweaker',             icon: '✏️', description: 'Tweaked a concept before selecting it.' },
+  { id: 'range',                name: 'Range',                   icon: '🌈', description: 'Completed campaigns for 3+ different industries.' },
+  { id: 'specialist',           name: 'The Specialist',          icon: '🎯', description: 'Completed 3 campaigns in the same industry.' },
+  { id: 'big-spender-tools',    name: 'Tool Time',               icon: '🧰', description: 'Used 3+ terminal tools on a single campaign.' },
+
+  // ── Work ethic ──────────────────────────────────────────────────────────
+  { id: 'under-budget',         name: 'Overachiever',            icon: '💰', description: 'Completed a campaign under budget.' },
+  { id: 'over-budget',          name: 'Big Spender',             icon: '💸', description: 'Completed a campaign over budget.' },
+  { id: 'budget-streak',        name: 'Penny Pincher',           icon: '🏦', description: 'Completed 3 campaigns under budget in a row.' },
+  { id: 'workaholic',           name: 'Workaholic',              icon: '🤯', description: 'Had 3+ active campaigns at once.' },
+  { id: 'one-at-a-time',        name: 'One at a Time',           icon: '🧘', description: 'Completed 5 campaigns without overlapping.' },
+  { id: 'speed-run',            name: 'Speed Run',               icon: '⏩', description: 'Submitted a campaign with 10+ days to spare.' },
+  { id: 'down-to-wire',         name: 'Down to the Wire',        icon: '⏰', description: 'Submitted a campaign with 1 day or less before deadline.' },
+
+  // ── Team dynamics ───────────────────────────────────────────────────────
+  { id: 'delegation-master',    name: 'Delegation Master',       icon: '👥', description: 'Used every team member at least once.' },
+  { id: 'ride-or-die',          name: 'Ride or Die',             icon: '🤝', description: 'Used the same team on 3 campaigns.' },
+  { id: 'full-house',           name: 'Full House',              icon: '🃏', description: 'Assembled a 4-person team.' },
+  { id: 'dynamic-duo',          name: 'Dynamic Duo',             icon: '👯', description: 'Won with a 2-person team and scored 85+.' },
+
+  // ── Meta / funny ────────────────────────────────────────────────────────
+  { id: 'actually-read-brief',  name: 'Actually Read the Brief', icon: '📖', description: 'Spent 30+ seconds viewing a brief email.' },
+  { id: 'tldr',                 name: 'TL;DR',                   icon: '💨', description: 'Accepted a brief within 5 seconds of opening it.' },
+  { id: 'the-closer',           name: 'The Closer',              icon: '🤝', description: 'Got 3 campaigns approved with no "needs improvement."' },
+  { id: 'screen-burned',        name: 'Screen Burned',           icon: '📺', description: 'Watched the screensaver for 60 seconds.' },
+  { id: 'corner-hunter',        name: 'Corner Hunter',           icon: '📐', description: 'Saw the logo hit exactly in the corner.' },
+
   // ── Award achievements ────────────────────────────────────────────────────
   { id: 'award-winner',         name: 'Award Winner',            icon: '🏆', description: 'Won your first industry award.' },
   { id: 'cannes-shortlist',     name: 'Golden Lion',             icon: '🦁', description: 'Got work shortlisted at Cannes Lions.' },

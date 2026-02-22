@@ -1,0 +1,57 @@
+.screensaver {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000;
+  cursor: none;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Bouncing Logo ───────────────────────────────────────────────────────── */
+
+.logo {
+  position: absolute;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  transition: color 0.3s ease;
+  text-shadow: 0 0 20px currentColor;
+  pointer-events: none;
+}
+
+/* ── Falling Buzzwords ───────────────────────────────────────────────────── */
+
+.buzzword {
+  position: absolute;
+  top: -30px;
+  color: rgba(255, 255, 255, 0.06);
+  font-size: 0.85rem;
+  font-family: monospace;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: fall linear infinite;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(-30px);
+  }
+  100% {
+    transform: translateY(110vh);
+  }
+}
+
+/* ── Hint Text ───────────────────────────────────────────────────────────── */
+
+.hint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}

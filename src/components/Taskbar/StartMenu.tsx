@@ -19,7 +19,7 @@ interface MenuItem {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function StartMenu({ onClose }: { onClose: () => void }) {
-  const { playerName, clearPlayerName } = usePlayerContext();
+  const { playerName, logOff: playerLogOff } = usePlayerContext();
   const { focusOrOpenWindow, addNotification, windows } = useWindowContext();
   const { recordAppOpened } = useAchievementContext();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -74,12 +74,12 @@ export default function StartMenu({ onClose }: { onClose: () => void }) {
 
   const handleLogOff = useCallback(() => {
     emitSave();
-    // Small delay to let save complete, then clear player name to return to onboarding
+    // Small delay to let save complete, then show screensaver
     setTimeout(() => {
-      if (clearPlayerName) clearPlayerName();
+      playerLogOff();
     }, 200);
     onClose();
-  }, [clearPlayerName, onClose]);
+  }, [playerLogOff, onClose]);
 
   const shareUrl = 'https://agencyrpg.com';
   const shareText = "I've been running my own creative agency at agencyrpg.com — it's a browser-based sim game where you manage campaigns, pitch clients, and try not to let the intern burn down the office.";
@@ -188,8 +188,8 @@ export default function StartMenu({ onClose }: { onClose: () => void }) {
 
       <div className={styles.separator} />
 
-      {/* Search */}
-      <button className={styles.item} onClick={() => openApp('notes', 'Notes')}>
+      {/* Search — placeholder for now */}
+      <button className={styles.item} disabled title="Coming soon">
         <span className={styles.itemIcon}>🔍</span>
         <span className={styles.itemLabel}>Search</span>
       </button>

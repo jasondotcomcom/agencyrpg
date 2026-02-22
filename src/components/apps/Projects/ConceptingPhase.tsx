@@ -3,6 +3,7 @@ import type { Campaign, TeamMember } from '../../../types/campaign';
 import { calculateTeamCost, formatBudget } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { useChatContext } from '../../../context/ChatContext';
+import { useAchievementContext } from '../../../context/AchievementContext';
 import { teamMembers } from '../../../data/team';
 import MicroGames from '../../MicroGames/MicroGames';
 import styles from './ConceptingPhase.module.css';
@@ -19,6 +20,7 @@ export default function ConceptingPhase({ campaign }: ConceptingPhaseProps): Rea
     isGeneratingConcepts,
   } = useCampaignContext();
   const { triggerCampaignEvent } = useChatContext();
+  const { incrementCounter, unlockAchievement } = useAchievementContext();
 
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>(
     campaign.conceptingTeam?.memberIds || []
@@ -42,6 +44,11 @@ export default function ConceptingPhase({ campaign }: ConceptingPhaseProps): Rea
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
+    // Track regeneration count for "Never Satisfied" achievement
+    if (campaign.generatedConcepts.length > 0) {
+      const newCount = incrementCounter(`regen-${campaign.id}`);
+      if (newCount >= 3) unlockAchievement('perfectionist-concepts');
+    }
     triggerCampaignEvent('CONCEPTING', {
       campaignName: campaign.campaignName,
       clientName: campaign.clientName,

@@ -14,6 +14,7 @@ export interface CampaignBrief {
   // Optional extras
   constraints?: string[];
   clientPersonality?: string;
+  industry?: string;
 }
 
 export interface WorkDelivery {

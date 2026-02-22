@@ -21,6 +21,7 @@ import EndingSequence, { loadLegacy } from './components/Ending/EndingSequence';
 import HRWatcher from './components/HRWatcher/HRWatcher';
 import CheatIndicator from './components/CheatIndicator/CheatIndicator';
 import OnboardingScreen from './components/Onboarding/OnboardingScreen';
+import Screensaver from './components/Screensaver/Screensaver';
 import { LOCKED_BRIEFS } from './data/lockedBriefs';
 
 // ─── Mobile Detection ─────────────────────────────────────────────────────────
@@ -74,7 +75,7 @@ function AppContent() {
   const { addEmail } = useEmailContext();
   const { triggerCampaignEvent, morale } = useChatContext();
   const { unlockAchievement } = useAchievementContext();
-  const { playerName, setPlayerName } = usePlayerContext();
+  const { playerName, setPlayerName, showScreensaver, dismissScreensaver, screensaverName } = usePlayerContext();
   const prevCompletedCountRef = useRef(campaigns.filter(c => c.phase === 'completed').length);
   const welcomeFiredRef = useRef(false);
   // Track whether this browser session has already been active (survives reload, clears on tab close)
@@ -192,6 +193,7 @@ function AppContent() {
                 'Grand opening is fixed date - no flexibility on timeline',
               ],
               clientPersonality: 'Enthusiastic, trusts creative instincts, loves bold ideas, hates corporate-feeling anything',
+              industry: 'food-beverage',
             },
           });
           addNotification(
@@ -234,7 +236,9 @@ function AppContent() {
   return (
     <>
       <Desktop />
-      {!playerName ? (
+      {!playerName && showScreensaver ? (
+        <Screensaver playerName={screensaverName} onDismiss={dismissScreensaver} />
+      ) : !playerName ? (
         <OnboardingScreen onComplete={setPlayerName} />
       ) : (
         <>
