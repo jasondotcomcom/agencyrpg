@@ -13,7 +13,12 @@ import PortfolioApp from '../apps/Portfolio/PortfolioApp';
 import SettingsApp from '../apps/Settings/SettingsApp';
 import TerminalApp from '../apps/Terminal/TerminalApp';
 import NotesApp from '../apps/Notes/NotesApp';
+import SolitaireApp from '../apps/Solitaire/SolitaireApp';
+import MinesweeperApp from '../apps/Minesweeper/MinesweeperApp';
+import { lazy, Suspense } from 'react';
 import { useSettingsContext } from '../../context/SettingsContext';
+
+const SkiFreeApp = lazy(() => import('../apps/SkiFree/SkiFreeApp'));
 import styles from './Window.module.css';
 
 interface WindowProps {
@@ -138,6 +143,14 @@ function AppContent({ appId }: { appId: string }) {
       return <TerminalApp />;
     case 'notes':
       return <NotesApp />;
+    case 'solitaire':
+      return <SolitaireApp />;
+    case 'minesweeper':
+      return <MinesweeperApp />;
+    case 'skifree':
+      return <Suspense fallback={<div style={{ padding: 24, textAlign: 'center' }}>Loading SkiFree...</div>}><SkiFreeApp /></Suspense>;
+    case 'about':
+      return <AboutContent />;
     default:
       return <PlaceholderContent appId={appId} />;
   }
@@ -242,5 +255,29 @@ function PlaceholderContent({ appId }: { appId: string }) {
   };
 
   return contents[appId] || contents.help;
+}
+
+function AboutContent() {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      height: '100%', textAlign: 'center', padding: '32px', gap: '16px',
+      fontFamily: 'inherit',
+    }}>
+      <div style={{ fontSize: '3rem' }}>✨</div>
+      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#5a5a5a' }}>Agency RPG</div>
+      <div style={{ fontSize: '0.8125rem', color: '#888', lineHeight: 1.8 }}>
+        <p>A browser-based creative agency simulator.</p>
+        <p style={{ marginTop: 12 }}>
+          <strong>Built by</strong> Jason Pickar<br/>
+          <strong>Powered by</strong> Claude (Anthropic)<br/>
+          <strong>Made with</strong> React, Vite, and too much coffee
+        </p>
+        <p style={{ marginTop: 16, fontSize: '0.75rem', color: '#aaa' }}>
+          v1.0 &middot; 2025
+        </p>
+      </div>
+    </div>
+  );
 }
 

@@ -165,6 +165,15 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'hundred-games',        name: 'Century Club',            icon: '💯', description: 'Played 100 mini-games total.' },
   { id: 'two-hundred-games',    name: 'Double Century',          icon: '🏏', description: 'Played 200 mini-games total.' },
   { id: 'five-hundred-games',   name: 'Mini-Game Legend',        icon: '👑', description: 'Played 500 mini-games total.' },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // EASTER EGG GAME ACHIEVEMENTS
+  // ══════════════════════════════════════════════════════════════════════════
+  { id: 'solitaire-champion',   name: 'Solitaire Champion',      icon: '🃏', description: 'Won a game of Solitaire.' },
+  { id: 'card-shark',           name: 'Card Shark',              icon: '🦈', description: 'Won Solitaire in under 3 minutes.' },
+  { id: 'minesweeper-master',   name: 'Minesweeper Master',      icon: '💣', description: 'Beat Minesweeper without hitting a mine.' },
+  { id: 'outran-the-yeti',      name: 'Outran the Yeti',         icon: '⛷️', description: 'Survived 60 seconds in SkiFree.' },
+  { id: 'f-to-pay-respects',    name: 'F to Pay Respects',       icon: '🏔️', description: 'Got eaten by the yeti in SkiFree.' },
 ];
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────

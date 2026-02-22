@@ -1,21 +1,32 @@
+import { useState, useCallback } from 'react';
 import { useWindowContext } from '../../context/WindowContext';
 import TaskbarButton from './TaskbarButton';
 import Clock from './Clock';
 import ReputationDisplay from './ReputationDisplay';
 import AgencyFundsDisplay from './AgencyFundsDisplay';
 import SaveIndicator from './SaveIndicator';
+import StartMenu from './StartMenu';
 import { loadLegacy } from '../Ending/EndingSequence';
 import styles from './Taskbar.module.css';
 
 export default function Taskbar() {
   const { windows } = useWindowContext();
   const legacy = loadLegacy();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const windowList = Array.from(windows.values());
 
+  const toggleMenu = useCallback(() => {
+    setMenuOpen(prev => !prev);
+  }, []);
+
+  const closeMenu = useCallback(() => {
+    setMenuOpen(false);
+  }, []);
+
   return (
     <div className={styles.taskbar}>
-      <button className={styles.startButton}>
+      <button className={`${styles.startButton} ${menuOpen ? styles.startButtonActive : ''}`} onClick={toggleMenu}>
         <div className={styles.startLogo}>
           <svg viewBox="0 0 24 24" fill="none">
             {/* Cute star/sparkle logo */}
@@ -32,6 +43,8 @@ export default function Taskbar() {
         </div>
         <span>Agency</span>
       </button>
+
+      {menuOpen && <StartMenu onClose={closeMenu} />}
 
       <div className={styles.windowButtons}>
         {windowList.map(win => (

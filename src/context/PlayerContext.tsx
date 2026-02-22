@@ -7,6 +7,7 @@ const STORAGE_KEY = 'agencyrpg-player-name';
 export interface PlayerContextValue {
   playerName: string | null;
   setPlayerName: (name: string) => void;
+  clearPlayerName: () => void;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -23,8 +24,13 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     setPlayerNameState(name);
   }, []);
 
+  const clearPlayerName = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    setPlayerNameState(null);
+  }, []);
+
   return (
-    <PlayerContext.Provider value={{ playerName, setPlayerName }}>
+    <PlayerContext.Provider value={{ playerName, setPlayerName, clearPlayerName }}>
       {children}
     </PlayerContext.Provider>
   );

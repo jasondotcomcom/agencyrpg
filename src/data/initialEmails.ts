@@ -1,7 +1,7 @@
 import type { Email } from '../types/email';
 
 export const initialEmails: Email[] = [
-  // Campaign Brief 1: Tech Startup App Launch - Strategic Focus
+  // Campaign Brief: FocusFlow (newest — appears at top of inbox)
   {
     id: 'email-002',
     type: 'campaign_brief',
@@ -33,7 +33,7 @@ I don't want to tell you what to make. I want you to tell me: how do we cut thro
 
 Best,
 Derek`,
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+    timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
     isRead: false,
     isStarred: true,
     isDeleted: false,
@@ -63,7 +63,7 @@ Derek`,
     },
   },
 
-  // Campaign Brief 2: VHS Rental Store Launch
+  // Campaign Brief: VHS Rental Store Launch
   {
     id: 'email-012',
     type: 'campaign_brief',
@@ -90,7 +90,7 @@ Budget: $35K. Opening is in 4 weeks.
 Be kind, rewind.
 
 Dustin`,
-    timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000), // 18 hours ago
+    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
     isRead: false,
     isStarred: false,
     isDeleted: false,
@@ -120,7 +120,39 @@ Dustin`,
     },
   },
 
-  // Campaign Brief 3: Craft Brewery Rebrand - Strategic Focus
+  // Spam: Adobe Creative Cloud renewal
+  {
+    id: 'email-spam-001',
+    type: 'team_message' as const,
+    from: {
+      name: 'Adobe Creative Cloud',
+      email: 'no-reply@adobe.com',
+      avatar: '🔴',
+    },
+    subject: 'Your subscription is about to expire',
+    body: `Your Creative Cloud subscription expires in 3 days.
+
+Don't lose access to Photoshop, Illustrator, and 20+ creative apps your team depends on.
+
+Renew now to keep your workflow uninterrupted:
+
+━━━━━━━━━━━━━━━━━━━━
+  [ Renew Now — $59.99/mo ]
+━━━━━━━━━━━━━━━━━━━━
+
+As a valued Creative Cloud member, you've used 847 hours of creative tools this year. Don't let your projects go dark.
+
+If you've already renewed, please disregard this message.
+
+Adobe Creative Cloud Team
+This is an automated message. Please do not reply directly to this email.`,
+    timestamp: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000), // 2.5 days ago
+    isRead: false,
+    isStarred: false,
+    isDeleted: false,
+  },
+
+  // Campaign Brief: Craft Brewery Rebrand
   {
     id: 'email-003',
     type: 'campaign_brief',

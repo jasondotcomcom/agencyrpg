@@ -22,6 +22,10 @@ const appSizeTier: Record<string, keyof typeof sizeTiers> = {
   files: 'medium',
   projects: 'large',
   portfolio: 'medium',
+  solitaire: 'medium',
+  minesweeper: 'small',
+  skifree: 'medium',
+  about: 'small',
 };
 
 // Load remembered sizes from localStorage
