@@ -102,6 +102,9 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'flawless-puzzler',     name: 'Flawless Puzzler',        icon: '🧩', description: 'Won a puzzle game with zero wrong picks.' },
   { id: 'spin-doctor',          name: 'Spin Doctor',             icon: '🌀', description: 'Won 5 spin/wheel games in a row.' },
   { id: 'bubble-surgeon',       name: 'Bubble Surgeon',          icon: '🫧', description: 'Popped all buzzwords without a single wrong pop.' },
+  { id: 'calendar-tetris',      name: 'Calendar Tetris',         icon: '📅', description: 'Scheduled all meetings without any invalid placements.' },
+  { id: 'protected-my-peace',   name: 'Protected My Peace',      icon: '🧘', description: 'Successfully scheduled Focus Time.' },
+  { id: 'that-was-an-email',    name: 'That Meeting Was An Email', icon: '📧', description: 'Trashed the meeting that should have been an email.' },
   { id: 'quick-draw',           name: 'Quick Draw',              icon: '🤠', description: 'Won a click game in under 1 second.' },
   { id: 'iron-grip',            name: 'Iron Grip',               icon: '🦾', description: 'Won 5 hold-button games.' },
 

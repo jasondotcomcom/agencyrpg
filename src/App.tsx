@@ -77,6 +77,13 @@ function AppContent() {
   const { playerName, setPlayerName } = usePlayerContext();
   const prevCompletedCountRef = useRef(campaigns.filter(c => c.phase === 'completed').length);
   const welcomeFiredRef = useRef(false);
+  // Track whether this browser session has already been active (survives reload, clears on tab close)
+  const isFreshSessionRef = useRef(!sessionStorage.getItem('agencyrpg_session_active'));
+
+  // Mark this browser session as active (persists across reloads, clears when tab closes)
+  useEffect(() => {
+    sessionStorage.setItem('agencyrpg_session_active', '1');
+  }, []);
 
   // Cmd+Shift+R (Mac) / Ctrl+Shift+R (Win/Linux) — full reset including legacy data
   useEffect(() => {
@@ -136,16 +143,16 @@ function AppContent() {
         );
       }, 3500));
     } else {
-      // Check for existing save data — returning session vs first time
-      const hasSaveData = !!localStorage.getItem('agencyrpg_campaigns');
-      if (hasSaveData) {
+      const hasProgress = campaigns.length > 0;
+      if (hasProgress && isFreshSessionRef.current) {
+        // Returning player (closed browser, came back) — welcome back toast
         timers.push(setTimeout(() => {
           addNotification(
             `Welcome back, ${playerName}`,
             'Your progress has been saved. Pick up where you left off.'
           );
         }, 500));
-      } else {
+      } else if (!hasProgress) {
         // First playthrough — deliver Brewed Awakenings as the first "New Brief!" moment
         const delay = 5000 + Math.random() * 3000; // 5-8 seconds
         timers.push(setTimeout(() => {
@@ -197,7 +204,7 @@ function AppContent() {
     }
 
     return () => timers.forEach(clearTimeout);
-  }, [playerName, addNotification, addEmail, triggerCampaignEvent]);
+  }, [playerName, campaigns, addNotification, addEmail, triggerCampaignEvent]);
 
   // Unlock new briefs as campaigns complete
   useEffect(() => {

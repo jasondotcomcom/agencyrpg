@@ -17,7 +17,9 @@ import {
   LayerSearchGame,
   TabCloseGame,
   SpinBuildGame,
+  CalendarShuffleGame,
 } from './GameMechanics';
+import type { CalScenario } from './GameMechanics';
 
 // ─── Theme Selection Helpers ─────────────────────────────────────────────────
 
@@ -202,7 +204,57 @@ const matchClientSets: MatchClientSet[] = [
   { client: 'QSR Chain',       correct: '🍔 BurgerBarn',     decoys: ['👔 Law Firm', '🔬 Research Lab'] },
 ];
 
-// ─── ALL 34 GAMES ───────────────────────────────────────────────────────────
+// — Calendar Shuffle Scenarios —
+
+const calendarScenarios: CalScenario[] = [
+  {
+    name: 'Monday Madness',
+    prefilled: [
+      { day: 0, slot: 0, duration: 2, title: 'Sprint Planning' },  // Mon 9-10
+      { day: 1, slot: 6, duration: 1, title: 'Lunch' },            // Wed 12-12:30
+    ],
+    queue: [
+      { id: 'cal-client',  title: 'Client Call',       duration: 2, color: '#5b8def', constraint: { days: [0, 1] } },
+      { id: 'cal-creative', title: 'Creative Review',  duration: 4, color: '#e67e22' },
+      { id: 'cal-1on1',    title: '1:1 with Taylor',   duration: 1, color: '#9b59b6', constraint: { maxSlot: 5 } },
+      { id: 'cal-email',   title: 'Meeting-Email',     duration: 1, color: '#95a5a6', trashable: true },
+      { id: 'cal-surprise', title: 'Holding Co. Call', duration: 1, color: '#e74c3c', isSurprise: true },
+    ],
+    surpriseDelay: 12000,
+  },
+  {
+    name: 'Deadline Week',
+    prefilled: [
+      { day: 1, slot: 0, duration: 2, title: 'Status Update' },      // Wed 9-10
+      { day: 2, slot: 0, duration: 4, title: 'Client Presentation' }, // Fri 9-11
+    ],
+    queue: [
+      { id: 'cal-focus',   title: 'Focus Time',      duration: 4, color: '#27ae60' },
+      { id: 'cal-allhands', title: 'All-Hands',      duration: 2, color: '#e67e22', constraint: { days: [2] } },
+      { id: 'cal-vendor',  title: 'Vendor Demo',     duration: 2, color: '#3498db' },
+      { id: 'cal-email',   title: 'Meeting-Email',   duration: 1, color: '#95a5a6', trashable: true },
+      { id: 'cal-surprise', title: 'Fire Drill Mtg', duration: 1, color: '#e74c3c', isSurprise: true },
+    ],
+    surpriseDelay: 10000,
+  },
+  {
+    name: 'Back to Back',
+    prefilled: [
+      { day: 0, slot: 2, duration: 2, title: 'Retro' },        // Mon 10-11
+      { day: 1, slot: 4, duration: 3, title: 'Design Crit' },  // Wed 11-12:30
+    ],
+    queue: [
+      { id: 'cal-client',  title: 'Client Call',      duration: 2, color: '#5b8def' },
+      { id: 'cal-1on1',    title: '1:1 with Taylor',  duration: 1, color: '#9b59b6', constraint: { maxSlot: 5 } },
+      { id: 'cal-focus',   title: 'Focus Time',       duration: 4, color: '#27ae60' },
+      { id: 'cal-allhands', title: 'All-Hands',       duration: 2, color: '#e67e22', constraint: { days: [2] } },
+      { id: 'cal-surprise', title: 'CEO Drop-in',     duration: 1, color: '#e74c3c', isSurprise: true },
+    ],
+    surpriseDelay: 14000,
+  },
+];
+
+// ─── ALL 35 GAMES ───────────────────────────────────────────────────────────
 
 export const ALL_GAMES: GameDef[] = [
 
@@ -405,6 +457,19 @@ export const ALL_GAMES: GameDef[] = [
     },
     winMsg: (m) => `Clean call! ${m.name} agrees.`,
     failMsg: () => `Still tangled... the thinking needs work.`,
+  },
+  {
+    id: 'calendar-shuffle',
+    instruction: 'SCHEDULE THE MEETINGS!',
+    duration: 50000,
+    category: 'drag',
+    waitPhase: 'generating',
+    render: (onWin, onFail) => {
+      const scenario = pickTheme('calendar-shuffle', calendarScenarios);
+      return <CalendarShuffleGame scenario={scenario} onWin={onWin} onFail={onFail} />;
+    },
+    winMsg: (m) => `Calendar locked in. ${m.name} might actually get focus time today.`,
+    failMsg: () => `Meetings are piling up... the calendar is a war zone.`,
   },
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -14,6 +14,7 @@ export interface GameResultMeta {
   exactCenter?: boolean; // Hit dead center in timing game
   missMargin?: number;   // How close a timing fail was (0-1)
   elapsedMs?: number;    // Time to complete (word/matching games)
+  customFlags?: string[]; // Game-specific achievement flags
 }
 
 export interface GameDef {
