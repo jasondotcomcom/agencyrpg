@@ -314,14 +314,14 @@ function triggerCheatEffect(label: string): void {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function TerminalApp(): React.ReactElement {
-  const { setMorale, morale, triggerCampaignEvent, addMessage } = useChatContext();
+  const { setMorale, morale, addMessage } = useChatContext();
   const { addProfit, state: fundsState } = useAgencyFunds();
   const { state: repState, addReputation } = useReputationContext();
   const { triggerEndingSequence, sendAcquisitionOffer } = useEndingContext();
   const { getActiveCampaigns } = useCampaignContext();
   const { addNotification } = useWindowContext();
   const { entries: portfolioEntries, attachAward, addEntry } = usePortfolioContext();
-  const { applyScoreBonus, applyMinScore, setOneTimeMinScore, toggleNightmareMode,
+  const { applyMinScore, setOneTimeMinScore, toggleNightmareMode,
     toggleBigHeadMode, setHRWatcherActive, recordCheatUsed, cheat } = useCheatContext();
   const { unlockAchievement, unlockedAchievements, incrementCounter } = useAchievementContext();
   const { addEmail } = useEmailContext();
@@ -1698,10 +1698,10 @@ Human Resources
     }
   }, [
     addLine, addLines, tools, fundsState, repState, morale,
-    addProfit, setMorale, triggerCampaignEvent, handleBuild, handleInterpret,
+    addProfit, setMorale, handleBuild, handleInterpret,
     triggerEndingSequence, sendAcquisitionOffer, getActiveCampaigns, addReputation,
     addNotification, portfolioEntries, attachAward, addEntry, addMessage, addEmail,
-    applyScoreBonus, applyMinScore, setOneTimeMinScore, toggleNightmareMode,
+    applyMinScore, setOneTimeMinScore, toggleNightmareMode,
     toggleBigHeadMode, setHRWatcherActive, recordCheatUsed, cheat,
     unlockAchievement, unlockedAchievements, incrementCounter,
   ]);
