@@ -348,4 +348,77 @@ Marcus`,
     }),
   },
 
+  // ─── Unlock after 4th completed campaign ────────────────────────────────────
+
+  {
+    unlockAt: 4,
+    clientName: 'Meridian Studios',
+    briefId: 'email-013',
+    buildEmail: (): Email => ({
+      id: 'email-013',
+      type: 'campaign_brief',
+      from: {
+        name: 'Rachel Kwan',
+        email: 'rkwan@meridianstudios.com',
+        avatar: '🎬',
+      },
+      subject: 'Meridian Studios — Unlikely Double Feature (Confidential)',
+      body: `Hi team,
+
+Rachel Kwan here, VP of Theatrical Marketing at Meridian Studios.
+
+I've got a situation. We have two films releasing the same weekend — July 18th — that could not be more different:
+
+**"THE LEDGER"** — A gritty true crime thriller about a disgraced forensic accountant who discovers a money laundering operation inside the IRS. Dark, tense, Oscar-bait. Director is coming off a Venice Lion. Rated R.
+
+**"GOOD BOY: THE MUSICAL"** — An animated family musical about a golden retriever named Biscuit who accidentally becomes a pop star after a TikTok goes viral. It's joyful, ridiculous, and the soundtrack is genuinely great. Rated G.
+
+Here's the pitch: We want to manufacture a cultural moment.
+
+You remember Barbenheimer? That wasn't planned. It just happened — the internet decided that seeing both Barbie and Oppenheimer on the same day was an Event. It became a meme, then a movement, then a $2.4 billion box office weekend.
+
+We want to do that — on purpose.
+
+"The Ledger" by day, "Good Boy" by night. The Sad Dad Double Feature. The emotional whiplash weekend. We want the internet to decide that seeing both is the only correct move.
+
+The problem: manufactured virality is an oxymoron. If it feels forced, the internet will roast us. We need it to feel organic, inevitable — like the audience invented it themselves.
+
+Budget: $60,000 for the combined social/grassroots campaign (separate from each film's individual media buy).
+Timeline: 26 days until the films are in theaters.
+
+Make the internet obsessed with seeing both. Memes encouraged.
+
+Rachel`,
+      timestamp: new Date(),
+      isRead: false,
+      isStarred: false,
+      isDeleted: false,
+      campaignBrief: {
+        clientName: 'Meridian Studios',
+        challenge: `Two wildly different films release the same weekend: a gritty R-rated crime thriller and a joyful G-rated animated musical about a golden retriever pop star. We want to manufacture a Barbenheimer-style cultural moment — make seeing both on the same day feel like an event the internet invented, not a marketing stunt. The problem: manufactured virality feels forced. We need it to feel organic and inevitable.`,
+        audience: `The internet. Specifically: movie Twitter/TikTok (18-35), meme creators, film podcasters, and the general audience that turned Barbenheimer into a phenomenon. They're savvy, they can smell astroturfing, and they'll only participate if they feel like they're in on the joke — not being sold to.`,
+        message: `July 18th: The Ledger by day. Good Boy by night. The only correct way to spend the weekend. You're not choosing between them. You're doing both.`,
+        successMetrics: [
+          'Portmanteau hashtag trends organically on Twitter/TikTok before release weekend',
+          'Meme volume exceeds 10K organic posts in the week before release',
+          'Combined opening weekend box office exceeds projections by 20%+',
+          'Audience exit surveys show 30%+ saw both films on the same day',
+          'At least one major media outlet writes "the next Barbenheimer" headline',
+        ],
+        budget: 60000,
+        timeline: '26 days — films are locked. Release date is fixed. Cultural moment is now or never.',
+        vibe: `Internet-native, self-aware, playful. Should feel like the audience created it. Memes, not ads. Inside jokes, not taglines. The campaign should feel like discovering something, not being marketed to.`,
+        openEndedAsk: `How do you manufacture a cultural moment without it feeling manufactured? What's the seed that makes the internet decide "seeing both is the move"? How do you make emotional whiplash feel like a feature, not a bug?`,
+        constraints: [
+          'Cannot feel like a corporate marketing stunt — internet will reject it instantly',
+          'Must serve both films equally — neither is the "joke" one',
+          'Meme seeding must feel organic, not astroturfed',
+          'Cannot promise or imply any connection between the two films\' stories',
+          'Each film has its own separate traditional media campaign — this is the cultural layer only',
+        ],
+        clientPersonality: 'Sharp, understands internet culture, will greenlight bold ideas fast, allergic to anything that feels like "fellow kids" energy, trusts the agency but will kill anything inauthentic',
+      },
+    }),
+  },
+
 ];

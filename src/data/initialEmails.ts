@@ -1,64 +1,7 @@
 import type { Email } from '../types/email';
 
 export const initialEmails: Email[] = [
-  // Campaign Brief 1: Local Coffee Shop - Strategic Focus
-  {
-    id: 'email-001',
-    type: 'campaign_brief',
-    from: {
-      name: 'Maya Chen',
-      email: 'maya@brewedawakenings.com',
-      avatar: '☕',
-    },
-    subject: 'Brewed Awakenings - Grand Opening Campaign Brief',
-    body: `Hi there! 👋
-
-I'm Maya, the owner of Brewed Awakenings. We're opening a specialty coffee shop in the Arts District next month, and I need your help with a real problem.
-
-Here's my situation: There are already 3 coffee shops within walking distance. People have their routines - their "usual spot." I'm not just competing on coffee quality (though ours is exceptional). I'm asking people to break a habit, leave their comfort zone, and try something new.
-
-What makes us different? We're building a community hub. Local artists display work on our walls. Musicians play on weekends. We host open mic nights. Every cup is ethically sourced and locally roasted. We're not trying to be the fastest or cheapest - we want to be the neighborhood's living room.
-
-But how do I communicate that before people even walk in? How do I get them curious enough to break their routine?
-
-I don't want to just announce "new coffee shop opening!" - every business does that. I want people in the Arts District to feel like they've been waiting for us without knowing it.
-
-Budget is $50K - not huge, but enough to do something meaningful if we're smart about it.
-
-I trust your creative instincts. Tell me: how would you make people care?
-
-Warmly,
-Maya ✨`,
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    isRead: false,
-    isStarred: false,
-    isDeleted: false,
-    campaignBrief: {
-      clientName: 'Brewed Awakenings',
-      challenge: `There are already 3 coffee shops within walking distance. People have their routines - their "usual spot." We're not just competing on coffee quality. We're asking people to break a habit, leave their comfort zone, and try something new. How do we make locals care about another coffee shop? What makes this one worth leaving their routine?`,
-      audience: `Arts District locals: young professionals (25-40), local artists and creatives, remote workers seeking a "third place," weekend brunch crowds. They're not looking for another coffee shop - they think they already have one. We need to reach people who don't know they need us yet.`,
-      message: `We're not trying to be the fastest or cheapest coffee option. We're the neighborhood's living room - a community hub where art lives on the walls, music fills the weekends, and your coffee funds ethical sourcing. Come for the coffee, stay for the community.`,
-      successMetrics: [
-        '200+ people through the door opening weekend',
-        'Local press/blog coverage before launch',
-        'Instagram following of 1,000+ before opening',
-        'Waitlist signups for opening day',
-        'Artists inquiring about displaying work',
-      ],
-      budget: 50000,
-      timeline: '4 weeks until grand opening - need materials ready 2 weeks before',
-      vibe: `Warm, artistic, inviting but not pretentious. We want to feel like your cool friend who happens to know a lot about coffee - approachable premium. Anti-corporate, pro-neighborhood.`,
-      openEndedAsk: `How do you make people in the Arts District feel like they've been waiting for us without knowing it? What do you make? Where do you put it? How do you break people out of their coffee shop routines?`,
-      constraints: [
-        'No location yet has foot traffic - need to drive discovery',
-        'Competing against established local favorites with loyal customers',
-        'Grand opening is fixed date - no flexibility on timeline',
-      ],
-      clientPersonality: 'Enthusiastic, trusts creative instincts, loves bold ideas, hates corporate-feeling anything',
-    },
-  },
-
-  // Campaign Brief 2: Tech Startup App Launch - Strategic Focus
+  // Campaign Brief 1: Tech Startup App Launch - Strategic Focus
   {
     id: 'email-002',
     type: 'campaign_brief',
@@ -117,6 +60,63 @@ Derek`,
         'Target audience is ad-blind and influencer-skeptical',
       ],
       clientPersonality: 'Data-driven but appreciates creative risk, wants to do something unexpected, hates "typical startup marketing"',
+    },
+  },
+
+  // Campaign Brief 2: VHS Rental Store Launch
+  {
+    id: 'email-012',
+    type: 'campaign_brief',
+    from: {
+      name: 'Dustin Reeves',
+      email: 'dustin@rewindtimevideo.com',
+      avatar: '📼',
+    },
+    subject: 'RewindTime Video - Grand Opening Campaign Brief',
+    body: `Hey!
+
+I'm Dustin. I'm opening a VHS rental store in Brooklyn. Yes, in 2025. No, I haven't lost my mind.
+
+Here's the thing — everybody streams now, and everybody hates it. Infinite scroll paralysis. Algorithm fatigue. "We watched the first 10 minutes of 6 things and went to bed." People are over it.
+
+RewindTime is a real, physical video store. Curated shelves. Handwritten staff picks. A "blind date with a movie" wall where you pick a VHS wrapped in brown paper with only 3 words on it. Friday night means actually committing to something.
+
+We've got 4,000 tapes. Horror section is legendary. We're doing themed movie nights in the back — 20 folding chairs, a projector, and free popcorn. Membership cards. Late fees (ironic ones — you get a hand-written guilt trip, not a charge).
+
+The challenge: How do I launch a store built on a dead format and make it feel like the most exciting thing happening in Brooklyn? I need people to feel the nostalgia without it being a joke. This isn't a pop-up. This isn't ironic. We're genuinely building a third place for movie lovers who are tired of watching alone on their couch.
+
+Budget: $35K. Opening is in 4 weeks.
+
+Be kind, rewind.
+
+Dustin`,
+    timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000), // 18 hours ago
+    isRead: false,
+    isStarred: false,
+    isDeleted: false,
+    campaignBrief: {
+      clientName: 'RewindTime Video',
+      challenge: `Opening a physical VHS rental store in 2025 Brooklyn. The format is dead but the desire for it isn't — people are exhausted by streaming paralysis and algorithm fatigue. The challenge is launching on a "dead" format and making it feel like the most exciting cultural moment in the neighborhood. Must feel nostalgic without being a gimmick. This isn't ironic. This is a genuine third place for movie lovers.`,
+      audience: `Millennials (28-42) who grew up with video stores and miss the ritual of browsing. Gen Z (18-27) who think VHS is charmingly vintage and are already buying analog everything — vinyl, film cameras, zines. Both groups are burned out on infinite scroll and want to commit to something tangible. Brooklyn creatives, cinephiles, date-night couples tired of "what should we watch?" for 45 minutes.`,
+      message: `Stop scrolling. Start choosing. RewindTime is a real video store for people who are ready to actually watch something — together, on purpose, with popcorn.`,
+      successMetrics: [
+        'Sold-out opening night movie event (20 seats)',
+        '500+ membership signups in first month',
+        'Local press/blog coverage before launch',
+        'Instagram following of 2,000+ before opening',
+        '"Blind date with a movie" wall becomes an Instagram moment',
+      ],
+      budget: 35000,
+      timeline: '4 weeks to grand opening — pre-launch buzz critical',
+      vibe: `Warm analog nostalgia meets Brooklyn cool. Hand-drawn, tactile, human. Should feel like finding a mixtape in a thrift store — personal, surprising, a little romantic. NOT corporate retro. NOT "remember the 90s?" listicle energy. Genuine.`,
+      openEndedAsk: `How do you make a dead format feel like the future? What's the campaign that makes Brooklyn feel like it's been waiting for a video store to come back? How do you turn "physical media in 2025" from a punchline into a movement?`,
+      constraints: [
+        'Cannot feel like a gimmick or ironic pop-up — this is a real, permanent store',
+        'Budget is tight — need earned media and word-of-mouth over paid',
+        'Must appeal to both nostalgic millennials AND format-curious Gen Z',
+        'Competing against the entire streaming industry for attention',
+      ],
+      clientPersonality: 'Passionate cinephile, infectious enthusiasm, self-aware about the absurdity but dead serious about the mission, wants collaborators not vendors',
     },
   },
 
@@ -197,7 +197,7 @@ Nate & Chloe`,
 
 Just read through the new briefs. These are JUICY.
 
-The coffee shop one is calling to me - there's something interesting about the "break people's habits" challenge. I keep thinking about what would make ME leave my usual spot... it's usually not an ad. It's something unexpected that makes me curious.
+The VHS store one is calling to me — there's something about launching a "dead" format that makes the creative challenge so much more interesting. I keep thinking about what would make ME leave Netflix for a night... it's the ritual. The browsing. The commitment.
 
 Also, the brewery rebrand is going to be fun. "Grown up but still weird" is a great brief. I have some ideas about how we could do the rollout in a way that makes existing fans feel like they're IN on it, not being sold to.
 
@@ -230,8 +230,8 @@ P.S. The FocusFlow brief is interesting because the challenge is almost meta - h
 
 Did some preliminary digging on our new briefs. Some thoughts:
 
-**Brewed Awakenings:**
-The Arts District actually has a gap - none of the existing coffee shops lean into the artist community angle. There's an art walk every first Friday that draws 2,000+ people. Timing opportunity?
+**RewindTime Video:**
+VHS nostalgia is having a moment — TikTok has 2.3B views on #VHSaesthetic. But here's the thing: nobody's actually opened a store around it. Dustin's not riding a trend, he's the only one actually building something physical. That's a story.
 
 **FocusFlow:**
 Productivity Reddit (r/productivity) has 2.1M members, and they're BRUTAL about new apps. But when something breaks through there, it spreads fast. High risk, high reward channel. Also noticed their competitors all lead with feature lists - nobody's speaking to the emotional exhaustion.

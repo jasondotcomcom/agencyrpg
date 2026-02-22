@@ -3,6 +3,7 @@ import type { Email } from '../types/email';
 import { useEmailContext } from './EmailContext';
 import { useChatContext } from './ChatContext';
 import { useAchievementContext } from './AchievementContext';
+import { useWindowContext } from './WindowContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -182,6 +183,70 @@ WELTGEIST CAPITAL PARTNERS
   };
 }
 
+function createDisclosureEmail(): Email {
+  return {
+    id: 'email-014',
+    type: 'campaign_brief',
+    from: {
+      name: 'Classified',
+      email: 'do-not-reply@public-trust.gov',
+      avatar: '🔒',
+    },
+    subject: 'Public Trust Initiative — Consultation Request (NDA Required)',
+    body: `This message has been cleared for transmission.
+
+We represent an interagency working group preparing for a significant public disclosure. The nature of the disclosure is sensitive and will be shared upon execution of a non-disclosure agreement.
+
+What we can share now:
+
+The disclosure concerns information that has been classified for several decades. A decision has been made — at levels above our authority — to begin a phased release to the general public. Our challenge is not the information itself. It is the public reaction.
+
+We need a communications strategy that eases anxiety, builds trust, and prevents panic. The audience is everyone. The timeline is firm. The stakes are as high as they sound.
+
+Your agency was flagged after you rejected a recent acquisition offer. Independence and discretion are requirements for this engagement. Firms embedded in holding company structures were disqualified.
+
+Budget: $75,000 (disbursed via interagency transfer, non-attributable).
+Timeline: 40 days to initial framework delivery.
+
+This is not a test. This is not a drill.
+
+If you are interested, accept the brief. Further details will follow.
+
+— REDACTED
+Public Trust Initiative
+[Classification level withheld]`,
+    timestamp: new Date(),
+    isRead: false,
+    isStarred: false,
+    isDeleted: false,
+    campaignBrief: {
+      clientName: 'Classified',
+      challenge: `A government-adjacent organization is preparing a phased public disclosure of information that has been classified for decades. The nature of the information cannot be revealed until NDA execution. The challenge: design a communications framework that eases public anxiety, builds institutional trust, and prevents panic — without knowing exactly what you're communicating about. The audience is literally everyone.`,
+      audience: `The general public — all demographics, all trust levels, all media consumption habits. Includes conspiracy theorists who will say "I told you so," skeptics who will say "this is fake," and the vast middle who will feel confused and anxious. Must reach people through trusted channels before misinformation fills the void.`,
+      message: `The truth is being shared because you deserve to know. There is a plan. You are safe. More information will follow on a predictable schedule.`,
+      successMetrics: [
+        'Public anxiety index remains below critical threshold in first 72 hours',
+        'Framework adopted by at least 3 participating agencies',
+        'Information vacuum does not get filled by misinformation before official channels',
+        'Public trust polling shows net positive movement within 30 days',
+        'No civil unrest attributable to communications failure',
+      ],
+      budget: 75000,
+      timeline: '40 days to initial framework delivery. Phased rollout begins immediately after.',
+      vibe: `Calm authority. Institutional trust without institutional coldness. Should feel like a steady hand on the wheel — not corporate, not military, not political. Human. Think: the person you'd want explaining something important to you at 2am.`,
+      openEndedAsk: `How do you prepare the public for something they can't be told about yet? What does a trust-building communications framework look like when the subject is unknown and the stakes are existential? How do you get ahead of panic?`,
+      constraints: [
+        'Subject of disclosure cannot be named in any materials (NDA enforced)',
+        'Cannot use fear-based messaging or imply threat',
+        'Framework must be adaptable to multiple disclosure scenarios',
+        'All materials subject to interagency review — no unilateral publication',
+        'Must work across all major media channels simultaneously',
+      ],
+      clientPersonality: 'Measured, deliberate, reveals information in layers, will not answer direct questions about the disclosure subject, evaluates trust before sharing details',
+    },
+  };
+}
+
 // ─── Chat message helpers ─────────────────────────────────────────────────────
 
 type ChatMsg = { authorId: string; text: string; delay: number };
@@ -240,6 +305,7 @@ export function EndingProvider({ children }: { children: React.ReactNode }) {
   const { addEmail } = useEmailContext();
   const { addMessage, setMorale } = useChatContext();
   const { unlockAchievement } = useAchievementContext();
+  const { addNotification } = useWindowContext();
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   const addChatMessage = useCallback((authorId: string, text: string) => {
@@ -315,9 +381,21 @@ export function EndingProvider({ children }: { children: React.ReactNode }) {
     }, 33000);
     timersRef.current.add(moraleTimer);
 
+    // Deliver mysterious disclosure brief after celebration winds down (~35-40s)
+    const disclosureDelay = 35000 + Math.random() * 5000;
+    const disclosureTimer = setTimeout(() => {
+      addEmail(createDisclosureEmail());
+      addNotification(
+        '📞 Strange Call',
+        'Word got out that you stayed independent. You got a strange call. Check your inbox.'
+      );
+      timersRef.current.delete(disclosureTimer);
+    }, disclosureDelay);
+    timersRef.current.add(disclosureTimer);
+
     dispatch({ type: 'SET_CAMPAIGNS_AT_REJECTION', payload: completedCount });
     dispatch({ type: 'SET_ACQUISITION_STATE', payload: 'hostile_pending' });
-  }, [addEmail, sendDelayedMessages, setMorale, unlockAchievement]);
+  }, [addEmail, sendDelayedMessages, setMorale, unlockAchievement, addNotification]);
 
   const handleHostileTakeoverAccept = useCallback(() => {
     unlockAchievement('hostile-takeover');

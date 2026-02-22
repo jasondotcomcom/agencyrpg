@@ -111,6 +111,8 @@ function AppContent() {
   }, [morale, unlockAchievement]);
 
   // Show welcome notification once the player has a name (NG+-aware)
+  // First playthrough: deliver Brewed Awakenings brief after a short delay (replaces generic welcome)
+  // NG+: show returning player notifications as before
   useEffect(() => {
     if (!playerName || welcomeFiredRef.current) return;
     welcomeFiredRef.current = true;
@@ -136,20 +138,66 @@ function AppContent() {
     } else {
       // Check for existing save data — returning session vs first time
       const hasSaveData = !!localStorage.getItem('agencyrpg_campaigns');
-      timers.push(setTimeout(() => {
-        addNotification(
-          hasSaveData
-            ? `Welcome back, ${playerName}`
-            : `Hey ${playerName} — welcome to the agency`,
-          hasSaveData
-            ? 'Your progress has been saved. Pick up where you left off.'
-            : 'The team is here and ready to go. Check your inbox for incoming briefs.'
-        );
-      }, 500));
+      if (hasSaveData) {
+        timers.push(setTimeout(() => {
+          addNotification(
+            `Welcome back, ${playerName}`,
+            'Your progress has been saved. Pick up where you left off.'
+          );
+        }, 500));
+      } else {
+        // First playthrough — deliver Brewed Awakenings as the first "New Brief!" moment
+        const delay = 5000 + Math.random() * 3000; // 5-8 seconds
+        timers.push(setTimeout(() => {
+          addEmail({
+            id: 'email-001',
+            type: 'campaign_brief',
+            from: {
+              name: 'Maya Chen',
+              email: 'maya@brewedawakenings.com',
+              avatar: '☕',
+            },
+            subject: 'Brewed Awakenings - Grand Opening Campaign Brief',
+            body: `Hi there! 👋\n\nI'm Maya, the owner of Brewed Awakenings. We're opening a specialty coffee shop in the Arts District next month, and I need your help with a real problem.\n\nHere's my situation: There are already 3 coffee shops within walking distance. People have their routines - their "usual spot." I'm not just competing on coffee quality (though ours is exceptional). I'm asking people to break a habit, leave their comfort zone, and try something new.\n\nWhat makes us different? We're building a community hub. Local artists display work on our walls. Musicians play on weekends. We host open mic nights. Every cup is ethically sourced and locally roasted. We're not trying to be the fastest or cheapest - we want to be the neighborhood's living room.\n\nBut how do I communicate that before people even walk in? How do I get them curious enough to break their routine?\n\nI don't want to just announce "new coffee shop opening!" - every business does that. I want people in the Arts District to feel like they've been waiting for us without knowing it.\n\nBudget is $50K - not huge, but enough to do something meaningful if we're smart about it.\n\nI trust your creative instincts. Tell me: how would you make people care?\n\nWarmly,\nMaya ✨`,
+            timestamp: new Date(),
+            isRead: false,
+            isStarred: false,
+            isDeleted: false,
+            campaignBrief: {
+              clientName: 'Brewed Awakenings',
+              challenge: `There are already 3 coffee shops within walking distance. People have their routines - their "usual spot." We're not just competing on coffee quality. We're asking people to break a habit, leave their comfort zone, and try something new. How do we make locals care about another coffee shop? What makes this one worth leaving their routine?`,
+              audience: `Arts District locals: young professionals (25-40), local artists and creatives, remote workers seeking a "third place," weekend brunch crowds. They're not looking for another coffee shop - they think they already have one. We need to reach people who don't know they need us yet.`,
+              message: `We're not trying to be the fastest or cheapest coffee option. We're the neighborhood's living room - a community hub where art lives on the walls, music fills the weekends, and your coffee funds ethical sourcing. Come for the coffee, stay for the community.`,
+              successMetrics: [
+                '200+ people through the door opening weekend',
+                'Local press/blog coverage before launch',
+                'Instagram following of 1,000+ before opening',
+                'Waitlist signups for opening day',
+                'Artists inquiring about displaying work',
+              ],
+              budget: 50000,
+              timeline: '4 weeks until grand opening - need materials ready 2 weeks before',
+              vibe: `Warm, artistic, inviting but not pretentious. We want to feel like your cool friend who happens to know a lot about coffee - approachable premium. Anti-corporate, pro-neighborhood.`,
+              openEndedAsk: `How do you make people in the Arts District feel like they've been waiting for us without knowing it? What do you make? Where do you put it? How do you break people out of their coffee shop routines?`,
+              constraints: [
+                'No location yet has foot traffic - need to drive discovery',
+                'Competing against established local favorites with loyal customers',
+                'Grand opening is fixed date - no flexibility on timeline',
+              ],
+              clientPersonality: 'Enthusiastic, trusts creative instincts, loves bold ideas, hates corporate-feeling anything',
+            },
+          });
+          addNotification(
+            '📧 New Brief!',
+            'Brewed Awakenings wants to work with your agency. Check your inbox.'
+          );
+          triggerCampaignEvent('NEW_BRIEF_ARRIVED', { clientName: 'Brewed Awakenings' });
+        }, delay));
+      }
     }
 
     return () => timers.forEach(clearTimeout);
-  }, [playerName, addNotification]);
+  }, [playerName, addNotification, addEmail, triggerCampaignEvent]);
 
   // Unlock new briefs as campaigns complete
   useEffect(() => {
