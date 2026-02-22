@@ -176,15 +176,15 @@ function AppContent() {
     prevCompletedCountRef.current = completedCount;
   }, [campaigns, addEmail, addNotification, triggerCampaignEvent]);
 
-  if (!playerName) {
-    return <OnboardingScreen onComplete={setPlayerName} />;
-  }
-
   return (
     <>
       <Desktop />
-      <WindowManager />
-      <Taskbar />
+      {!playerName ? (
+        <OnboardingScreen onComplete={setPlayerName} />
+      ) : (
+        <>
+          <WindowManager />
+          <Taskbar />
       <NotificationContainer />
       {repState.showLevelUp && repState.levelUpTier && (
         <LevelUpModal
@@ -196,6 +196,8 @@ function AppContent() {
       <EndingSequence />
       <HRWatcher />
       <CheatIndicator />
+        </>
+      )}
     </>
   );
 }
