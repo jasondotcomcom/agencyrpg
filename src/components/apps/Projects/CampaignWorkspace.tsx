@@ -124,55 +124,45 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
       subtractReputation(1);
     }
 
-    setCampaignScore(score);
-    setShowResults(true);
-    setIsSubmitting(false);
-  };
-
-  const handleResultsClose = () => {
-    if (!campaign || !campaignScore) return;
-
-    setShowResults(false);
+    // ── Persist everything immediately — don't wait for results modal close ──
 
     const prevCompletedCount = campaigns.filter(c => c.phase === 'completed').length;
     const newCompletedCount = prevCompletedCount + 1;
-    const wasUnderBudget = campaign.productionSpent <= campaign.productionBudget;
     const selectedConcept = campaign.generatedConcepts.find(c => c.id === campaign.selectedConceptId);
 
-    // Mark campaign as completed with the score
-    completeCampaign(campaignId, campaignScore.total, campaignScore.feedback);
+    // Mark campaign as completed with the score (persists to localStorage)
+    completeCampaign(campaignId, score.total, score.feedback);
 
     // Add team fee to agency funds
     addProfit(campaignId, campaign.campaignName, campaign.teamFee);
 
     // Check for awards before adding to portfolio
-    const earnedAwards = checkForAwards(campaignScore.total, wasUnderBudget);
+    const earnedAwards = checkForAwards(score.total, wasUnderBudget);
     const topAward = earnedAwards[0]; // Most prestigious first
 
     // Silent achievement unlocks
     if (newCompletedCount === 1) unlockAchievement('first-campaign');
     if (newCompletedCount === 5) unlockAchievement('five-campaigns');
-    if (campaignScore.total === 100) unlockAchievement('perfect-score');
-    if (campaignScore.rating >= 5) unlockAchievement('five-star');
-    if (campaignScore.total === 70) unlockAchievement('barely-passed');
-    if (campaignScore.total < 50) unlockAchievement('disaster');
+    if (score.total === 100) unlockAchievement('perfect-score');
+    if (score.rating >= 5) unlockAchievement('five-star');
+    if (score.total === 70) unlockAchievement('barely-passed');
+    if (score.total < 50) unlockAchievement('disaster');
     if (earnedAwards.length > 0) unlockAchievement('award-winner');
     if (earnedAwards.some(a => a.id === 'cannes')) unlockAchievement('cannes-shortlist');
 
     // ── Score-based achievements ──────────────────────────────────────────
-    const score = campaignScore.total;
-    if (score >= 80) unlockAchievement('solid-work');
-    if (score >= 90) unlockAchievement('agency-quality');
-    if (score >= 95) unlockAchievement('instant-classic');
+    if (score.total >= 80) unlockAchievement('solid-work');
+    if (score.total >= 90) unlockAchievement('agency-quality');
+    if (score.total >= 95) unlockAchievement('instant-classic');
 
     // Streak tracking
-    if (score >= 80) { incrementCounter('streak-80'); } else { resetCounter('streak-80'); }
-    if (score >= 90) { incrementCounter('streak-90'); } else { resetCounter('streak-90'); }
+    if (score.total >= 80) { incrementCounter('streak-80'); } else { resetCounter('streak-80'); }
+    if (score.total >= 90) { incrementCounter('streak-90'); } else { resetCounter('streak-90'); }
     if (getCounter('streak-80') >= 3) unlockAchievement('consistent-performer');
     if (getCounter('streak-90') >= 3) unlockAchievement('hot-streak');
 
     // Average score across 5+ campaigns
-    const allScores = [...repState.completedCampaigns.map(c => c.score), score];
+    const allScores = [...repState.completedCampaigns.map(c => c.score), score.total];
     if (allScores.length >= 5) {
       const avg = allScores.reduce((s, v) => s + v, 0) / allScores.length;
       if (avg >= 85) unlockAchievement('the-standard');
@@ -189,7 +179,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
     }
 
     // ── "Needs Work" streak (The Closer) ──────────────────────────────────
-    if (campaignScore.tier !== 'needs_improvement') {
+    if (score.tier !== 'needs_improvement') {
       incrementCounter('streak-no-needs-work');
       if (getCounter('streak-no-needs-work') >= 3) unlockAchievement('the-closer');
     } else {
@@ -213,7 +203,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
     // ── Team achievements ─────────────────────────────────────────────────
     const teamIds = campaign.conceptingTeam?.memberIds ?? [];
     if (teamIds.length === 4) unlockAchievement('full-house');
-    if (teamIds.length === 2 && score >= 85) unlockAchievement('dynamic-duo');
+    if (teamIds.length === 2 && score.total >= 85) unlockAchievement('dynamic-duo');
 
     // Delegation Master — track all 8 team member IDs used across campaigns
     teamIds.forEach(id => incrementCounter(`team-used-${id}`));
@@ -263,10 +253,10 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
       id: campaignId,
       campaignName: campaign.campaignName,
       clientName: campaign.clientName,
-      score: campaignScore.total,
-      rating: campaignScore.rating,
-      tier: campaignScore.tier,
-      feedback: campaignScore.feedback,
+      score: score.total,
+      rating: score.rating,
+      tier: score.tier,
+      feedback: score.feedback,
       completedAt: Date.now(),
       conceptName: selectedConcept?.name,
       bigIdea: selectedConcept?.bigIdea,
@@ -292,10 +282,12 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
 
     addNotification(
       'Campaign Complete! 🎊',
-      `"${campaign.campaignName}" scored ${campaignScore.total}/100!`
+      `"${campaign.campaignName}" scored ${score.total}/100!`
     );
 
     // Fire awards with staggered delays
+    const delTypes = campaign.deliverables.map(d => DELIVERABLE_TYPES[d.type]?.label).filter(Boolean);
+    const delDescs = campaign.deliverables.map(d => d.description).filter(Boolean);
     earnedAwards.forEach((award, i) => {
       setTimeout(() => {
         addReputation(award.repBonus);
@@ -307,7 +299,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
         triggerCampaignEvent('AWARD_WON', {
           campaignName: campaign.campaignName,
           clientName: campaign.clientName,
-          score: campaignScore.total,
+          score: score.total,
           awardName: award.name,
           assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
           conceptName: selectedConcept?.name,
@@ -325,24 +317,22 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
     checkForHostileTakeover(repState.completedCampaigns.length);
 
     // Trigger chat messages based on score
-    const delTypes = campaign.deliverables.map(d => DELIVERABLE_TYPES[d.type]?.label).filter(Boolean);
-    const delDescs = campaign.deliverables.map(d => d.description).filter(Boolean);
-    if (campaignScore.total >= 85) {
+    if (score.total >= 85) {
       triggerCampaignEvent('CAMPAIGN_SCORED_WELL', {
         campaignName: campaign.campaignName,
         clientName: campaign.clientName,
-        score: campaignScore.total,
+        score: score.total,
         assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
         conceptName: selectedConcept?.name,
         conceptTagline: selectedConcept?.tagline,
         deliverableTypes: delTypes,
         deliverableDescriptions: delDescs,
       });
-    } else if (campaignScore.total < 75) {
+    } else if (score.total < 75) {
       triggerCampaignEvent('CAMPAIGN_SCORED_POORLY', {
         campaignName: campaign.campaignName,
         clientName: campaign.clientName,
-        score: campaignScore.total,
+        score: score.total,
         assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
         conceptName: selectedConcept?.name,
         conceptTagline: selectedConcept?.tagline,
@@ -350,6 +340,15 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
         deliverableDescriptions: delDescs,
       });
     }
+
+    // Show results modal (everything is already persisted — safe to refresh)
+    setCampaignScore(score);
+    setShowResults(true);
+    setIsSubmitting(false);
+  };
+
+  const handleResultsClose = () => {
+    setShowResults(false);
   };
 
   // Get selected concept name for display

@@ -247,10 +247,10 @@ function AppContent() {
     return () => timers.forEach(clearTimeout);
   }, [playerName, campaigns, addNotification, addEmail, triggerCampaignEvent, addMessage]);
 
-  // Unlock new briefs as campaigns complete
+  // Unlock new briefs as campaigns complete (also recovers missed unlocks on reload)
   useEffect(() => {
     const completedCount = campaigns.filter(c => c.phase === 'completed').length;
-    if (completedCount <= prevCompletedCountRef.current) return;
+    if (completedCount === 0) return;
 
     // Build the full list of briefs eligible for this run
     const legacy = loadLegacy();
@@ -273,23 +273,35 @@ function AppContent() {
     try { delivered = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]'); } catch { /* */ }
     const deliveredSet = new Set(delivered);
 
+    // Find all eligible undelivered briefs — catches both new completions and
+    // any that were missed on a previous session (e.g. refresh before timeout fired)
     const toUnlock = allBriefs.filter(
       entry => !entry.unlockAtReputation
         && entry.unlockAt <= completedCount
-        && entry.unlockAt > prevCompletedCountRef.current
         && !deliveredSet.has(entry.briefId),
     );
 
+    if (toUnlock.length === 0) {
+      prevCompletedCountRef.current = completedCount;
+      return;
+    }
+
+    // Show notifications only for genuinely new completions (not recovery on reload)
+    const isNewCompletion = completedCount > prevCompletedCountRef.current;
+
     toUnlock.forEach((entry, i) => {
-      // Stagger deliveries so multiple unlocks feel sequential
-      const delay = 2000 + i * 3000;
+      // Stagger deliveries for new completions; deliver quickly for recovery
+      const delay = isNewCompletion ? (2000 + i * 3000) : (100 + i * 100);
       setTimeout(() => {
         addEmail(entry.buildEmail());
-        addNotification(
-          '📧 New Brief!',
-          `${entry.clientName} wants to work with your agency. Check your inbox.`,
-        );
-        triggerCampaignEvent('NEW_BRIEF_ARRIVED', { clientName: entry.clientName });
+
+        if (isNewCompletion) {
+          addNotification(
+            '📧 New Brief!',
+            `${entry.clientName} wants to work with your agency. Check your inbox.`,
+          );
+          triggerCampaignEvent('NEW_BRIEF_ARRIVED', { clientName: entry.clientName });
+        }
 
         // Record delivery
         try {

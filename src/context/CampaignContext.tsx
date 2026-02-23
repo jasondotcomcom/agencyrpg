@@ -37,8 +37,17 @@ function loadCampaigns(): { campaigns: Campaign[]; selectedCampaignId: string | 
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return null;
     const parsed = JSON.parse(saved);
+    // Recover campaigns stuck in 'submitted' phase (pre-fix bug: refresh before
+    // closing results modal left campaigns in limbo with no score).
+    // Roll them back to 'executing' so the player can re-submit.
+    const campaigns = (parsed.campaigns || []).map(reviveDates).map((c: Campaign) => {
+      if (c.phase === 'submitted' && c.clientScore == null) {
+        return { ...c, phase: 'executing' as const };
+      }
+      return c;
+    });
     return {
-      campaigns: (parsed.campaigns || []).map(reviveDates),
+      campaigns,
       selectedCampaignId: parsed.selectedCampaignId || null,
     };
   } catch {
