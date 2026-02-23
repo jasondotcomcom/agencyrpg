@@ -143,7 +143,7 @@ export default function LawsuitApp(): React.ReactElement {
   // ── Spawn a threat ────────────────────────────────────────────────────────
 
   const spawnThreat = useCallback((game: GameState) => {
-    const phase = game.elapsed < 30 ? 0 : game.elapsed < 60 ? 1 : 2;
+    const t = Math.min(game.elapsed / GAME_DURATION, 1); // 0→1 over game
 
     // Determine lane — bias toward uncovered lanes to create tension
     let lane: number;
@@ -163,13 +163,14 @@ export default function LawsuitApp(): React.ReactElement {
       def = SETTLEMENT_DEF;
       game.settlementSpawned = true;
     } else {
-      const maxIndex = phase === 0 ? 3 : phase === 1 ? 5 : THREAT_DEFS.length;
+      // Gradually introduce harder threats
+      const maxIndex = t < 0.25 ? 3 : t < 0.5 ? 5 : THREAT_DEFS.length;
       def = THREAT_DEFS[Math.floor(Math.random() * maxIndex)];
     }
 
-    // Speed: how fast the threat travels down the path (progress per frame)
-    const baseSpeed = phase === 0 ? 0.008 : phase === 1 ? 0.012 : 0.018;
-    const variance = baseSpeed * 0.3 * (Math.random() - 0.5);
+    // Continuous speed ramp: quick reaction time from the start, frantic by end
+    const baseSpeed = 0.010 + t * 0.016; // 0.010 → 0.026
+    const variance = baseSpeed * 0.25 * (Math.random() - 0.5);
     const speed = baseSpeed + variance;
 
     game.threats.push({
@@ -198,7 +199,7 @@ export default function LawsuitApp(): React.ReactElement {
     const h = canvas.height;
     const now = performance.now();
     game.elapsed = (now - game.startTime) / 1000;
-    const phase = game.elapsed < 30 ? 0 : game.elapsed < 60 ? 1 : 2;
+    const t = Math.min(game.elapsed / GAME_DURATION, 1); // 0→1 progression
 
     // ── Win check ──
     if (game.elapsed >= GAME_DURATION) {
@@ -236,16 +237,22 @@ export default function LawsuitApp(): React.ReactElement {
       game.playerPos = 'right';
     }
 
-    // ── Spawn threats ──
-    const spawnRate = phase === 0 ? 70 : phase === 1 ? 42 : 24;
+    // ── Spawn threats — continuous ramp, quick from the start ──
+    // 45 frames (~0.75s) between spawns at start → 13 frames (~0.22s) at end
+    const spawnInterval = Math.round(45 - t * 32);
     game.spawnCooldown--;
     if (game.spawnCooldown <= 0) {
       spawnThreat(game);
-      game.spawnCooldown = spawnRate + Math.floor(Math.random() * 20);
+      // Double-spawn chance increases over time (10% → 35%)
+      const doubleChance = 0.10 + t * 0.25;
+      if (Math.random() < doubleChance) {
+        spawnThreat(game);
+      }
+      game.spawnCooldown = spawnInterval + Math.floor(Math.random() * Math.max(4, 12 - t * 10));
     }
 
     // ── Chat distractions ──
-    if (phase >= 1) {
+    if (game.elapsed >= 30) {
       game.chatCooldown--;
       if (game.chatCooldown <= 0 && game.chatIndex < LAWSUIT_CHAT_DISTRACTIONS.length) {
         const d = LAWSUIT_CHAT_DISTRACTIONS[game.chatIndex];
@@ -258,43 +265,47 @@ export default function LawsuitApp(): React.ReactElement {
       }
     }
 
+    // ── Layout: threats travel UP from bottom toward the player at top ──
+    const strikeZoneY = h * 0.18;  // player/hammer area (top)
+    const spawnZoneY = h * 0.90;   // threats appear here (bottom)
+    const pathLen = spawnZoneY - strikeZoneY;
+
     // ── Update threats ──
     const covered = coveredLanes(game.playerPos);
 
-    for (const t of game.threats) {
-      if (t.state === 'smashed') {
-        t.smashFrame--;
-        if (t.smashFrame <= 0) t.state = 'missed'; // mark for cleanup
+    for (const thr of game.threats) {
+      if (thr.state === 'smashed') {
+        thr.smashFrame--;
+        if (thr.smashFrame <= 0) thr.state = 'missed'; // mark for cleanup
         continue;
       }
-      if (t.state === 'missed') continue;
+      if (thr.state === 'missed') continue;
 
-      t.progress += t.speed;
+      thr.progress += thr.speed;
 
       // Reached the strike zone — resolve
-      if (t.progress >= 1.0) {
-        const isCovered = covered.includes(t.lane);
+      if (thr.progress >= 1.0) {
+        const isCovered = covered.includes(thr.lane);
         if (isCovered) {
           // Smashed!
-          t.state = 'smashed';
-          t.smashFrame = SMASH_ANIM_FRAMES;
-          game.score += t.def.points;
+          thr.state = 'smashed';
+          thr.smashFrame = SMASH_ANIM_FRAMES;
+          game.score += thr.def.points;
           game.totalSmashed++;
 
           // Determine which hammer index (0=left, 1=center, 2=right relative to covered)
-          const covIdx = covered.indexOf(t.lane);
+          const covIdx = covered.indexOf(thr.lane);
           const hammerIdx = Math.min(covIdx, 2);
           game.hammerAnim[hammerIdx] = HAMMER_TOTAL;
 
           // Hit effect
-          const lx = getLaneX(t.lane, w);
-          const strikeY = h * 0.72;
+          const lx = getLaneX(thr.lane, w);
           const hitWord = HIT_WORDS[Math.floor(Math.random() * HIT_WORDS.length)];
           const colors = ['#ffdd57', '#ff6b6b', '#4ecdc4', '#ff9ff3', '#feca57', '#54a0ff'];
           game.hitEffects.push({
             id: game.effectId++,
             x: lx + (Math.random() - 0.5) * 20,
-            y: strikeY - 20,
+            y: strikeZoneY + 10,
             text: hitWord,
             frame: 0,
             maxFrames: 30,
@@ -305,7 +316,7 @@ export default function LawsuitApp(): React.ReactElement {
           game.shakeFrames = 6;
 
           // Settlement catch
-          if (t.def.type === 'settlement') {
+          if (thr.def.type === 'settlement') {
             game.phase = 'settled';
             setHudState(p => ({ ...p, phase: 'settled' }));
             completeLawsuit('settled');
@@ -316,11 +327,11 @@ export default function LawsuitApp(): React.ReactElement {
           }
         } else {
           // Missed!
-          t.state = 'missed';
+          thr.state = 'missed';
           game.misses++;
           game.missEffects.push({
             id: game.effectId++,
-            lane: t.lane,
+            lane: thr.lane,
             frame: 0,
             maxFrames: 20,
           });
@@ -331,7 +342,7 @@ export default function LawsuitApp(): React.ReactElement {
     }
 
     // Cleanup resolved threats
-    game.threats = game.threats.filter(t => t.state !== 'missed');
+    game.threats = game.threats.filter(thr => thr.state !== 'missed');
 
     // Update hit effects
     game.hitEffects = game.hitEffects.filter(e => {
@@ -372,111 +383,100 @@ export default function LawsuitApp(): React.ReactElement {
 
     // Background
     const bg = ctx.createLinearGradient(0, 0, 0, h);
-    bg.addColorStop(0, '#0f1923');
-    bg.addColorStop(0.6, '#1a1a2e');
-    bg.addColorStop(1, '#16213e');
+    bg.addColorStop(0, '#16213e');
+    bg.addColorStop(0.4, '#1a1a2e');
+    bg.addColorStop(1, '#0f1923');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
 
-    const groundY = h * 0.78;
-    const spawnY = h * 0.12;
-    const pathLength = groundY - spawnY;
-
-    // ── Draw lane paths (visible tracks) ──
+    // ── Draw lane paths (threats travel UP from bottom to top) ──
     for (let lane = 0; lane < NUM_LANES; lane++) {
       const lx = getLaneX(lane, w);
       const isCov = covered.includes(lane);
 
-      // Path track (dashed line from top to strike zone)
+      // Path track (dashed line from bottom spawn to top strike zone)
       ctx.strokeStyle = isCov ? 'rgba(74, 124, 89, 0.25)' : 'rgba(100, 60, 60, 0.25)';
       ctx.lineWidth = 2;
       ctx.setLineDash([6, 8]);
       ctx.beginPath();
-      ctx.moveTo(lx, spawnY);
-      ctx.lineTo(lx, groundY);
+      ctx.moveTo(lx, spawnZoneY);
+      ctx.lineTo(lx, strikeZoneY);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Lane gutter (wider subtle path)
+      // Lane gutter
       ctx.fillStyle = isCov ? 'rgba(74, 124, 89, 0.04)' : 'rgba(100, 60, 60, 0.04)';
-      ctx.fillRect(lx - 20, spawnY, 40, pathLength);
+      ctx.fillRect(lx - 20, strikeZoneY, 40, pathLen);
 
-      // Strike zone indicator at bottom
-      const zoneY = groundY - 10;
+      // Strike zone indicator at top
       ctx.fillStyle = isCov ? 'rgba(74, 124, 89, 0.15)' : 'rgba(180, 60, 60, 0.08)';
       ctx.beginPath();
-      ctx.roundRect(lx - 22, zoneY - 8, 44, 20, 4);
+      ctx.roundRect(lx - 22, strikeZoneY - 4, 44, 20, 4);
       ctx.fill();
 
       // Strike zone border
       ctx.strokeStyle = isCov ? 'rgba(74, 124, 89, 0.4)' : 'rgba(180, 60, 60, 0.2)';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.roundRect(lx - 22, zoneY - 8, 44, 20, 4);
+      ctx.roundRect(lx - 22, strikeZoneY - 4, 44, 20, 4);
       ctx.stroke();
 
-      // Lane number
+      // Lane number at bottom
       ctx.fillStyle = '#333355';
       ctx.font = '9px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillText(`${lane + 1}`, lx, groundY + 6);
+      ctx.fillText(`${lane + 1}`, lx, spawnZoneY + 6);
     }
 
-    // Ground area
-    ctx.fillStyle = '#1a1a30';
-    ctx.fillRect(0, groundY + 16, w, h - groundY);
-
-    // ── Draw threats traveling down paths ──
+    // ── Draw threats traveling UP from bottom ──
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    for (const t of game.threats) {
-      const lx = getLaneX(t.lane, w);
+    for (const thr of game.threats) {
+      const lx = getLaneX(thr.lane, w);
 
-      if (t.state === 'smashed') {
+      if (thr.state === 'smashed') {
         // Disintegration animation: scatter + fade
-        const progress = 1 - t.smashFrame / SMASH_ANIM_FRAMES;
-        const strikeY = groundY - 10;
+        const progress = 1 - thr.smashFrame / SMASH_ANIM_FRAMES;
         ctx.save();
-        ctx.globalAlpha = 1 - progress * progress; // ease out fade
-        ctx.translate(lx, strikeY);
-        // Scatter effect — multiple fading fragments
+        ctx.globalAlpha = 1 - progress * progress;
+        ctx.translate(lx, strikeZoneY + 8);
         const fragmentCount = 4;
         for (let f = 0; f < fragmentCount; f++) {
           const angle = (f / fragmentCount) * Math.PI * 2 + progress * 2;
           const dist = progress * 35;
           const fx = Math.cos(angle) * dist;
-          const fy = Math.sin(angle) * dist - progress * 20;
+          const fy = Math.sin(angle) * dist + progress * 15; // scatter downward
           ctx.save();
           ctx.translate(fx, fy);
           ctx.scale(1 - progress * 0.8, 1 - progress * 0.8);
           ctx.font = '14px serif';
-          ctx.fillText(t.def.emoji, 0, 0);
+          ctx.fillText(thr.def.emoji, 0, 0);
           ctx.restore();
         }
         ctx.restore();
         continue;
       }
 
-      // Position along path
-      const threatY = spawnY + pathLength * t.progress;
+      // Position: travels UP from spawnZoneY to strikeZoneY
+      const threatY = spawnZoneY - pathLen * thr.progress;
 
-      // Size scales up slightly as it approaches
-      const approachScale = 0.7 + t.progress * 0.4;
+      // Size scales up as it approaches the player
+      const approachScale = 0.7 + thr.progress * 0.4;
 
-      // Urgency pulsing when close to strike zone
-      const urgencyPulse = t.progress > 0.7
-        ? 1 + Math.sin(t.progress * 40) * 0.08 * (t.progress - 0.7) / 0.3
+      // Urgency pulsing when close
+      const urgencyPulse = thr.progress > 0.7
+        ? 1 + Math.sin(thr.progress * 40) * 0.08 * (thr.progress - 0.7) / 0.3
         : 1;
 
-      // Danger glow when very close
-      if (t.progress > 0.8 && !covered.includes(t.lane)) {
+      // Danger glow on uncovered lane when very close
+      if (thr.progress > 0.8 && !covered.includes(thr.lane)) {
         ctx.save();
         ctx.shadowColor = '#ff3333';
-        ctx.shadowBlur = 8 + (t.progress - 0.8) * 40;
+        ctx.shadowBlur = 8 + (thr.progress - 0.8) * 40;
         ctx.globalAlpha = 0.3;
         ctx.font = `${Math.round(28 * approachScale)}px serif`;
-        ctx.fillText(t.def.emoji, lx, threatY);
+        ctx.fillText(thr.def.emoji, lx, threatY);
         ctx.restore();
       }
 
@@ -485,22 +485,22 @@ export default function LawsuitApp(): React.ReactElement {
       ctx.scale(approachScale * urgencyPulse, approachScale * urgencyPulse);
 
       // Settlement glow
-      if (t.def.type === 'settlement') {
+      if (thr.def.type === 'settlement') {
         ctx.shadowColor = '#ffd700';
         ctx.shadowBlur = 15 + Math.sin(game.elapsed * 8) * 5;
       }
 
       ctx.font = '28px serif';
-      ctx.fillText(t.def.emoji, 0, 0);
+      ctx.fillText(thr.def.emoji, 0, 0);
       ctx.restore();
 
-      // Progress indicator dot on the path
-      if (t.progress < 0.85) {
-        ctx.fillStyle = t.def.type === 'settlement'
+      // Progress indicator dot
+      if (thr.progress < 0.85) {
+        ctx.fillStyle = thr.def.type === 'settlement'
           ? 'rgba(255, 215, 0, 0.5)'
-          : `rgba(255, 100, 100, ${0.2 + t.progress * 0.4})`;
+          : `rgba(255, 100, 100, ${0.2 + thr.progress * 0.4})`;
         ctx.beginPath();
-        ctx.arc(lx, threatY + 18, 2, 0, Math.PI * 2);
+        ctx.arc(lx, threatY - 18, 2, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -512,7 +512,7 @@ export default function LawsuitApp(): React.ReactElement {
       ctx.save();
       ctx.globalAlpha = (1 - progress) * 0.4;
       ctx.fillStyle = '#ff3333';
-      ctx.fillRect(lx - 24, spawnY, 48, pathLength + 20);
+      ctx.fillRect(lx - 24, strikeZoneY, 48, pathLen + 10);
       ctx.restore();
 
       // "MISS" text
@@ -523,16 +523,16 @@ export default function LawsuitApp(): React.ReactElement {
         ctx.fillStyle = '#ff4444';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('MISS!', lx, groundY - 40 - m.frame * 1.5);
+        ctx.fillText('MISS!', lx, strikeZoneY + 30 + m.frame * 1.5);
         ctx.restore();
       }
     }
 
-    // ── Draw player character ──
+    // ── Draw player character (at top) ──
     const playerCenterX = game.playerPos === 'left'
       ? getLaneX(1, w)    // center of lanes 0,1,2
       : getLaneX(3, w);   // center of lanes 2,3,4
-    const playerY = groundY - 55;
+    const playerY = strikeZoneY - 35;
 
     // Body
     ctx.font = '32px serif';
@@ -545,7 +545,7 @@ export default function LawsuitApp(): React.ReactElement {
     for (let i = 0; i < 3; i++) {
       const hammerLane = covLanes[i];
       const hx = getLaneX(hammerLane, w);
-      const hy = groundY - 8;
+      const hy = strikeZoneY + 8;
       const remaining = game.hammerAnim[i];
 
       let angle = 0;
@@ -554,19 +554,19 @@ export default function LawsuitApp(): React.ReactElement {
 
       if (remaining > 0) {
         if (remaining > HAMMER_STRIKE_FRAMES + HAMMER_FOLLOW_FRAMES) {
-          // Wind-up phase: pull back
+          // Wind-up: pull up
           const windProgress = (remaining - HAMMER_STRIKE_FRAMES - HAMMER_FOLLOW_FRAMES) / HAMMER_WIND_FRAMES;
           angle = windProgress * 0.8;
-          hammerY = hy - windProgress * 12;
+          hammerY = hy + windProgress * 12;
           scale = 1 + windProgress * 0.15;
         } else if (remaining > HAMMER_FOLLOW_FRAMES) {
-          // Strike phase: fast slam down
+          // Strike: slam up
           const strikeProgress = 1 - (remaining - HAMMER_FOLLOW_FRAMES) / HAMMER_STRIKE_FRAMES;
           angle = 0.8 * (1 - strikeProgress) + (-0.5) * strikeProgress;
-          hammerY = hy - 12 * (1 - strikeProgress);
+          hammerY = hy + 12 * (1 - strikeProgress);
           scale = 1.15 - strikeProgress * 0.2;
         } else {
-          // Follow-through: settle back
+          // Follow-through
           const followProgress = 1 - remaining / HAMMER_FOLLOW_FRAMES;
           angle = -0.5 * (1 - followProgress);
           scale = 0.95 + followProgress * 0.05;
@@ -599,7 +599,7 @@ export default function LawsuitApp(): React.ReactElement {
       const progress = e.frame / e.maxFrames;
       const scale = 0.5 + (1 - Math.abs(progress - 0.2)) * 0.8;
       const alpha = progress < 0.1 ? progress / 0.1 : 1 - (progress - 0.1) / 0.9;
-      const yOffset = -progress * 40;
+      const yOffset = progress * 30; // float downward (away from player)
 
       ctx.save();
       ctx.globalAlpha = Math.max(0, alpha);
@@ -620,12 +620,12 @@ export default function LawsuitApp(): React.ReactElement {
       ctx.restore();
     }
 
-    // ── Coverage indicator — subtle highlight on covered lanes ──
+    // ── Coverage indicator at top strike zone ──
     for (const cl of covered) {
       const lx = getLaneX(cl, w);
       ctx.fillStyle = 'rgba(74, 124, 89, 0.06)';
       ctx.beginPath();
-      ctx.ellipse(lx, groundY, 24, 12, 0, 0, Math.PI * 2);
+      ctx.ellipse(lx, strikeZoneY + 8, 24, 12, 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -655,7 +655,7 @@ export default function LawsuitApp(): React.ReactElement {
     game.threats = [];
     game.playerPos = 'left';
     game.nextId = 0;
-    game.spawnCooldown = 60;
+    game.spawnCooldown = 20; // First threat appears almost immediately
     game.settlementSpawned = false;
     game.chatIndex = 0;
     game.chatCooldown = 200;
@@ -782,7 +782,7 @@ export default function LawsuitApp(): React.ReactElement {
           <div className={styles.overlayIcon}>⚖️</div>
           <div className={styles.overlayTitle}>Lawsuit Defense</div>
           <div className={styles.overlayText}>
-            Legal threats slide down {NUM_LANES} lanes toward your desk. You hold gavels
+            Legal threats pop up from below! You hold gavels
             covering 3 lanes at a time. Slide LEFT or RIGHT to choose which
             side to defend. Threats in your lanes get smashed automatically.
             Miss {MAX_MISSES} and you lose. Survive {GAME_DURATION} seconds to win.
