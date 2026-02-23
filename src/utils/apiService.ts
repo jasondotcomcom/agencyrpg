@@ -305,7 +305,19 @@ HASHTAGS: #tag1 #tag2 #tag3 ...`;
       return `Describe this guerrilla marketing activation in 2-3 sentences. Just the concept: what happens, where, and the surprise/reveal moment. No logistics, documentation plans, or legal notes.`;
 
     case 'print_ad':
-      return `Create a print ad. Just the HEADLINE and 1-2 sentences of BODY COPY. No layout direction, no publication targets.`;
+      return `Create a print ad (magazine/newspaper). Just the HEADLINE and 1-2 sentences of BODY COPY. No layout direction, no publication targets.`;
+
+    case 'direct_mail':
+      return `Create a direct mail piece (postcard, mailer, or catalog insert). Just the HEADLINE, 1-2 sentences of BODY COPY, and a clear CTA. This is physically mailed to recipients — make it grab attention immediately.`;
+
+    case 'ooh':
+      return `Create an out-of-home (OOH) ad (bus shelter, poster, mural, transit ad). Just the HEADLINE (6 words max) and one line of supporting copy. Think bold, immediate impact for people passing by.`;
+
+    case 'audio':
+      return `Write a radio/audio ad script (30 seconds max). Just the script text — conversational, designed for listening. End with a clear CTA and any tagline. No sections or key messages lists.`;
+
+    case 'content':
+      return `Create a content piece (article, whitepaper, or case study). Just the TITLE and a 2-3 sentence summary of the angle, key argument, and target reader. No full outline or section breakdowns.`;
 
     default: {
       const _exhaustive: never = type;

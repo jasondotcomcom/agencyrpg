@@ -65,10 +65,17 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
 
   const handleConfirmGenerate = () => {
     setShowConfirmation(false);
+    const chosenConcept = campaign.generatedConcepts.find(c => c.id === campaign.selectedConceptId);
+    const delTypes = chosenConcept?.suggestedDeliverables.map(d => DELIVERABLE_TYPES[d.type]?.label).filter(Boolean) ?? [];
+    const delDescs = chosenConcept?.suggestedDeliverables.map(d => d.description).filter(Boolean) ?? [];
     triggerCampaignEvent('CONCEPT_CHOSEN', {
       campaignName: campaign.campaignName,
       clientName: campaign.clientName,
       assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
+      conceptName: chosenConcept?.name,
+      conceptTagline: chosenConcept?.tagline,
+      deliverableTypes: delTypes,
+      deliverableDescriptions: delDescs,
     });
     generateCampaignDeliverables(campaign.id);
     setTimeout(() => {
@@ -76,6 +83,10 @@ export default function ConceptSelectionPhase({ campaign }: ConceptSelectionPhas
         campaignName: campaign.campaignName,
         clientName: campaign.clientName,
         assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
+        conceptName: chosenConcept?.name,
+        conceptTagline: chosenConcept?.tagline,
+        deliverableTypes: delTypes,
+        deliverableDescriptions: delDescs,
       });
     }, 8000);
   };

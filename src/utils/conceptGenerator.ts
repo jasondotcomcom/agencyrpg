@@ -4,9 +4,10 @@ import { getTeamMembers, getTeamCompositionDescription } from '../data/team';
 // ─── Valid enum values for type-safe parsing ────────────────────────────────
 
 const VALID_DELIVERABLE_TYPES: DeliverableType[] = [
-  'social_post', 'video', 'print_ad', 'billboard', 'email_campaign',
-  'landing_page', 'experiential', 'guerrilla', 'podcast_ad',
-  'influencer_collab', 'twitter_thread', 'reddit_ama', 'tiktok_series', 'blog_post',
+  'social_post', 'video', 'print_ad', 'direct_mail', 'ooh', 'billboard',
+  'email_campaign', 'landing_page', 'experiential', 'guerrilla', 'podcast_ad',
+  'audio', 'influencer_collab', 'twitter_thread', 'reddit_ama', 'tiktok_series',
+  'blog_post', 'content',
 ];
 
 const VALID_PLATFORMS: Platform[] = [
@@ -82,6 +83,25 @@ RESPONSE FORMAT — You MUST respond with valid JSON matching this exact structu
 
 VALID deliverable types: ${VALID_DELIVERABLE_TYPES.join(', ')}
 VALID platforms: ${VALID_PLATFORMS.join(', ')}
+
+DELIVERABLE TYPE CLASSIFICATION — BE PRECISE:
+- print_ad = magazine ads, newspaper ads, trade publication ads
+- direct_mail = postcards, mailers, catalogs, anything physically SENT to an address
+- ooh = bus shelters, posters, wheat-pasting, murals, transit ads (NOT billboards)
+- billboard = billboards specifically
+- video = TV spots, pre-roll, YouTube, brand films
+- audio = radio spots, Spotify audio ads (NOT podcast host-reads)
+- podcast_ad = host-read podcast sponsorships
+- social_post = Instagram, TikTok, X, LinkedIn, Facebook posts
+- email_campaign = email campaigns, newsletters, drip sequences
+- content = blog posts, articles, whitepapers, case studies (use this OR blog_post)
+- experiential = events, activations, pop-ups, stunts
+- guerrilla = unsanctioned street-level interventions
+
+If someone is mailing postcards to a neighborhood, that is direct_mail, NOT print_ad.
+If it is a bus shelter poster, that is ooh, NOT billboard.
+If it is a radio spot, that is audio, NOT podcast_ad.
+Match the ACTUAL media type, not the broadest physical format.
 
 DELIVERABLE COUNT LIMIT — NON-NEGOTIABLE:
 Each concept MUST have exactly 4-5 suggestedDeliverables.

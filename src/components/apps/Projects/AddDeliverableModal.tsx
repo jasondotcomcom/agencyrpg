@@ -13,17 +13,21 @@ const platformsByType: Record<DeliverableType, Platform[]> = {
   social_post: ['instagram', 'tiktok', 'linkedin', 'twitter', 'facebook'],
   video: ['youtube', 'tiktok', 'instagram', 'facebook', 'web'],
   print_ad: ['print'],
+  direct_mail: ['print'],
+  ooh: ['outdoor'],
   billboard: ['outdoor'],
   email_campaign: ['email'],
   landing_page: ['web'],
   experiential: ['none'],
   guerrilla: ['none'],
   podcast_ad: ['spotify'],
+  audio: ['spotify'],
   influencer_collab: ['instagram', 'tiktok', 'youtube'],
   twitter_thread: ['twitter'],
   reddit_ama: ['reddit'],
   tiktok_series: ['tiktok'],
   blog_post: ['web'],
+  content: ['web'],
 };
 
 export default function AddDeliverableModal({ campaignId, onClose }: AddDeliverableModalProps): React.ReactElement {

@@ -4,6 +4,7 @@ import { useWindowContext } from '../../../context/WindowContext';
 import { useReputationContext } from '../../../context/ReputationContext';
 import { useEmailContext } from '../../../context/EmailContext';
 import type { CampaignScore } from '../../../types/reputation';
+import { DELIVERABLE_TYPES } from '../../../types/campaign';
 import { useAgencyFunds } from '../../../context/AgencyFundsContext';
 import { useChatContext } from '../../../context/ChatContext';
 import CampaignHeader from './CampaignHeader';
@@ -236,6 +237,27 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
       unlockAchievement('one-at-a-time');
     }
 
+    // ── Prestige (NG+) achievements ────────────────────────────────────────
+    if (campaign.briefId?.startsWith('email-ngp-')) {
+      unlockAchievement('repeat-customer');
+    }
+    if (campaign.clientName === '????') {
+      unlockAchievement('playing-god');
+    }
+    if (campaign.clientName === 'The Collective') {
+      unlockAchievement('union-rep');
+    }
+    // Full Circle: both Tier 3 briefs completed in current campaigns
+    const allCompleted = [...campaigns.filter(c => c.phase === 'completed'), campaign];
+    const completedClients = new Set(allCompleted.map(c => c.clientName));
+    if (completedClients.has('The Collective') && completedClients.has('????')) {
+      unlockAchievement('full-circle');
+    }
+    // What Even Is Reality: both Alien and Simulation completed in same playthrough
+    if (completedClients.has('???') && completedClients.has('????')) {
+      unlockAchievement('what-even-is-reality');
+    }
+
     // Add to portfolio
     addEntry({
       id: campaignId,
@@ -288,6 +310,9 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
           score: campaignScore.total,
           awardName: award.name,
           assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
+          conceptName: selectedConcept?.name,
+          deliverableTypes: delTypes,
+          deliverableDescriptions: delDescs,
         });
         // Check if this award triggers the ending (Cannes + 5 campaigns + 80 rep)
         const newReputation = repState.currentReputation + award.repBonus;
@@ -300,12 +325,18 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
     checkForHostileTakeover(repState.completedCampaigns.length);
 
     // Trigger chat messages based on score
+    const delTypes = campaign.deliverables.map(d => DELIVERABLE_TYPES[d.type]?.label).filter(Boolean);
+    const delDescs = campaign.deliverables.map(d => d.description).filter(Boolean);
     if (campaignScore.total >= 85) {
       triggerCampaignEvent('CAMPAIGN_SCORED_WELL', {
         campaignName: campaign.campaignName,
         clientName: campaign.clientName,
         score: campaignScore.total,
         assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
+        conceptName: selectedConcept?.name,
+        conceptTagline: selectedConcept?.tagline,
+        deliverableTypes: delTypes,
+        deliverableDescriptions: delDescs,
       });
     } else if (campaignScore.total < 75) {
       triggerCampaignEvent('CAMPAIGN_SCORED_POORLY', {
@@ -313,6 +344,10 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
         clientName: campaign.clientName,
         score: campaignScore.total,
         assignedTeamIds: campaign.conceptingTeam?.memberIds ?? [],
+        conceptName: selectedConcept?.name,
+        conceptTagline: selectedConcept?.tagline,
+        deliverableTypes: delTypes,
+        deliverableDescriptions: delDescs,
       });
     }
   };

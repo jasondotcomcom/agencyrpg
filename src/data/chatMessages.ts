@@ -115,6 +115,45 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+/** Casual short reference instead of the full campaign name */
+function shortName(ctx: ChatEventContext): string {
+  return `the ${ctx.clientName} campaign`;
+}
+
+/** Pick a random deliverable type label from context, or fallback */
+function pickDeliverableType(ctx: ChatEventContext): string | undefined {
+  if (ctx.deliverableTypes && ctx.deliverableTypes.length > 0) {
+    return pick(ctx.deliverableTypes);
+  }
+  return undefined;
+}
+
+/** Check if context includes a visual deliverable */
+function hasVisualDeliverable(ctx: ChatEventContext): boolean {
+  const visual = ['Video', 'Print Ad', 'Billboard', 'Social Post', 'TikTok Series'];
+  return ctx.deliverableTypes?.some(t => visual.includes(t)) ?? false;
+}
+
+/** Check if context includes a digital/tech deliverable */
+function hasDigitalDeliverable(ctx: ChatEventContext): boolean {
+  const digital = ['Landing Page', 'Email Campaign', 'Blog Post', 'Twitter Thread', 'Reddit AMA'];
+  return ctx.deliverableTypes?.some(t => digital.includes(t)) ?? false;
+}
+
+/** Get a specific visual deliverable label */
+function pickVisualType(ctx: ChatEventContext): string {
+  const visual = ['Video', 'Print Ad', 'Billboard', 'Social Post', 'TikTok Series'];
+  const match = ctx.deliverableTypes?.filter(t => visual.includes(t)) ?? [];
+  return match.length > 0 ? pick(match) : 'visuals';
+}
+
+/** Get a specific digital deliverable label */
+function pickDigitalType(ctx: ChatEventContext): string {
+  const digital = ['Landing Page', 'Email Campaign', 'Blog Post', 'Twitter Thread', 'Reddit AMA'];
+  const match = ctx.deliverableTypes?.filter(t => digital.includes(t)) ?? [];
+  return match.length > 0 ? pick(match) : 'the digital pieces';
+}
+
 // ─── Campaign Event Messages ──────────────────────────────────────────────────
 
 export function getCampaignEventMessages(
@@ -149,9 +188,9 @@ export function getCampaignEventMessages(
 
 function getBriefAcceptedMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
   const pmText = {
-    high: `New brief just dropped! \u201C${ctx.campaignName}\u201D for ${ctx.clientName}. Let\u2019s gooo \uD83D\uDE80`,
-    medium: `New brief just dropped! \u201C${ctx.campaignName}\u201D for ${ctx.clientName}. Assigning a team now.`,
-    low: `Another brief in. \u201C${ctx.campaignName}\u201D for ${ctx.clientName}. I\u2019ll get a team sorted.`,
+    high: `New brief just dropped for ${ctx.clientName}! Let\u2019s gooo \uD83D\uDE80`,
+    medium: `New brief just dropped \u2014 ${shortName(ctx)}. Assigning a team now.`,
+    low: `Another brief in. ${ctx.clientName} this time. I\u2019ll get a team sorted.`,
   };
   const suitText = {
     high: `${ctx.clientName} \u2014 good vibes from this one. Let\u2019s crush it!`,
@@ -185,9 +224,9 @@ function getConceptingMessages(ctx: ChatEventContext, morale: MoraleLevel): Mess
   // Assigned members — in the weeds, actively working
   if (isAssigned('strategist', ctx)) {
     const text = {
-      high: `Pulling audience data for \u201C${ctx.campaignName}\u201D. The cultural tension here is \u2728 *chef\u2019s kiss* \u2728`,
-      medium: `Digging into the audience data for \u201C${ctx.campaignName}\u201D. The cultural tension here is interesting.`,
-      low: `Looking at the audience data for \u201C${ctx.campaignName}\u201D. Need to find an angle that works.`,
+      high: `Pulling audience data for ${shortName(ctx)}. The cultural tension here is \u2728 *chef\u2019s kiss* \u2728`,
+      medium: `Digging into the audience data for ${shortName(ctx)}. The cultural tension here is interesting.`,
+      low: `Looking at the audience data for the ${ctx.clientName} project. Need to find an angle that works.`,
     };
     messages.push({ channel: 'creative', authorId: 'strategist', text: text[morale] });
   }
@@ -221,7 +260,7 @@ function getConceptingMessages(ctx: ChatEventContext, morale: MoraleLevel): Mess
 
   if (isAssigned('media', ctx)) {
     const text = {
-      high: `Already mapping out where this campaign needs to live. The channel mix is going to be \uD83D\uDD25`,
+      high: `Already mapping out where ${shortName(ctx)} needs to live. The channel mix is going to be \uD83D\uDD25`,
       medium: `Thinking through the media mix for this one. Some interesting platform opportunities.`,
       low: `I'll put together some channel recommendations.`,
     };
@@ -243,8 +282,8 @@ function getConceptingMessages(ctx: ChatEventContext, morale: MoraleLevel): Mess
       channel: 'general',
       authorId: 'strategist',
       text: pick([
-        `Heard the team is concepting for \u201C${ctx.campaignName}\u201D. Sounds like a fun one.`,
-        `How\u2019s the \u201C${ctx.campaignName}\u201D concepting going? Let me know if you need a second opinion on positioning.`,
+        `Heard the team is concepting for ${shortName(ctx)}. Sounds like a fun one.`,
+        `How\u2019s the ${ctx.clientName} concepting going? Let me know if you need a second opinion on positioning.`,
         `${ctx.clientName} brief looks interesting. Curious to see what the team comes up with.`,
       ]),
     });
@@ -267,7 +306,7 @@ function getConceptingMessages(ctx: ChatEventContext, morale: MoraleLevel): Mess
       channel: 'general',
       authorId: 'technologist',
       text: pick([
-        `Not staffed on \u201C${ctx.campaignName}\u201D but if anyone needs a tech perspective, holler.`,
+        `Not staffed on the ${ctx.clientName} project but if anyone needs a tech perspective, holler.`,
         `Saw the ${ctx.clientName} brief come through. If there\u2019s a digital angle I can help with, just say the word.`,
       ]),
     });
@@ -280,20 +319,33 @@ function getConceptingMessages(ctx: ChatEventContext, morale: MoraleLevel): Mess
 
 function getConceptChosenMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
   const messages: MessageTemplate[] = [];
+  const concept = ctx.conceptName;
+  const tagline = ctx.conceptTagline;
 
   // PM always comments (project awareness)
-  const pmText = {
-    high: `Direction locked for \u201C${ctx.campaignName}\u201D! Moving into production \u2014 timelines coming your way! \uD83D\uDCCB`,
-    medium: `Direction locked for \u201C${ctx.campaignName}\u201D. Moving into production \u2014 I\u2019ll have timelines out by EOD.`,
-    low: `Direction set for \u201C${ctx.campaignName}\u201D. Let\u2019s get through production. Timelines incoming.`,
-  };
+  const pmHigh = concept
+    ? `Love it \u2014 ${concept} is locked for ${shortName(ctx)}! Moving into production \uD83D\uDCCB`
+    : `Direction locked for ${shortName(ctx)}! Moving into production \u2014 timelines coming your way! \uD83D\uDCCB`;
+  const pmMed = concept
+    ? `${concept} is the direction for ${shortName(ctx)}. Moving into production \u2014 timelines by EOD.`
+    : `Direction locked for ${shortName(ctx)}. Moving into production \u2014 I\u2019ll have timelines out by EOD.`;
+  const pmLow = concept
+    ? `Going with ${concept} for the ${ctx.clientName} project. Timelines incoming.`
+    : `Direction set for the ${ctx.clientName} project. Let\u2019s get through production. Timelines incoming.`;
+  const pmText = { high: pmHigh, medium: pmMed, low: pmLow };
   messages.push({ channel: 'general', authorId: 'pm', text: pmText[morale] });
 
   // Assigned: in the work, excited about the direction
   if (isAssigned('suit', ctx)) {
+    const suitHigh = tagline
+      ? `${concept} is money. ${tagline} \u2014 client\u2019s going to flip. \uD83D\uDD25`
+      : `This direction is money. Client\u2019s going to flip. \uD83D\uDD25`;
+    const suitMed = concept
+      ? `${concept} is a great direction. The client is going to get it immediately.`
+      : `Love this direction. The client is going to get it immediately.`;
     const text = {
-      high: `This direction is money. Client\u2019s going to flip. \uD83D\uDD25`,
-      medium: `Love this direction. The client is going to get it immediately.`,
+      high: suitHigh,
+      medium: suitMed,
       low: `Direction works. Let\u2019s see how it comes together.`,
     };
     messages.push({ channel: 'general', authorId: 'suit', text: text[morale] });
@@ -302,15 +354,18 @@ function getConceptChosenMessages(ctx: ChatEventContext, morale: MoraleLevel): M
       channel: 'general',
       authorId: 'suit',
       text: pick([
-        `Heard the team locked a direction for \u201C${ctx.campaignName}\u201D. Love to see momentum.`,
-        `Nice, ${ctx.clientName} campaign is moving. Curious to see the final work.`,
+        `Heard the team locked a direction for ${shortName(ctx)}. Love to see momentum.`,
+        `Nice, the ${ctx.clientName} project is moving. Curious to see the final work.`,
       ]),
     });
   }
 
   if (isAssigned('art-director', ctx)) {
+    const artHigh = concept
+      ? `${concept}. Yes. This is the one. Time to make something beautiful.`
+      : `Yes. This is the one. Time to make something beautiful.`;
     const text = {
-      high: `Yes. This is the one. Time to make something beautiful.`,
+      high: artHigh,
       medium: `Good pick. Time to make it real.`,
       low: `Got it. Heads down.`,
     };
@@ -329,8 +384,8 @@ function getConceptChosenMessages(ctx: ChatEventContext, morale: MoraleLevel): M
       channel: 'general',
       authorId: 'media',
       text: pick([
-        `If they need help with the media mix on \u201C${ctx.campaignName}\u201D, I\u2019m around.`,
-        `How\u2019s that ${ctx.clientName} project coming along? Just being nosy \uD83D\uDE05`,
+        `If they need help with the media mix on the ${ctx.clientName} project, I\u2019m around.`,
+        `How\u2019s the ${ctx.clientName} project coming along? Just being nosy \uD83D\uDE05`,
       ]),
     });
   }
@@ -342,40 +397,44 @@ function getConceptChosenMessages(ctx: ChatEventContext, morale: MoraleLevel): M
 
 function getDeliverablesGeneratingMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
   const messages: MessageTemplate[] = [];
+  const delType = pickDeliverableType(ctx);
 
   // Assigned: in the zone, producing work
   if (isAssigned('art-director', ctx)) {
+    const artPiece = hasVisualDeliverable(ctx) ? `the ${pickVisualType(ctx).toLowerCase()}` : 'the visuals';
     const text = {
-      high: `Heads down on \u201C${ctx.campaignName}\u201D deliverables. In the zone \uD83C\uDFA8 Do not disturb unless there\u2019s champagne.`,
-      medium: `Heads down on \u201C${ctx.campaignName}\u201D deliverables. Do not disturb unless there\u2019s coffee.`,
-      low: `Working on \u201C${ctx.campaignName}\u201D deliverables. Going to need some focus time.`,
+      high: `Heads down on ${artPiece} for ${shortName(ctx)}. In the zone \uD83C\uDFA8 Do not disturb unless there\u2019s champagne.`,
+      medium: `Crafting ${artPiece} for the ${ctx.clientName} project. Do not disturb unless there\u2019s coffee.`,
+      low: `Working on ${artPiece}. Going to need some focus time.`,
     };
     messages.push({ channel: 'creative', authorId: 'art-director', text: text[morale] });
   }
 
   if (isAssigned('copywriter', ctx)) {
+    const copyPiece = delType ? `the ${delType.toLowerCase()} copy` : 'the copy';
     const text = {
-      high: `Draft 14 and every single one is a banger. I can\u2019t choose. This is agony and ecstasy.`,
-      medium: `Draft 14. Or 15. I lost count somewhere around the second em dash.`,
-      low: `Working through the copy. Almost there.`,
+      high: `Draft 14 of ${copyPiece} and every single one is a banger. This is agony and ecstasy.`,
+      medium: `Draft 14 of ${copyPiece}. Or 15. I lost count somewhere around the second em dash.`,
+      low: `Working through ${copyPiece}. Almost there.`,
     };
     messages.push({ channel: 'creative', authorId: 'copywriter', text: text[morale] });
   }
 
   if (isAssigned('technologist', ctx)) {
+    const techPiece = hasDigitalDeliverable(ctx) ? `the ${pickDigitalType(ctx).toLowerCase()}` : 'the interactive prototype';
     const text = {
-      high: `The interactive prototype is looking incredible. This might be our best tech work yet \uD83D\uDCBB`,
-      medium: `Building out the digital components. Making good progress.`,
-      low: `Working on the tech deliverables. Should have something soon.`,
+      high: `${techPiece[0].toUpperCase() + techPiece.slice(1)} is looking incredible. This might be our best tech work yet \uD83D\uDCBB`,
+      medium: `Building out ${techPiece}. Making good progress.`,
+      low: `Working on ${techPiece}. Should have something soon.`,
     };
     messages.push({ channel: 'creative', authorId: 'technologist', text: text[morale] });
   }
 
   // PM always has visibility
   const pmText = {
-    high: `Team is ON FIRE right now. \u201C${ctx.campaignName}\u201D is looking incredible \uD83D\uDD25`,
-    medium: `Team is in the zone on \u201C${ctx.campaignName}\u201D. Progress looking good so far.`,
-    low: `Production underway for \u201C${ctx.campaignName}\u201D. Tracking to deadline.`,
+    high: `Team is ON FIRE right now. ${shortName(ctx)} is looking incredible \uD83D\uDD25`,
+    medium: `Team is in the zone on the ${ctx.clientName} project. Progress looking good so far.`,
+    low: `Production underway for ${shortName(ctx)}. Tracking to deadline.`,
   };
   messages.push({ channel: 'general', authorId: 'pm', text: pmText[morale], reactions: morale === 'high' ? [{ emoji: '\uD83D\uDD25', count: 3 }] : [] });
 
@@ -386,7 +445,7 @@ function getDeliverablesGeneratingMessages(ctx: ChatEventContext, morale: Morale
       authorId: 'copywriter',
       text: pick([
         `The ${ctx.clientName} team seems locked in. Good energy in the office today.`,
-        `Peeked at the \u201C${ctx.campaignName}\u201D work in progress. Looking sharp from what I can see.`,
+        `Peeked at the ${ctx.clientName} work in progress. Looking sharp from what I can see.`,
         `Anyone else notice the ${ctx.clientName} team hasn\u2019t left the creative room in 3 hours? Respect.`,
       ]),
     });
@@ -397,7 +456,7 @@ function getDeliverablesGeneratingMessages(ctx: ChatEventContext, morale: Morale
       channel: 'random',
       authorId: 'technologist',
       text: pick([
-        `Sounds like the \u201C${ctx.campaignName}\u201D build is going well. Glad that one\u2019s not on my plate today \uD83D\uDE05`,
+        `Sounds like the ${ctx.clientName} build is going well. Glad that one\u2019s not on my plate today \uD83D\uDE05`,
         `If the ${ctx.clientName} team needs any last-minute tech support, I\u2019ve got bandwidth.`,
       ]),
     });
@@ -411,42 +470,50 @@ function getDeliverablesGeneratingMessages(ctx: ChatEventContext, morale: Morale
 function getCampaignScoredWellMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
   const score = ctx.score ?? 85;
   const messages: MessageTemplate[] = [];
+  const delDesc = ctx.deliverableDescriptions && ctx.deliverableDescriptions.length > 0
+    ? pick(ctx.deliverableDescriptions) : undefined;
 
   // Account director always announces scores
   if (isAssigned('suit', ctx)) {
     messages.push({
       channel: 'general',
       authorId: 'suit',
-      text: `${ctx.clientName} LOVED our work. \u201C${ctx.campaignName}\u201D scored ${score}. We crushed it. \uD83C\uDF89`,
+      text: `${ctx.clientName} LOVED our work on ${shortName(ctx)}. Scored ${score}. We crushed it. \uD83C\uDF89`,
       reactions: [{ emoji: '\uD83C\uDF89', count: 5 }],
     });
   } else {
     messages.push({
       channel: 'general',
       authorId: 'suit',
-      text: `${ctx.clientName} loved \u201C${ctx.campaignName}\u201D \u2014 scored ${score}! Great work from the team. \uD83C\uDF89`,
+      text: `${ctx.clientName} loved ${shortName(ctx)} \u2014 scored ${score}! Great work from the team. \uD83C\uDF89`,
       reactions: [{ emoji: '\uD83C\uDF89', count: 5 }],
     });
   }
 
   // Assigned members celebrate as contributors
   if (isAssigned('copywriter', ctx)) {
+    const copyReact = delDesc
+      ? `I KNEW the copy would land. "${delDesc}" \u2014 that\u2019s a line I\u2019m putting on my tombstone.`
+      : `I KNEW the manifesto would land. This is our Citizen Kane moment \u2014 I\u2019m only slightly exaggerating.`;
     messages.push({
       channel: 'general',
       authorId: 'copywriter',
       text: morale === 'low'
         ? `Wait, really? That\u2019s... actually really good. Maybe we\u2019re better than we think.`
-        : `I KNEW the manifesto would land. This is our Citizen Kane moment \u2014 I\u2019m only slightly exaggerating.`,
+        : copyReact,
     });
   }
 
   if (isAssigned('art-director', ctx)) {
+    const artReact = hasVisualDeliverable(ctx)
+      ? `The ${pickVisualType(ctx).toLowerCase()} came out exactly how I pictured it. Proud of this one.`
+      : `We did good work. Proud of how the design came together.`;
     messages.push({
       channel: 'general',
       authorId: 'art-director',
       text: morale === 'low'
         ? `Good. We needed that. The visual direction was right.`
-        : `We did good work. Proud of how the design came together.`,
+        : artReact,
     });
   }
 
@@ -456,7 +523,7 @@ function getCampaignScoredWellMessages(ctx: ChatEventContext, morale: MoraleLeve
     authorId: 'pm',
     text: morale === 'low'
       ? `Team, that\u2019s a big win. We needed this one. Really proud of everyone. \uD83C\uDFC6`
-      : `Team, incredible work on \u201C${ctx.campaignName}\u201D. Adding this one to the trophy wall. \uD83C\uDFC6`,
+      : `Team, incredible work on ${shortName(ctx)}. Adding this one to the trophy wall. \uD83C\uDFC6`,
     reactions: [{ emoji: '\uD83D\uDCAA', count: 4 }],
   });
 
@@ -467,15 +534,18 @@ function getCampaignScoredWellMessages(ctx: ChatEventContext, morale: MoraleLeve
       authorId: 'technologist',
       text: morale === 'low'
         ? `See? Still got it. Congrats to the team. Also I still think we should build that dashboard.`
-        : `Nice score! Congrats to everyone on \u201C${ctx.campaignName}\u201D. We should build a dashboard to track our wins \uD83D\uDCBB`,
+        : `Nice score! Congrats to everyone on the ${ctx.clientName} project. We should build a dashboard to track our wins \uD83D\uDCBB`,
     });
   } else {
+    const techReact = hasDigitalDeliverable(ctx)
+      ? `The ${pickDigitalType(ctx).toLowerCase()} absolutely killed it. This is why you bring tech to the table. \uD83D\uDCBB`
+      : `The interactive elements absolutely killed it. This is why you bring tech to the table. \uD83D\uDCBB`;
     messages.push({
       channel: 'general',
       authorId: 'technologist',
       text: morale === 'low'
         ? `See? Still got it. The tech integration really pulled through.`
-        : `The interactive elements absolutely killed it. This is why you bring tech to the table. \uD83D\uDCBB`,
+        : techReact,
     });
   }
 
@@ -485,7 +555,7 @@ function getCampaignScoredWellMessages(ctx: ChatEventContext, morale: MoraleLeve
       channel: 'general',
       authorId: outsider,
       text: pick([
-        `Congrats to the \u201C${ctx.campaignName}\u201D team! ${score} is no joke.`,
+        `Congrats to the ${ctx.clientName} team! ${score} is no joke.`,
         `Saw the ${ctx.clientName} results. Great work from that crew.`,
         `${score}! That\u2019s what happens when the team is dialed in. Well done.`,
       ]),
@@ -507,16 +577,16 @@ function getCampaignScoredPoorlyMessages(ctx: ChatEventContext, morale: MoraleLe
       channel: 'general',
       authorId: 'suit',
       text: morale === 'high'
-        ? `Got the scores back for \u201C${ctx.campaignName}\u201D. ${score} out of 100. Not what we expected, but we gave it our best shot. We\u2019ll learn from it.`
-        : `Got the scores back for \u201C${ctx.campaignName}\u201D. ${score} out of 100. Not our best showing. I\u2019ll talk to the client.`,
+        ? `Got the scores back for ${shortName(ctx)}. ${score} out of 100. Not what we expected, but we gave it our best shot. We\u2019ll learn from it.`
+        : `Got the scores back for ${shortName(ctx)}. ${score} out of 100. Not our best showing. I\u2019ll talk to the client.`,
     });
   } else {
     messages.push({
       channel: 'general',
       authorId: 'suit',
       text: morale === 'high'
-        ? `Scores came in for \u201C${ctx.campaignName}\u201D \u2014 ${score}. Tough break for the team, but every campaign is a lesson.`
-        : `\u201C${ctx.campaignName}\u201D came in at ${score}. Not great. Let\u2019s see what the team thinks.`,
+        ? `Scores came in for the ${ctx.clientName} project \u2014 ${score}. Tough break for the team, but every campaign is a lesson.`
+        : `The ${ctx.clientName} project came in at ${score}. Not great. Let\u2019s see what the team thinks.`,
     });
   }
 
@@ -556,7 +626,7 @@ function getCampaignScoredPoorlyMessages(ctx: ChatEventContext, morale: MoraleLe
       channel: 'general',
       authorId: pick(['copywriter', 'strategist']),
       text: pick([
-        `Tough score on \u201C${ctx.campaignName}\u201D. You win some, you learn from some.`,
+        `Tough score on the ${ctx.clientName} project. You win some, you learn from some.`,
         `${score} isn\u2019t the end of the world. The ${ctx.clientName} brief was tricky.`,
         `Happens to every team. Next one\u2019s going to be the comeback.`,
       ]),
@@ -591,23 +661,26 @@ function getNewBriefArrivedMessages(ctx: ChatEventContext, morale: MoraleLevel):
 
 function getAwardWonMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
   const award = ctx.awardName ?? 'an award';
+  const concept = ctx.conceptName;
   const messages: MessageTemplate[] = [];
 
   // Suit announces — tone differs based on involvement
   if (isAssigned('suit', ctx)) {
+    const ref = concept ? concept : `the ${ctx.clientName} work`;
     const text = {
-      high: `🏆 Just heard — "${ctx.campaignName}" won ${award}! WE DID IT. Drinks are on the agency tonight.`,
-      medium: `🏆 We just won ${award} for "${ctx.campaignName}"! Really proud of the work we put in.`,
-      low: `🏆 We won ${award} for "${ctx.campaignName}". Wasn't expecting it, but damn that feels good.`,
+      high: `\uD83C\uDFC6 Just heard \u2014 ${ref} won ${award}! WE DID IT. Drinks are on the agency tonight.`,
+      medium: `\uD83C\uDFC6 We just won ${award} for ${shortName(ctx)}! Really proud of the work we put in.`,
+      low: `\uD83C\uDFC6 We won ${award} for the ${ctx.clientName} project. Wasn't expecting it, but damn that feels good.`,
     };
-    messages.push({ channel: 'general', authorId: 'suit', text: text[morale], reactions: [{ emoji: '🏆', count: 5 }] });
+    messages.push({ channel: 'general', authorId: 'suit', text: text[morale], reactions: [{ emoji: '\uD83C\uDFC6', count: 5 }] });
   } else {
+    const ref = concept ? concept : `the ${ctx.clientName} project`;
     const text = {
-      high: `🏆 "${ctx.campaignName}" won ${award}! HUGE congrats to that team. This is big for the agency!`,
-      medium: `🏆 "${ctx.campaignName}" just won ${award}. Great work from the team on that one.`,
-      low: `🏆 "${ctx.campaignName}" won ${award}. Nice to see a win. Congrats to the team.`,
+      high: `\uD83C\uDFC6 ${ref} won ${award}! HUGE congrats to that team. This is big for the agency!`,
+      medium: `\uD83C\uDFC6 ${shortName(ctx)} just won ${award}. Great work from the team on that one.`,
+      low: `\uD83C\uDFC6 The ${ctx.clientName} project won ${award}. Nice to see a win. Congrats to the team.`,
     };
-    messages.push({ channel: 'general', authorId: 'suit', text: text[morale], reactions: [{ emoji: '🏆', count: 5 }] });
+    messages.push({ channel: 'general', authorId: 'suit', text: text[morale], reactions: [{ emoji: '\uD83C\uDFC6', count: 5 }] });
   }
 
   // PM
@@ -615,9 +688,9 @@ function getAwardWonMessages(ctx: ChatEventContext, morale: MoraleLevel): Messag
     channel: 'general',
     authorId: 'pm',
     text: isAssigned('pm', ctx)
-      ? (morale === 'high' ? `Adding it to the wall RIGHT NOW. So proud of this team. 🙌` : `Updating the credentials deck. We earned this one.`)
-      : (morale === 'high' ? `Congrats to the "${ctx.campaignName}" team! Adding it to the wall. 🙌` : `Nice work from that team. Updating the portfolio.`),
-    reactions: morale === 'high' ? [{ emoji: '🙌', count: 4 }] : [],
+      ? (morale === 'high' ? `Adding it to the wall RIGHT NOW. So proud of this team. \uD83D\uDE4C` : `Updating the credentials deck. We earned this one.`)
+      : (morale === 'high' ? `Congrats to the ${ctx.clientName} team! Adding it to the wall. \uD83D\uDE4C` : `Nice work from that team. Updating the portfolio.`),
+    reactions: morale === 'high' ? [{ emoji: '\uD83D\uDE4C', count: 4 }] : [],
   });
 
   // Assigned copywriter celebrates their work
@@ -634,9 +707,9 @@ function getAwardWonMessages(ctx: ChatEventContext, morale: MoraleLevel): Messag
       channel: 'general',
       authorId: 'copywriter',
       text: pick([
-        `Congrats to the team! ${award} is no small thing. 🏆`,
+        `Congrats to the team! ${award} is no small thing. \uD83C\uDFC6`,
         `Award-winning work happening around here. Love to see it.`,
-        `Damn, "${ctx.campaignName}" picked up ${award}? That's awesome. Well deserved.`,
+        `The ${ctx.clientName} project picked up ${award}? That's awesome. Well deserved.`,
       ]),
     });
   }

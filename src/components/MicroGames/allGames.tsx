@@ -258,11 +258,11 @@ export const ALL_GAMES: GameDef[] = [
     render: (onWin) => {
       const themes = [
         {
-          name: 'Department Files',
+          name: 'By Discipline',
           items: shuffle([
-            { id: 'a', emoji: '📊', label: 'Research', correctZone: 'strategy' },
-            { id: 'b', emoji: '🎨', label: 'Mood Board', correctZone: 'creative' },
-            { id: 'c', emoji: '📅', label: 'Timeline', correctZone: 'production' },
+            { id: 'a', emoji: '📄', label: 'Competitive audit', correctZone: 'strategy' },
+            { id: 'b', emoji: '📄', label: 'Color palette', correctZone: 'creative' },
+            { id: 'c', emoji: '📄', label: 'Vendor contract', correctZone: 'production' },
           ]),
           zones: [
             { id: 'strategy', emoji: '📁', label: 'Strategy' },
@@ -271,29 +271,29 @@ export const ALL_GAMES: GameDef[] = [
           ],
         },
         {
-          name: 'Media Assets',
+          name: 'By Stage',
           items: shuffle([
-            { id: 'a', emoji: '🎬', label: 'Video cut', correctZone: 'video' },
-            { id: 'b', emoji: '📸', label: 'Product shot', correctZone: 'photo' },
-            { id: 'c', emoji: '🎵', label: 'Jingle', correctZone: 'audio' },
+            { id: 'a', emoji: '📄', label: 'Audience persona', correctZone: 'discovery' },
+            { id: 'b', emoji: '📄', label: 'Storyboard', correctZone: 'concepting' },
+            { id: 'c', emoji: '📄', label: 'Print specs', correctZone: 'production' },
           ]),
           zones: [
-            { id: 'video', emoji: '📁', label: 'Video' },
-            { id: 'photo', emoji: '📁', label: 'Photo' },
-            { id: 'audio', emoji: '📁', label: 'Audio' },
+            { id: 'discovery', emoji: '📁', label: 'Discovery' },
+            { id: 'concepting', emoji: '📁', label: 'Concepting' },
+            { id: 'production', emoji: '📁', label: 'Production' },
           ],
         },
         {
-          name: 'Sprint Tasks',
+          name: 'By Priority',
           items: shuffle([
-            { id: 'a', emoji: '🐛', label: 'Bug fix', correctZone: 'urgent' },
-            { id: 'b', emoji: '✨', label: 'New feature', correctZone: 'backlog' },
-            { id: 'c', emoji: '📝', label: 'Documentation', correctZone: 'nice' },
+            { id: 'a', emoji: '📄', label: 'Launch day asset', correctZone: 'urgent' },
+            { id: 'b', emoji: '📄', label: 'Brand guidelines', correctZone: 'reference' },
+            { id: 'c', emoji: '📄', label: 'Last year\'s recap', correctZone: 'archive' },
           ]),
           zones: [
             { id: 'urgent', emoji: '📁', label: 'Urgent' },
-            { id: 'backlog', emoji: '📁', label: 'Backlog' },
-            { id: 'nice', emoji: '📁', label: 'Nice-to-have' },
+            { id: 'reference', emoji: '📁', label: 'Reference' },
+            { id: 'archive', emoji: '📁', label: 'Archive' },
           ],
         },
       ];
@@ -1070,28 +1070,53 @@ export const ALL_GAMES: GameDef[] = [
 
   {
     id: 'sort-media',
-    instruction: 'SORT THE MEDIA ASSETS!',
+    instruction: 'SORT BY BUDGET TIER!',
     duration: 12000,
     category: 'drag',
     weight: 1.5,
     waitPhase: 'generating',
-    render: (onWin) => (
-      <DragDropGame
-        items={shuffle([
-          { id: 'a', emoji: '🎬', label: 'Video cut', correctZone: 'video' },
-          { id: 'b', emoji: '📸', label: 'Product photo', correctZone: 'photo' },
-          { id: 'c', emoji: '🎵', label: 'Audio clip', correctZone: 'audio' },
-        ])}
-        zones={[
-          { id: 'video', emoji: '📹', label: 'Video' },
-          { id: 'photo', emoji: '🖼️', label: 'Photo' },
-          { id: 'audio', emoji: '🔊', label: 'Audio' },
-        ]}
-        onWin={onWin}
-      />
-    ),
-    winMsg: (m) => `Media sorted! ${m.name} has what they need.`,
-    failMsg: () => `Assets are scattered across the server...`,
+    render: (onWin) => {
+      const themes = [
+        {
+          name: 'Budget Tier A',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'TV Spot', correctZone: 'high' },
+            { id: 'b', emoji: '📄', label: 'Instagram Story', correctZone: 'low' },
+            { id: 'c', emoji: '📄', label: 'Billboard', correctZone: 'mid' },
+          ]),
+        },
+        {
+          name: 'Budget Tier B',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Brand Film', correctZone: 'high' },
+            { id: 'b', emoji: '📄', label: 'TikTok Post', correctZone: 'low' },
+            { id: 'c', emoji: '📄', label: 'Podcast Series', correctZone: 'mid' },
+          ]),
+        },
+        {
+          name: 'Budget Tier C',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Super Bowl Ad', correctZone: 'high' },
+            { id: 'b', emoji: '📄', label: 'Email Blast', correctZone: 'low' },
+            { id: 'c', emoji: '📄', label: 'OOH Campaign', correctZone: 'mid' },
+          ]),
+        },
+      ];
+      const theme = pickTheme('sort-media', themes);
+      return (
+        <DragDropGame
+          items={theme.items}
+          zones={[
+            { id: 'low', emoji: '💵', label: 'Low Budget' },
+            { id: 'mid', emoji: '💰', label: 'Medium' },
+            { id: 'high', emoji: '🏦', label: 'High Budget' },
+          ]}
+          onWin={onWin}
+        />
+      );
+    },
+    winMsg: (m) => `Budget sorted! ${m.name} trusts your instincts.`,
+    failMsg: () => `Finance flagged that allocation...`,
   },
   {
     id: 'match-platform',
@@ -1120,78 +1145,158 @@ export const ALL_GAMES: GameDef[] = [
   },
   {
     id: 'plan-sprint',
-    instruction: 'PLAN THE SPRINT!',
+    instruction: 'SORT BY TIMELINE!',
     duration: 12000,
     category: 'drag',
     weight: 1.5,
     waitPhase: 'both',
-    render: (onWin) => (
-      <DragDropGame
-        items={shuffle([
-          { id: 'a', emoji: '🐛', label: 'Bug fix', correctZone: 'now' },
-          { id: 'b', emoji: '✨', label: 'New feature', correctZone: 'next' },
-          { id: 'c', emoji: '🔬', label: 'Research', correctZone: 'later' },
-        ])}
-        zones={[
-          { id: 'now', emoji: '🔥', label: 'This Sprint' },
-          { id: 'next', emoji: '📋', label: 'Next Sprint' },
-          { id: 'later', emoji: '📅', label: 'Backlog' },
-        ]}
-        onWin={onWin}
-      />
-    ),
-    winMsg: (m) => `Sprint planned! ${m.name} knows the priorities.`,
-    failMsg: () => `Sprint planning in shambles...`,
+    render: (onWin) => {
+      const themes = [
+        {
+          name: 'Timeline A',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Social post', correctZone: 'quick' },
+            { id: 'b', emoji: '📄', label: 'Brand film', correctZone: 'long' },
+            { id: 'c', emoji: '📄', label: 'Radio spot', correctZone: 'mid' },
+          ]),
+        },
+        {
+          name: 'Timeline B',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Email blast', correctZone: 'quick' },
+            { id: 'b', emoji: '📄', label: 'OOH campaign', correctZone: 'long' },
+            { id: 'c', emoji: '📄', label: 'Podcast ad', correctZone: 'mid' },
+          ]),
+        },
+        {
+          name: 'Timeline C',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Tweet thread', correctZone: 'quick' },
+            { id: 'b', emoji: '📄', label: 'TV commercial', correctZone: 'long' },
+            { id: 'c', emoji: '📄', label: 'Print ad', correctZone: 'mid' },
+          ]),
+        },
+      ];
+      const theme = pickTheme('plan-sprint', themes);
+      return (
+        <DragDropGame
+          items={theme.items}
+          zones={[
+            { id: 'quick', emoji: '⚡', label: 'Quick Turn' },
+            { id: 'mid', emoji: '📋', label: 'Medium' },
+            { id: 'long', emoji: '🗓️', label: 'Long Lead' },
+          ]}
+          onWin={onWin}
+        />
+      );
+    },
+    winMsg: (m) => `Timeline nailed! ${m.name} is booking the vendors.`,
+    failMsg: () => `That timeline doesn't add up...`,
   },
   {
     id: 'allocate-budget',
-    instruction: 'ALLOCATE THE BUDGET!',
+    instruction: 'SORT BY FUNNEL STAGE!',
     duration: 10000,
     category: 'drag',
     weight: 1.5,
     waitPhase: 'generating',
-    render: (onWin) => (
-      <DragDropGame
-        items={shuffle([
-          { id: 'a', emoji: '📺', label: 'TV buy', correctZone: 'media' },
-          { id: 'b', emoji: '🎨', label: 'Design work', correctZone: 'creative' },
-          { id: 'c', emoji: '📊', label: 'Analytics', correctZone: 'ops' },
-        ])}
-        zones={[
-          { id: 'media', emoji: '💰', label: 'Media' },
-          { id: 'creative', emoji: '💰', label: 'Creative' },
-          { id: 'ops', emoji: '💰', label: 'Ops' },
-        ]}
-        onWin={onWin}
-      />
-    ),
-    winMsg: (m) => `Budget allocated! ${m.name} is impressed.`,
-    failMsg: () => `Budget is a mess... finance is calling.`,
+    render: (onWin) => {
+      const themes = [
+        {
+          name: 'Funnel A',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Banner ad', correctZone: 'aware' },
+            { id: 'b', emoji: '📄', label: 'Case study', correctZone: 'consider' },
+            { id: 'c', emoji: '📄', label: 'Promo code email', correctZone: 'convert' },
+          ]),
+        },
+        {
+          name: 'Funnel B',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'TV spot', correctZone: 'aware' },
+            { id: 'b', emoji: '📄', label: 'Webinar', correctZone: 'consider' },
+            { id: 'c', emoji: '📄', label: 'Free trial CTA', correctZone: 'convert' },
+          ]),
+        },
+        {
+          name: 'Funnel C',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Billboard', correctZone: 'aware' },
+            { id: 'b', emoji: '📄', label: 'Product demo', correctZone: 'consider' },
+            { id: 'c', emoji: '📄', label: 'Retarget ad', correctZone: 'convert' },
+          ]),
+        },
+      ];
+      const theme = pickTheme('allocate-budget', themes);
+      return (
+        <DragDropGame
+          items={theme.items}
+          zones={[
+            { id: 'aware', emoji: '📢', label: 'Awareness' },
+            { id: 'consider', emoji: '🤔', label: 'Consideration' },
+            { id: 'convert', emoji: '🎯', label: 'Conversion' },
+          ]}
+          onWin={onWin}
+        />
+      );
+    },
+    winMsg: (m) => `Funnel mapped! ${m.name} sees the strategy.`,
+    failMsg: () => `That's the wrong funnel stage...`,
   },
   {
     id: 'pick-palette',
-    instruction: 'BUILD THE COLOR PALETTE!',
+    instruction: 'WHO OWNS THIS?',
     duration: 10000,
     category: 'drag',
     weight: 1.5,
     waitPhase: 'concepting',
-    render: (onWin) => (
-      <DragDropGame
-        items={shuffle([
-          { id: 'a', emoji: '🔴', label: 'CTA Red', correctZone: 'cta' },
-          { id: 'b', emoji: '⚪', label: 'White', correctZone: 'bg' },
-          { id: 'c', emoji: '🔵', label: 'Brand Blue', correctZone: 'primary' },
-        ])}
-        zones={[
-          { id: 'cta', emoji: '🎯', label: 'CTA' },
-          { id: 'bg', emoji: '🖼️', label: 'Background' },
-          { id: 'primary', emoji: '🏷️', label: 'Primary' },
-        ]}
-        onWin={onWin}
-      />
-    ),
-    winMsg: (m) => `Palette locked! ${m.name} loves the colors.`,
-    failMsg: () => `Colors are clashing... back to swatches.`,
+    render: (onWin) => {
+      const themes = [
+        {
+          name: 'Owners A',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Media plan', correctZone: 'strat' },
+            { id: 'b', emoji: '📄', label: 'Headline copy', correctZone: 'copy' },
+            { id: 'c', emoji: '📄', label: 'Mood board', correctZone: 'art' },
+          ]),
+          zones: [
+            { id: 'strat', emoji: '🧠', label: 'Strategist' },
+            { id: 'copy', emoji: '✍️', label: 'Copywriter' },
+            { id: 'art', emoji: '🎨', label: 'Art Director' },
+          ],
+        },
+        {
+          name: 'Owners B',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Wireframe', correctZone: 'tech' },
+            { id: 'b', emoji: '📄', label: 'Tagline', correctZone: 'copy' },
+            { id: 'c', emoji: '📄', label: 'Target brief', correctZone: 'strat' },
+          ]),
+          zones: [
+            { id: 'tech', emoji: '💻', label: 'Technologist' },
+            { id: 'copy', emoji: '✍️', label: 'Copywriter' },
+            { id: 'strat', emoji: '🧠', label: 'Strategist' },
+          ],
+        },
+        {
+          name: 'Owners C',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Shot list', correctZone: 'prod' },
+            { id: 'b', emoji: '📄', label: 'Brand voice doc', correctZone: 'copy' },
+            { id: 'c', emoji: '📄', label: 'Color palette', correctZone: 'art' },
+          ]),
+          zones: [
+            { id: 'prod', emoji: '🎬', label: 'Producer' },
+            { id: 'copy', emoji: '✍️', label: 'Copywriter' },
+            { id: 'art', emoji: '🎨', label: 'Art Director' },
+          ],
+        },
+      ];
+      const theme = pickTheme('pick-palette', themes);
+      return <DragDropGame items={theme.items} zones={theme.zones} onWin={onWin} />;
+    },
+    winMsg: (m) => `Right owner! ${m.name} knows who does what.`,
+    failMsg: () => `Wrong desk... that deliverable went to the wrong person.`,
   },
   {
     id: 'phase-campaign',
@@ -1220,53 +1325,107 @@ export const ALL_GAMES: GameDef[] = [
   },
   {
     id: 'target-audience',
-    instruction: 'TARGET THE AUDIENCE!',
+    instruction: 'NEEDS CLIENT APPROVAL?',
     duration: 10000,
     category: 'drag',
     weight: 1.5,
     waitPhase: 'concepting',
-    render: (onWin) => (
-      <DragDropGame
-        items={shuffle([
-          { id: 'a', emoji: '😂', label: 'Gen Z meme', correctZone: 'young' },
-          { id: 'b', emoji: '💼', label: 'LinkedIn post', correctZone: 'pro' },
-          { id: 'c', emoji: '📰', label: 'Print ad', correctZone: 'mature' },
-        ])}
-        zones={[
-          { id: 'young', emoji: '🧑', label: '18-24' },
-          { id: 'pro', emoji: '👔', label: '25-44' },
-          { id: 'mature', emoji: '🧓', label: '45+' },
-        ]}
-        onWin={onWin}
-      />
-    ),
-    winMsg: (m) => `Audience matched! ${m.name} knows the demo.`,
-    failMsg: () => `Wrong audience... the message missed.`,
+    render: (onWin) => {
+      const themes = [
+        {
+          name: 'Approval A',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Final TV edit', correctZone: 'client' },
+            { id: 'b', emoji: '📄', label: 'Internal moodboard', correctZone: 'internal' },
+            { id: 'c', emoji: '📄', label: 'Press release', correctZone: 'client' },
+          ]),
+        },
+        {
+          name: 'Approval B',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Media buy', correctZone: 'client' },
+            { id: 'b', emoji: '📄', label: 'Team brainstorm', correctZone: 'internal' },
+            { id: 'c', emoji: '📄', label: 'Concept sketches', correctZone: 'internal' },
+          ]),
+        },
+        {
+          name: 'Approval C',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Billboard artwork', correctZone: 'client' },
+            { id: 'b', emoji: '📄', label: 'Vendor quotes', correctZone: 'internal' },
+            { id: 'c', emoji: '📄', label: 'Brand film script', correctZone: 'client' },
+          ]),
+        },
+      ];
+      const theme = pickTheme('target-audience', themes);
+      return (
+        <DragDropGame
+          items={theme.items}
+          zones={[
+            { id: 'client', emoji: '🤝', label: 'Client Approval' },
+            { id: 'internal', emoji: '🏠', label: 'Internal Only' },
+          ]}
+          onWin={onWin}
+        />
+      );
+    },
+    winMsg: (m) => `Approval flow clear! ${m.name} knows the process.`,
+    failMsg: () => `That went to the wrong audience...`,
   },
   {
     id: 'review-creative',
-    instruction: 'REVIEW THE CREATIVE!',
+    instruction: 'SORT BY MEDIA TYPE!',
     duration: 12000,
     category: 'drag',
     weight: 1.5,
     waitPhase: 'generating',
-    render: (onWin) => (
-      <DragDropGame
-        items={shuffle([
-          { id: 'a', emoji: '🖼️', label: 'Banner ad', correctZone: 'approve' },
-          { id: 'b', emoji: '📝', label: 'Rough draft', correctZone: 'revise' },
-          { id: 'c', emoji: '🚫', label: 'Off-brand', correctZone: 'scrap' },
-        ])}
-        zones={[
-          { id: 'approve', emoji: '✅', label: 'Approve' },
-          { id: 'revise', emoji: '🔄', label: 'Revise' },
-          { id: 'scrap', emoji: '🗑️', label: 'Scrap' },
-        ]}
-        onWin={onWin}
-      />
-    ),
-    winMsg: (m) => `Creative reviewed! ${m.name} agrees with the calls.`,
-    failMsg: () => `Review pile is still growing...`,
+    render: (onWin) => {
+      const themes = [
+        {
+          name: 'Media Type A',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Bus shelter poster', correctZone: 'ooh' },
+            { id: 'b', emoji: '📄', label: '30-sec pre-roll', correctZone: 'digital' },
+            { id: 'c', emoji: '📄', label: 'Postcard mailer', correctZone: 'dm' },
+          ]),
+          zones: [
+            { id: 'ooh', emoji: '🏙️', label: 'OOH' },
+            { id: 'digital', emoji: '💻', label: 'Digital' },
+            { id: 'dm', emoji: '📬', label: 'Direct Mail' },
+          ],
+        },
+        {
+          name: 'Media Type B',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Magazine spread', correctZone: 'print' },
+            { id: 'b', emoji: '📄', label: 'Pop-up event', correctZone: 'exp' },
+            { id: 'c', emoji: '📄', label: 'Drip sequence', correctZone: 'email' },
+          ]),
+          zones: [
+            { id: 'print', emoji: '📰', label: 'Print' },
+            { id: 'exp', emoji: '🎪', label: 'Experiential' },
+            { id: 'email', emoji: '📧', label: 'Email' },
+          ],
+        },
+        {
+          name: 'Media Type C',
+          items: shuffle([
+            { id: 'a', emoji: '📄', label: 'Spotify spot', correctZone: 'audio' },
+            { id: 'b', emoji: '📄', label: 'Catalog mailer', correctZone: 'dm' },
+            { id: 'c', emoji: '📄', label: 'Wheat-paste mural', correctZone: 'ooh' },
+          ]),
+          zones: [
+            { id: 'audio', emoji: '🔊', label: 'Audio' },
+            { id: 'dm', emoji: '📬', label: 'Direct Mail' },
+            { id: 'ooh', emoji: '🏙️', label: 'OOH' },
+          ],
+        },
+      ];
+      const theme = pickTheme('review-creative', themes);
+      return <DragDropGame items={theme.items} zones={theme.zones} onWin={onWin} />;
+    },
+    winMsg: (m) => `Media sorted! ${m.name} knows the channels.`,
+    failMsg: () => `Wrong channel... that deliverable got misclassified.`,
   },
   {
     id: 'submit-invoice',

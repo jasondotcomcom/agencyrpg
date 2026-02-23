@@ -4,17 +4,21 @@ export type DeliverableType =
   | 'social_post'
   | 'video'
   | 'print_ad'
+  | 'direct_mail'
+  | 'ooh'
   | 'billboard'
   | 'email_campaign'
   | 'landing_page'
   | 'experiential'
   | 'guerrilla'
   | 'podcast_ad'
+  | 'audio'
   | 'influencer_collab'
   | 'twitter_thread'
   | 'reddit_ama'
   | 'tiktok_series'
-  | 'blog_post';
+  | 'blog_post'
+  | 'content';
 
 export type Platform =
   | 'instagram'
@@ -160,17 +164,21 @@ export const PRODUCTION_COSTS: Record<DeliverableType, number> = {
   social_post: 5000,
   video: 22500,
   print_ad: 8000,
+  direct_mail: 7000,
+  ooh: 10000,
   billboard: 10000,
   email_campaign: 5000,
   landing_page: 12000,
   experiential: 15000,
   guerrilla: 8000,
   podcast_ad: 5000,
+  audio: 6000,
   influencer_collab: 10000,
   twitter_thread: 3000,
   reddit_ama: 3000,
   tiktok_series: 15000,
   blog_post: 4000,
+  content: 5000,
 };
 
 export function getProductionCost(type: DeliverableType): number {
@@ -182,17 +190,21 @@ export const DELIVERABLE_TYPES: Record<DeliverableType, { label: string; icon: s
   social_post: { label: 'Social Post', icon: '📱' },
   video: { label: 'Video', icon: '🎬' },
   print_ad: { label: 'Print Ad', icon: '📰' },
-  billboard: { label: 'Billboard', icon: '🏙️' },
+  direct_mail: { label: 'Direct Mail', icon: '📬' },
+  ooh: { label: 'OOH', icon: '🏙️' },
+  billboard: { label: 'Billboard', icon: '🪧' },
   email_campaign: { label: 'Email Campaign', icon: '📧' },
   landing_page: { label: 'Landing Page', icon: '🌐' },
   experiential: { label: 'Experiential', icon: '🎪' },
   guerrilla: { label: 'Guerrilla', icon: '🎯' },
   podcast_ad: { label: 'Podcast Ad', icon: '🎙️' },
+  audio: { label: 'Audio', icon: '🔊' },
   influencer_collab: { label: 'Influencer Collab', icon: '🤝' },
   twitter_thread: { label: 'Twitter Thread', icon: '🧵' },
   reddit_ama: { label: 'Reddit AMA', icon: '💬' },
   tiktok_series: { label: 'TikTok Series', icon: '🎵' },
   blog_post: { label: 'Blog Post', icon: '📝' },
+  content: { label: 'Content', icon: '📄' },
 };
 
 export const PLATFORMS: Record<Platform, { label: string; icon: string }> = {
