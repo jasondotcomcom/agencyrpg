@@ -76,7 +76,7 @@ Derek`,
     subject: 'RewindTime Video - Grand Opening Campaign Brief',
     body: `Hey!
 
-I'm Dustin. I'm opening a VHS rental store in Brooklyn. Yes, in 2025. No, I haven't lost my mind.
+I'm Dustin. I'm opening a VHS rental store in Brooklyn. Yes, in 2026. No, I haven't lost my mind.
 
 Here's the thing — everybody streams now, and everybody hates it. Infinite scroll paralysis. Algorithm fatigue. "We watched the first 10 minutes of 6 things and went to bed." People are over it.
 
@@ -97,7 +97,7 @@ Dustin`,
     isDeleted: false,
     campaignBrief: {
       clientName: 'RewindTime Video',
-      challenge: `Opening a physical VHS rental store in 2025 Brooklyn. The format is dead but the desire for it isn't — people are exhausted by streaming paralysis and algorithm fatigue. The challenge is launching on a "dead" format and making it feel like the most exciting cultural moment in the neighborhood. Must feel nostalgic without being a gimmick. This isn't ironic. This is a genuine third place for movie lovers.`,
+      challenge: `Opening a physical VHS rental store in 2026 Brooklyn. The format is dead but the desire for it isn't — people are exhausted by streaming paralysis and algorithm fatigue. The challenge is launching on a "dead" format and making it feel like the most exciting cultural moment in the neighborhood. Must feel nostalgic without being a gimmick. This isn't ironic. This is a genuine third place for movie lovers.`,
       audience: `Millennials (28-42) who grew up with video stores and miss the ritual of browsing. Gen Z (18-27) who think VHS is charmingly vintage and are already buying analog everything — vinyl, film cameras, zines. Both groups are burned out on infinite scroll and want to commit to something tangible. Brooklyn creatives, cinephiles, date-night couples tired of "what should we watch?" for 45 minutes.`,
       message: `Stop scrolling. Start choosing. RewindTime is a real video store for people who are ready to actually watch something — together, on purpose, with popcorn.`,
       successMetrics: [
@@ -110,7 +110,7 @@ Dustin`,
       budget: 35000,
       timeline: '4 weeks to grand opening — pre-launch buzz critical',
       vibe: `Warm analog nostalgia meets Brooklyn cool. Hand-drawn, tactile, human. Should feel like finding a mixtape in a thrift store — personal, surprising, a little romantic. NOT corporate retro. NOT "remember the 90s?" listicle energy. Genuine.`,
-      openEndedAsk: `How do you make a dead format feel like the future? What's the campaign that makes Brooklyn feel like it's been waiting for a video store to come back? How do you turn "physical media in 2025" from a punchline into a movement?`,
+      openEndedAsk: `How do you make a dead format feel like the future? What's the campaign that makes Brooklyn feel like it's been waiting for a video store to come back? How do you turn "physical media in 2026" from a punchline into a movement?`,
       constraints: [
         'Cannot feel like a gimmick or ironic pop-up — this is a real, permanent store',
         'Budget is tight — need earned media and word-of-mouth over paid',

@@ -315,11 +315,11 @@ function triggerCheatEffect(label: string): void {
 
 export default function TerminalApp(): React.ReactElement {
   const { setMorale, morale, addMessage } = useChatContext();
-  const { addProfit, state: fundsState } = useAgencyFunds();
+  const { addProfit, deductFunds, state: fundsState } = useAgencyFunds();
   const { state: repState, addReputation } = useReputationContext();
   const { triggerEndingSequence, sendAcquisitionOffer } = useEndingContext();
   const { getActiveCampaigns } = useCampaignContext();
-  const { addNotification } = useWindowContext();
+  const { addNotification, focusOrOpenWindow } = useWindowContext();
   const { entries: portfolioEntries, attachAward, addEntry } = usePortfolioContext();
   const { applyMinScore, setOneTimeMinScore, toggleNightmareMode,
     toggleBigHeadMode, setHRWatcherActive, recordCheatUsed, cheat } = useCheatContext();
@@ -1086,14 +1086,14 @@ export default function TerminalApp(): React.ReactElement {
     }
 
     else if (lower === 'hotcoffee') {
-      // Step 1: visual effect
+      // Step 1: visual effect + achievements
       triggerCheatEffect('HOT COFFEE');
       const n = recordCheatUsed('hotcoffee');
       unlockAchievement('hot-coffee');
       if (n >= 5)  unlockAchievement('serial-cheater');
       if (n >= 10) unlockAchievement('cheat-encyclopedia');
 
-      // Step 2: enable HR watcher
+      // Step 2: enable HR watcher (cheat-mode cursor follower)
       setHRWatcherActive(true);
 
       // Step 3: HR email
@@ -1134,44 +1134,24 @@ Human Resources
       addEmail(hrEmail);
       addNotification('📧 HR Email!', '⚠️ Mandatory Meeting RE: Holiday Party Footage');
 
-      // Step 4: Staggered team chat reaction
+      // Step 4: Quick team panic in chat
       const hotCoffeeChat = [
         { authorId: 'pm',           text: '...',                                                                            delay: 1000 },
         { authorId: 'pm',           text: 'Did someone just access the holiday party folder?',                              delay: 2500 },
         { authorId: 'art-director', text: 'THE WHAT',                                                                      delay: 4000 },
-        { authorId: 'strategist',   text: 'I thought we agreed to never speak of this',                                    delay: 5500 },
-        { authorId: 'copywriter',   text: 'oh no oh no oh no',                                                             delay: 7000 },
-        { authorId: 'media',        text: 'I told you we should have used a stronger password than "party2024"',           delay: 8500 },
-        { authorId: 'suit',         text: "HR just sent an email. We're all dead.",                                        delay: 10000 },
-        { authorId: 'technologist', text: '...',                                                                           delay: 12000 },
-        { authorId: 'art-director', text: 'Casey are you okay?',                                                          delay: 13500 },
-        { authorId: 'technologist', text: 'I have no memory of that photocopier.',                                        delay: 15500 },
-        { authorId: 'strategist',   text: 'We have PHOTOS, Casey.',                                                       delay: 17500 },
-        { authorId: 'technologist', text: 'Those were doctored.',                                                         delay: 19500 },
-        { authorId: 'copywriter',   text: "They're literally photocopies. Of you. On the photocopier.",                   delay: 21500 },
-        { authorId: 'technologist', text: 'I plead the fifth.',                                                           delay: 23500 },
-        { authorId: 'media',        text: "This is why we can't have nice things.",                                       delay: 25500 },
-        { authorId: 'pm',           text: 'Or open bars.',                                                                 delay: 27500 },
-        { authorId: 'suit',         text: 'Or ice sculptures.',                                                            delay: 29500 },
-        { authorId: 'art-director', text: 'What happened to the ice sculpture??',                                         delay: 31500 },
-        { authorId: 'technologist', text: "WE DON'T TALK ABOUT THE ICE SCULPTURE.",                                      delay: 33500 },
-        { authorId: 'strategist',   text: 'This is definitely going in my memoir.',                                       delay: 35500 },
+        { authorId: 'copywriter',   text: 'oh no oh no oh no',                                                             delay: 5500 },
+        { authorId: 'suit',         text: "HR just sent an email. We're all dead.",                                        delay: 7000 },
+        { authorId: 'technologist', text: 'I have no memory of that photocopier.',                                        delay: 9000 },
       ];
 
-      // Step 5: Pat joins the chat
+      // Step 5: Pat joins and escalates to legal
       const patChat = [
-        { authorId: 'hr',           text: 'Hello everyone.',                                                               delay: 41000 },
-        { authorId: 'art-director', text: '...',                                                                           delay: 43000 },
-        { authorId: 'strategist',   text: 'Oh god.',                                                                      delay: 44500 },
-        { authorId: 'hr',           text: "I'll be joining your team communications going forward.",                       delay: 46000 },
-        { authorId: 'hr',           text: 'For compliance purposes.',                                                      delay: 48000 },
-        { authorId: 'copywriter',   text: 'Is this... permanent?',                                                         delay: 50000 },
-        { authorId: 'hr',           text: "I'll be here as long as necessary. 📋",                                        delay: 52000 },
-        { authorId: 'technologist', text: 'Great. Just great.',                                                            delay: 54000 },
-        { authorId: 'hr',           text: 'That attitude has been noted, Casey.',                                          delay: 56000 },
-        { authorId: 'media',        text: 'Welcome to the team, Pat.',                                                    delay: 58000 },
-        { authorId: 'hr',           text: 'Thank you. Your cooperation is appreciated and has been documented.',           delay: 60000 },
-        { authorId: 'pm',           text: 'This is fine. Everything is fine.',                                            delay: 62000 },
+        { authorId: 'hr',           text: 'Hello everyone.',                                                               delay: 12000 },
+        { authorId: 'strategist',   text: 'Oh god.',                                                                      delay: 14000 },
+        { authorId: 'hr',           text: "I'll be joining your team communications going forward. For compliance purposes.", delay: 16000 },
+        { authorId: 'hr',           text: "Also — legal has been notified. You'll want to prepare your defense.",          delay: 19000 },
+        { authorId: 'copywriter',   text: 'DEFENSE?!',                                                                    delay: 21000 },
+        { authorId: 'hr',           text: 'A lawsuit has been filed. Good luck. 📋',                                      delay: 23000 },
       ];
 
       [...hotCoffeeChat, ...patChat].forEach(({ authorId, text, delay }) => {
@@ -1188,7 +1168,17 @@ Human Resources
         }, delay);
       });
 
-      // Step 6: Add redacted portfolio campaign
+      // Step 6: Legal notice + deduct retainer + launch lawsuit game
+      setTimeout(() => {
+        deductFunds(50000, 'Legal retainer fees');
+        addNotification('⚖️ Legal Notice', 'A lawsuit has been filed! Prepare your defense.');
+      }, 25000);
+
+      setTimeout(() => {
+        focusOrOpenWindow('lawsuit', 'Lawsuit Defense');
+      }, 28000);
+
+      // Step 7: Add redacted portfolio campaign
       setTimeout(() => {
         addEntry({
           id: 'cheat-hotcoffee',
@@ -1217,7 +1207,7 @@ Human Resources
         ['output', 'Oh no.'],
         ['blank',  ''],
         ['output', 'Pat from HR has been notified. Check your inbox.'],
-        ['output', 'Also... check #general. Soon.'],
+        ['output', 'Legal is getting involved. Prepare yourself.'],
       ]);
     }
 

@@ -268,6 +268,8 @@ function PlaceholderContent({ appId }: { appId: string }) {
 }
 
 function AboutContent() {
+  const version = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0-dev';
+
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -279,12 +281,26 @@ function AboutContent() {
       <div style={{ fontSize: '0.8125rem', color: '#888', lineHeight: 1.8 }}>
         <p>A browser-based creative agency simulator.</p>
         <p style={{ marginTop: 12 }}>
-          <strong>Built by</strong> Jason Pickar<br/>
+          <strong>Built by</strong>{' '}
+          <a href="https://jasondotcom.com" target="_blank" rel="noopener noreferrer"
+            style={{ color: '#667eea', textDecoration: 'underline' }}>
+            Jasondotcom.com
+          </a><br/>
           <strong>Powered by</strong> Claude (Anthropic)<br/>
-          <strong>Made with</strong> React, Vite, and too much coffee
+          <strong>Made with</strong> React, Vite, Claude and way too many tokens.
+        </p>
+        <p style={{ marginTop: 8, fontSize: '0.75rem', color: '#999', lineHeight: 1.6 }}>
+          Available for creative direction, team leadership,<br/>
+          AI team training and fun collabs.
+        </p>
+        <p style={{ marginTop: 4 }}>
+          <a href="mailto:jason@jasondotcom.com"
+            style={{ color: '#667eea', textDecoration: 'none', fontSize: '0.8125rem' }}>
+            📧 jason@jasondotcom.com
+          </a>
         </p>
         <p style={{ marginTop: 16, fontSize: '0.75rem', color: '#aaa' }}>
-          v1.0 &middot; 2025
+          v{version} &middot; 2026
         </p>
       </div>
     </div>
