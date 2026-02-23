@@ -4,7 +4,10 @@ export interface LockedBriefEntry {
   unlockAt: number;  // unlock after N completed campaigns
   clientName: string; // for notification copy
   briefId: string;    // matches email id
-  buildEmail: () => Email;
+  buildEmail: (context?: { playerName?: string }) => Email;
+  unlockAtReputation?: number;   // unlock when reputation crosses this threshold
+  requiresNgPlus?: boolean;      // only available in NG+ runs
+  requiresLegacyFlag?: string;   // requires this flag from previous playthrough
 }
 
 export const LOCKED_BRIEFS: LockedBriefEntry[] = [
@@ -424,6 +427,73 @@ Rachel`,
         ],
         clientPersonality: 'Sharp, understands internet culture, will greenlight bold ideas fast, allergic to anything that feels like "fellow kids" energy, trusts the agency but will kill anything inauthentic',
         industry: 'entertainment',
+      },
+    }),
+  },
+
+  // ─── Reputation-gated: Alien brief at 95 reputation ─────────────────────────
+
+  {
+    unlockAt: 0,
+    unlockAtReputation: 95,
+    clientName: '???',
+    briefId: 'email-alien-001',
+    buildEmail: (): Email => ({
+      id: 'email-alien-001',
+      type: 'campaign_brief',
+      from: {
+        name: '???',
+        email: 'first.contact@unknown.origin',
+        avatar: '👽',
+      },
+      subject: 'First Contact — Public Relations Brief',
+      body: `To whom it may concern,
+
+We have been monitoring your communications infrastructure for some time. Your species has reached a threshold where contact is... advisable.
+
+We require assistance with what you call "public relations." Our research indicates that unmanaged first contact events result in panic, military escalation, and a 73% probability of your species shooting at us. We would prefer to avoid this.
+
+Your agency has demonstrated an unusual capacity for making the unfamiliar feel approachable. This is precisely the skill set we require.
+
+The brief is simple: Prepare humanity for the fact that they are not alone. Make it feel exciting, not terrifying. We have observed that your species responds poorly to surprises of this magnitude.
+
+Budget is not a constraint. We have converted sufficient resources into your monetary system. $1,000,000 has been deposited.
+
+Timeline: Flexible, but sooner is preferred. Your government has become... aware of our presence, and we would rather control the narrative.
+
+We look forward to your creative recommendations.
+
+— The Bureau of Interstellar Public Affairs
+(This is not a joke. Please do not forward this email.)`,
+      timestamp: new Date(),
+      isRead: false,
+      isStarred: false,
+      isDeleted: false,
+      campaignBrief: {
+        clientName: '???',
+        challenge: `An extraterrestrial intelligence has made contact and needs help introducing themselves to humanity without causing mass panic. Unmanaged first contact has a 73% chance of military escalation. The challenge: make the most terrifying news in human history feel like the most exciting. Normalize the extraordinary without trivializing it.`,
+        audience: `All of humanity, but practically: global media, world governments, social media users aged 18-65, and the scientific community. Secondary: conspiracy theorists who will either be vindicated or furious. The audience ranges from "I always knew" to "this cannot be real" — the campaign must work for both.`,
+        message: `You are not alone. And that's the best news you've ever received. First contact isn't an invasion — it's an introduction. They've been watching, they're impressed (mostly), and they'd like to talk.`,
+        successMetrics: [
+          'Global panic index stays below "mild concern" threshold',
+          'Media coverage frames contact as opportunity, not threat',
+          'Social sentiment shifts from fear to curiosity within 72 hours',
+          'Zero military engagements triggered by campaign rollout',
+          'At least 60% of surveyed humans report feeling "cautiously optimistic"',
+        ],
+        budget: 1000000,
+        timeline: 'As soon as possible — governments are becoming aware independently',
+        vibe: `Awe-inspiring, warm, gently humorous. Think Carl Sagan meets a really good TED talk. NOT Independence Day. NOT "take me to your leader." Should feel like the universe just sent humanity a friend request. Cosmic but approachable.`,
+        openEndedAsk: `How do you introduce an alien civilization to 8 billion people without anyone losing their minds? What's the campaign that makes first contact feel like a beginning, not an ending? How do you make "we are not alone" the most hopeful sentence ever spoken?`,
+        constraints: [
+          'Cannot confirm or deny specific government knowledge',
+          'Must not trigger military or defense responses',
+          'Aliens have requested no photographs of them be used initially — "we are camera-shy"',
+          'Must work across every culture and language simultaneously',
+          'Conspiracy communities will attempt to hijack the narrative — plan for this',
+        ],
+        clientPersonality: 'Extremely logical, genuinely curious about human creativity, dry sense of humor, surprisingly empathetic, will reject anything that feels manipulative',
+        industry: 'interstellar',
       },
     }),
   },

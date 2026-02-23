@@ -176,9 +176,16 @@ function windowReducer(state: WindowContextState, action: WindowAction): WindowC
     case 'CLOSE_WINDOW': {
       const { id } = action.payload;
       const newWindows = new Map(state.windows);
-      newWindows.delete(id);
 
-      const newActiveId = state.activeWindowId === id
+      // Support closing by appId as well as window id
+      let windowId = id;
+      if (!newWindows.has(id)) {
+        const byApp = Array.from(newWindows.values()).find(w => w.appId === id);
+        if (byApp) windowId = byApp.id;
+      }
+      newWindows.delete(windowId);
+
+      const newActiveId = state.activeWindowId === windowId
         ? Array.from(newWindows.values())
             .filter(w => !w.isMinimized)
             .sort((a, b) => b.zIndex - a.zIndex)[0]?.id || null

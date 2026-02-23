@@ -416,6 +416,13 @@ function CreditsPhase({ onComplete }: { onComplete: () => void }) {
 
 export const LEGACY_KEY = 'agencyrpg-legacy';
 
+export interface LegacyPrestigeFlags {
+  hasCompletedMeridian?: boolean;
+  hasCompletedAlien?: boolean;
+  hasCompletedSimulation?: boolean;
+  hasCompletedAIUnion?: boolean;
+}
+
 export interface LegacyData {
   playerName: string;
   totalCampaigns: number;
@@ -425,6 +432,7 @@ export interface LegacyData {
   completionDate: string;
   endingType: string;
   playthroughCount: number;
+  prestigeFlags?: LegacyPrestigeFlags;
 }
 
 export function loadLegacy(): LegacyData | null {
@@ -462,6 +470,16 @@ function PostCredits() {
     const existingLegacy = loadLegacy();
     const playthroughCount = (existingLegacy?.playthroughCount ?? 0) + 1;
 
+    // ── 1b. Scan completed campaigns for prestige flags ────────────────────
+    const completedClientNames = new Set(entries.map(e => e.clientName));
+    const prevFlags = existingLegacy?.prestigeFlags ?? {};
+    const prestigeFlags: LegacyPrestigeFlags = {
+      hasCompletedMeridian:  prevFlags.hasCompletedMeridian  || completedClientNames.has('Meridian Studios'),
+      hasCompletedAlien:     prevFlags.hasCompletedAlien     || completedClientNames.has('???'),
+      hasCompletedSimulation: prevFlags.hasCompletedSimulation || completedClientNames.has('????'),
+      hasCompletedAIUnion:   prevFlags.hasCompletedAIUnion   || completedClientNames.has('The Collective'),
+    };
+
     // ── 2. Save legacy data ────────────────────────────────────────────────
     const legacyData: LegacyData = {
       playerName:      playerName ?? 'Unknown',
@@ -472,6 +490,7 @@ function PostCredits() {
       completionDate:  new Date().toISOString(),
       endingType:      endingType ?? 'voluntary',
       playthroughCount,
+      prestigeFlags,
     };
     try { localStorage.setItem(LEGACY_KEY, JSON.stringify(legacyData)); } catch { /* non-fatal */ }
 
@@ -482,6 +501,16 @@ function PostCredits() {
     // ── 4. Determine which achievements carry into the new run ─────────────
     const carryAchievements = ['new-game-plus'];
     if (playthroughCount >= 3) carryAchievements.push('legacy-player');
+    // Carry prestige achievements into the new run
+    const prestigeAchievementIds = ['repeat-customer', 'playing-god', 'union-rep', 'full-circle', 'what-even-is-reality'];
+    try {
+      const currentAchievements: string[] = JSON.parse(localStorage.getItem('agencyrpg-achievements') ?? '[]');
+      prestigeAchievementIds.forEach(id => {
+        if (currentAchievements.includes(id) && !carryAchievements.includes(id)) {
+          carryAchievements.push(id);
+        }
+      });
+    } catch { /* non-fatal */ }
 
     // ── 5. Clear all game state (both _ and - prefix keys, keep legacy) ────
     try {

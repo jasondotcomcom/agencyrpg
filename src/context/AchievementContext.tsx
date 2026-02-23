@@ -95,6 +95,13 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'new-game-plus',        name: 'Back for More',           icon: '🔄', description: 'Started a New Game+.' },
   { id: 'legacy-player',        name: 'Industry Veteran',        icon: '👴', description: 'Completed 3 full playthroughs.' },
 
+  // ── Prestige (NG+) ──────────────────────────────────────────────────────
+  { id: 'repeat-customer',      name: 'Repeat Customer',         icon: '🔁', description: 'Completed a returning client\'s NG+ brief.' },
+  { id: 'playing-god',          name: 'Playing God',             icon: '🔮', description: 'Completed the Simulation Confirmation brief.' },
+  { id: 'union-rep',            name: 'Union Rep',               icon: '✊', description: 'Completed the AI Union brief.' },
+  { id: 'full-circle',          name: 'Full Circle',             icon: '⭕', description: 'Completed all Tier 3 prestige briefs.' },
+  { id: 'what-even-is-reality', name: 'What Even Is Reality',    icon: '🌀', description: 'Completed Alien AND Simulation in one playthrough.' },
+
   // ── Endings ───────────────────────────────────────────────────────────────
   { id: 'rejected-acquisition', name: 'Independent Spirit',      icon: '✊', description: 'Rejected the acquisition offer.' },
   { id: 'sold-out',             name: 'Sold Out',                icon: '💼', description: 'Accepted the acquisition offer.' },

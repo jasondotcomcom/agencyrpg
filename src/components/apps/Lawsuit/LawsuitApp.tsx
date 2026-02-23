@@ -13,15 +13,47 @@ interface ThreatDef {
 }
 
 const THREAT_DEFS: ThreatDef[] = [
-  { type: 'subpoena',    emoji: '📄', points: 10 },
-  { type: 'legal-brief', emoji: '📋', points: 10 },
-  { type: 'cease-desist', emoji: '🛑', points: 15 },
-  { type: 'evidence',    emoji: '📁', points: 15 },
-  { type: 'deposition',  emoji: '📝', points: 20 },
-  { type: 'gavel',       emoji: '🔨', points: 25 },
+  { type: 'subpoena',     emoji: '📄', points: 10 },
+  { type: 'legal-brief',  emoji: '📋', points: 10 },
+  { type: 'cease-desist',  emoji: '🛑', points: 15 },
+  { type: 'evidence',     emoji: '📁', points: 15 },
+  { type: 'deposition',   emoji: '📝', points: 20 },
+  { type: 'gavel',        emoji: '🔨', points: 25 },
 ];
 
 const SETTLEMENT_DEF: ThreatDef = { type: 'settlement', emoji: '💰', points: 0 };
+
+// ─── Game Constants ─────────────────────────────────────────────────────────
+
+const NUM_LANES = 5;
+const MAX_MISSES = 3;
+const GAME_DURATION = 90;
+const SMASH_ANIM_FRAMES = 12;
+const HAMMER_WIND_FRAMES = 4;   // anticipation before strike
+const HAMMER_STRIKE_FRAMES = 3; // fast downswing
+const HAMMER_FOLLOW_FRAMES = 5; // follow-through
+const HAMMER_TOTAL = HAMMER_WIND_FRAMES + HAMMER_STRIKE_FRAMES + HAMMER_FOLLOW_FRAMES;
+
+// ─── Hit Effect Types ───────────────────────────────────────────────────────
+
+const HIT_WORDS = ['POW!', 'WHAM!', 'BANG!', 'SMASH!', 'CRACK!', 'DENIED!', 'OVERRULED!'];
+
+interface HitEffect {
+  id: number;
+  x: number;
+  y: number;
+  text: string;
+  frame: number;
+  maxFrames: number;
+  color: string;
+}
+
+interface MissEffect {
+  id: number;
+  lane: number;
+  frame: number;
+  maxFrames: number;
+}
 
 // ─── Game Types ─────────────────────────────────────────────────────────────
 
@@ -30,12 +62,12 @@ type PlayerPosition = 'left' | 'right';
 interface Threat {
   id: number;
   def: ThreatDef;
-  lane: 0 | 1 | 2;           // 0=left, 1=center, 2=right
-  /** Timer in frames: counts down from spawnFrames to 0. At 0, resolve hit/miss. */
-  timer: number;
-  spawnFrames: number;
-  state: 'rising' | 'active' | 'smashed' | 'missed';
-  smashFrame: number;         // animation countdown after smash
+  lane: number;              // 0-4 for 5 lanes
+  /** Progress 0→1: travels down the path. At 1.0, resolve hit/miss. */
+  progress: number;
+  speed: number;             // progress per frame
+  state: 'active' | 'smashed' | 'missed';
+  smashFrame: number;
 }
 
 interface GameState {
@@ -46,29 +78,31 @@ interface GameState {
   misses: number;
   totalSmashed: number;
   threats: Threat[];
-  playerPos: PlayerPosition;  // left = covers lanes 0,1  |  right = covers lanes 1,2
+  playerPos: PlayerPosition;  // left = covers lanes 0,1,2  |  right = covers lanes 2,3,4
   nextId: number;
   spawnCooldown: number;
   settlementSpawned: boolean;
   chatIndex: number;
   chatCooldown: number;
-  hammerAnim: [number, number]; // frames remaining for left/right hammer swing animation
+  hammerAnim: [number, number, number]; // frames remaining for left/center/right hammer
+  hitEffects: HitEffect[];
+  missEffects: MissEffect[];
+  shakeFrames: number;       // screen shake countdown
+  shakeOffset: { x: number; y: number };
+  effectId: number;
 }
-
-const MAX_MISSES = 3;
-const GAME_DURATION = 90;
-const SMASH_ANIM_FRAMES = 15;
 
 // ─── Lane geometry helpers ──────────────────────────────────────────────────
 
 function getLaneX(lane: number, w: number): number {
-  const margin = w * 0.15;
+  const margin = w * 0.08;
   const usable = w - margin * 2;
-  return margin + usable * (lane / 2);
+  return margin + usable * (lane / (NUM_LANES - 1));
 }
 
-function coveredLanes(pos: PlayerPosition): [number, number] {
-  return pos === 'left' ? [0, 1] : [1, 2];
+function coveredLanes(pos: PlayerPosition): number[] {
+  // Left covers 0,1,2 — Right covers 2,3,4 — lane 2 always covered
+  return pos === 'left' ? [0, 1, 2] : [2, 3, 4];
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -91,7 +125,12 @@ export default function LawsuitApp(): React.ReactElement {
     settlementSpawned: false,
     chatIndex: 0,
     chatCooldown: 200,
-    hammerAnim: [0, 0],
+    hammerAnim: [0, 0, 0],
+    hitEffects: [],
+    missEffects: [],
+    shakeFrames: 0,
+    shakeOffset: { x: 0, y: 0 },
+    effectId: 0,
   });
   const rafRef = useRef<number>(0);
   const keysRef = useRef<Set<string>>(new Set());
@@ -106,16 +145,15 @@ export default function LawsuitApp(): React.ReactElement {
   const spawnThreat = useCallback((game: GameState) => {
     const phase = game.elapsed < 30 ? 0 : game.elapsed < 60 ? 1 : 2;
 
-    // Determine lane — bias toward uncovered lane to create tension
-    let lane: 0 | 1 | 2;
-    const [c0, c1] = coveredLanes(game.playerPos);
-    const uncovered = ([0, 1, 2] as const).find(l => l !== c0 && l !== c1)!;
+    // Determine lane — bias toward uncovered lanes to create tension
+    let lane: number;
+    const covered = coveredLanes(game.playerPos);
+    const uncoveredLanes = Array.from({ length: NUM_LANES }, (_, i) => i).filter(l => !covered.includes(l));
 
-    if (Math.random() < 0.35) {
-      // Threat in uncovered lane — forces a decision
-      lane = uncovered as 0 | 1 | 2;
+    if (Math.random() < 0.4 && uncoveredLanes.length > 0) {
+      lane = uncoveredLanes[Math.floor(Math.random() * uncoveredLanes.length)];
     } else {
-      lane = ([0, 1, 2] as const)[Math.floor(Math.random() * 3)];
+      lane = Math.floor(Math.random() * NUM_LANES);
     }
 
     // Settlement: one-time appearance between 40-70s
@@ -125,23 +163,22 @@ export default function LawsuitApp(): React.ReactElement {
       def = SETTLEMENT_DEF;
       game.settlementSpawned = true;
     } else {
-      // Pick from available threats (harder ones appear in later phases)
       const maxIndex = phase === 0 ? 3 : phase === 1 ? 5 : THREAT_DEFS.length;
       def = THREAT_DEFS[Math.floor(Math.random() * maxIndex)];
     }
 
-    // Active window (frames the threat is visible before resolving)
-    const baseFrames = phase === 0 ? 90 : phase === 1 ? 65 : 45;
-    const variance = Math.floor(Math.random() * 20);
-    const spawnFrames = baseFrames + variance;
+    // Speed: how fast the threat travels down the path (progress per frame)
+    const baseSpeed = phase === 0 ? 0.008 : phase === 1 ? 0.012 : 0.018;
+    const variance = baseSpeed * 0.3 * (Math.random() - 0.5);
+    const speed = baseSpeed + variance;
 
     game.threats.push({
       id: game.nextId++,
       def,
       lane,
-      timer: spawnFrames,
-      spawnFrames,
-      state: 'rising',
+      progress: 0,
+      speed,
+      state: 'active',
       smashFrame: 0,
     });
   }, []);
@@ -186,7 +223,7 @@ export default function LawsuitApp(): React.ReactElement {
       return;
     }
 
-    // ── Handle input (edge-triggered: only on fresh press) ──
+    // ── Handle input (edge-triggered) ──
     const keys = keysRef.current;
     const prev = prevKeysRef.current;
     const leftPressed = (keys.has('arrowleft') || keys.has('a')) && !(prev.has('arrowleft') || prev.has('a'));
@@ -200,11 +237,11 @@ export default function LawsuitApp(): React.ReactElement {
     }
 
     // ── Spawn threats ──
-    const spawnRate = phase === 0 ? 80 : phase === 1 ? 50 : 28;
+    const spawnRate = phase === 0 ? 70 : phase === 1 ? 42 : 24;
     game.spawnCooldown--;
     if (game.spawnCooldown <= 0) {
       spawnThreat(game);
-      game.spawnCooldown = spawnRate + Math.floor(Math.random() * 25);
+      game.spawnCooldown = spawnRate + Math.floor(Math.random() * 20);
     }
 
     // ── Chat distractions ──
@@ -222,29 +259,21 @@ export default function LawsuitApp(): React.ReactElement {
     }
 
     // ── Update threats ──
-    const [cov0, cov1] = coveredLanes(game.playerPos);
+    const covered = coveredLanes(game.playerPos);
 
     for (const t of game.threats) {
       if (t.state === 'smashed') {
         t.smashFrame--;
-        if (t.smashFrame <= 0) t.state = 'missed'; // reuse 'missed' to mark for cleanup
+        if (t.smashFrame <= 0) t.state = 'missed'; // mark for cleanup
         continue;
       }
       if (t.state === 'missed') continue;
 
-      // Rising phase (first ~20% of timer) then active
-      const risingThreshold = t.spawnFrames * 0.2;
-      if (t.timer > t.spawnFrames - risingThreshold) {
-        t.state = 'rising';
-      } else {
-        t.state = 'active';
-      }
+      t.progress += t.speed;
 
-      t.timer--;
-
-      // Timer expired — resolve
-      if (t.timer <= 0) {
-        const isCovered = t.lane === cov0 || t.lane === cov1;
+      // Reached the strike zone — resolve
+      if (t.progress >= 1.0) {
+        const isCovered = covered.includes(t.lane);
         if (isCovered) {
           // Smashed!
           t.state = 'smashed';
@@ -252,9 +281,28 @@ export default function LawsuitApp(): React.ReactElement {
           game.score += t.def.points;
           game.totalSmashed++;
 
-          // Trigger hammer animation for the arm that's over this lane
-          const hammerIdx = t.lane === cov0 ? 0 : 1;
-          game.hammerAnim[hammerIdx] = SMASH_ANIM_FRAMES;
+          // Determine which hammer index (0=left, 1=center, 2=right relative to covered)
+          const covIdx = covered.indexOf(t.lane);
+          const hammerIdx = Math.min(covIdx, 2);
+          game.hammerAnim[hammerIdx] = HAMMER_TOTAL;
+
+          // Hit effect
+          const lx = getLaneX(t.lane, w);
+          const strikeY = h * 0.72;
+          const hitWord = HIT_WORDS[Math.floor(Math.random() * HIT_WORDS.length)];
+          const colors = ['#ffdd57', '#ff6b6b', '#4ecdc4', '#ff9ff3', '#feca57', '#54a0ff'];
+          game.hitEffects.push({
+            id: game.effectId++,
+            x: lx + (Math.random() - 0.5) * 20,
+            y: strikeY - 20,
+            text: hitWord,
+            frame: 0,
+            maxFrames: 30,
+            color: colors[Math.floor(Math.random() * colors.length)],
+          });
+
+          // Screen shake
+          game.shakeFrames = 6;
 
           // Settlement catch
           if (t.def.type === 'settlement') {
@@ -270,6 +318,14 @@ export default function LawsuitApp(): React.ReactElement {
           // Missed!
           t.state = 'missed';
           game.misses++;
+          game.missEffects.push({
+            id: game.effectId++,
+            lane: t.lane,
+            frame: 0,
+            maxFrames: 20,
+          });
+          // Bigger shake on miss
+          game.shakeFrames = 10;
         }
       }
     }
@@ -277,158 +333,307 @@ export default function LawsuitApp(): React.ReactElement {
     // Cleanup resolved threats
     game.threats = game.threats.filter(t => t.state !== 'missed');
 
-    // Decrement hammer animations
-    if (game.hammerAnim[0] > 0) game.hammerAnim[0]--;
-    if (game.hammerAnim[1] > 0) game.hammerAnim[1]--;
+    // Update hit effects
+    game.hitEffects = game.hitEffects.filter(e => {
+      e.frame++;
+      return e.frame < e.maxFrames;
+    });
 
-    // ── Render ──
-    ctx.clearRect(0, 0, w, h);
+    // Update miss effects
+    game.missEffects = game.missEffects.filter(e => {
+      e.frame++;
+      return e.frame < e.maxFrames;
+    });
+
+    // Decrement hammer animations
+    for (let i = 0; i < 3; i++) {
+      if (game.hammerAnim[i] > 0) game.hammerAnim[i]--;
+    }
+
+    // Screen shake
+    if (game.shakeFrames > 0) {
+      game.shakeFrames--;
+      const intensity = game.shakeFrames * 1.2;
+      game.shakeOffset = {
+        x: (Math.random() - 0.5) * intensity * 2,
+        y: (Math.random() - 0.5) * intensity * 2,
+      };
+    } else {
+      game.shakeOffset = { x: 0, y: 0 };
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ── RENDER ──
+    // ══════════════════════════════════════════════════════════════════════════
+
+    ctx.save();
+    ctx.translate(game.shakeOffset.x, game.shakeOffset.y);
+    ctx.clearRect(-10, -10, w + 20, h + 20);
 
     // Background
     const bg = ctx.createLinearGradient(0, 0, 0, h);
-    bg.addColorStop(0, '#1a1a2e');
+    bg.addColorStop(0, '#0f1923');
+    bg.addColorStop(0.6, '#1a1a2e');
     bg.addColorStop(1, '#16213e');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
 
-    // Lane markers
     const groundY = h * 0.78;
-    const holeH = h * 0.12;
-    for (let lane = 0; lane < 3; lane++) {
-      const lx = getLaneX(lane, w);
-      const holeW = w * 0.18;
+    const spawnY = h * 0.12;
+    const pathLength = groundY - spawnY;
 
-      // Lane background (dark pit)
-      ctx.fillStyle = '#0d0d1a';
+    // ── Draw lane paths (visible tracks) ──
+    for (let lane = 0; lane < NUM_LANES; lane++) {
+      const lx = getLaneX(lane, w);
+      const isCov = covered.includes(lane);
+
+      // Path track (dashed line from top to strike zone)
+      ctx.strokeStyle = isCov ? 'rgba(74, 124, 89, 0.25)' : 'rgba(100, 60, 60, 0.25)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 8]);
       ctx.beginPath();
-      ctx.ellipse(lx, groundY, holeW / 2, holeH / 2, 0, 0, Math.PI * 2);
+      ctx.moveTo(lx, spawnY);
+      ctx.lineTo(lx, groundY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Lane gutter (wider subtle path)
+      ctx.fillStyle = isCov ? 'rgba(74, 124, 89, 0.04)' : 'rgba(100, 60, 60, 0.04)';
+      ctx.fillRect(lx - 20, spawnY, 40, pathLength);
+
+      // Strike zone indicator at bottom
+      const zoneY = groundY - 10;
+      ctx.fillStyle = isCov ? 'rgba(74, 124, 89, 0.15)' : 'rgba(180, 60, 60, 0.08)';
+      ctx.beginPath();
+      ctx.roundRect(lx - 22, zoneY - 8, 44, 20, 4);
       ctx.fill();
 
-      // Lane border
-      ctx.strokeStyle = '#333355';
-      ctx.lineWidth = 2;
+      // Strike zone border
+      ctx.strokeStyle = isCov ? 'rgba(74, 124, 89, 0.4)' : 'rgba(180, 60, 60, 0.2)';
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.ellipse(lx, groundY, holeW / 2, holeH / 2, 0, 0, Math.PI * 2);
+      ctx.roundRect(lx - 22, zoneY - 8, 44, 20, 4);
       ctx.stroke();
 
-      // Lane label
-      ctx.fillStyle = '#444466';
-      ctx.font = '10px monospace';
+      // Lane number
+      ctx.fillStyle = '#333355';
+      ctx.font = '9px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillText(`LANE ${lane + 1}`, lx, groundY + holeH / 2 + 4);
+      ctx.fillText(`${lane + 1}`, lx, groundY + 6);
     }
 
-    // Ground line
-    ctx.fillStyle = '#2a2a4a';
-    ctx.fillRect(0, groundY + holeH / 2 + 2, w, h - groundY);
+    // Ground area
+    ctx.fillStyle = '#1a1a30';
+    ctx.fillRect(0, groundY + 16, w, h - groundY);
 
-    // ── Draw threats ──
+    // ── Draw threats traveling down paths ──
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const t of game.threats) {
       const lx = getLaneX(t.lane, w);
 
       if (t.state === 'smashed') {
-        // Smash animation: flatten + fade
+        // Disintegration animation: scatter + fade
         const progress = 1 - t.smashFrame / SMASH_ANIM_FRAMES;
+        const strikeY = groundY - 10;
         ctx.save();
-        ctx.globalAlpha = 1 - progress;
-        ctx.translate(lx, groundY - 30);
-        ctx.scale(1 + progress * 0.5, 1 - progress * 0.7);
-        ctx.font = '32px serif';
-        ctx.fillText(t.def.emoji, 0, 0);
+        ctx.globalAlpha = 1 - progress * progress; // ease out fade
+        ctx.translate(lx, strikeY);
+        // Scatter effect — multiple fading fragments
+        const fragmentCount = 4;
+        for (let f = 0; f < fragmentCount; f++) {
+          const angle = (f / fragmentCount) * Math.PI * 2 + progress * 2;
+          const dist = progress * 35;
+          const fx = Math.cos(angle) * dist;
+          const fy = Math.sin(angle) * dist - progress * 20;
+          ctx.save();
+          ctx.translate(fx, fy);
+          ctx.scale(1 - progress * 0.8, 1 - progress * 0.8);
+          ctx.font = '14px serif';
+          ctx.fillText(t.def.emoji, 0, 0);
+          ctx.restore();
+        }
         ctx.restore();
         continue;
       }
 
-      // Rising animation: slide up from hole
-      const lifeProgress = 1 - t.timer / t.spawnFrames; // 0→1 over lifetime
-      const riseProgress = Math.min(1, lifeProgress / 0.2); // 0→1 during first 20%
-      const threatY = groundY + 20 - riseProgress * 50;
+      // Position along path
+      const threatY = spawnY + pathLength * t.progress;
 
-      // Urgency pulsing as timer runs low
-      const urgency = 1 - t.timer / t.spawnFrames;
-      const pulse = urgency > 0.6 ? 1 + Math.sin(urgency * 30) * 0.1 : 1;
+      // Size scales up slightly as it approaches
+      const approachScale = 0.7 + t.progress * 0.4;
+
+      // Urgency pulsing when close to strike zone
+      const urgencyPulse = t.progress > 0.7
+        ? 1 + Math.sin(t.progress * 40) * 0.08 * (t.progress - 0.7) / 0.3
+        : 1;
+
+      // Danger glow when very close
+      if (t.progress > 0.8 && !covered.includes(t.lane)) {
+        ctx.save();
+        ctx.shadowColor = '#ff3333';
+        ctx.shadowBlur = 8 + (t.progress - 0.8) * 40;
+        ctx.globalAlpha = 0.3;
+        ctx.font = `${Math.round(28 * approachScale)}px serif`;
+        ctx.fillText(t.def.emoji, lx, threatY);
+        ctx.restore();
+      }
 
       ctx.save();
       ctx.translate(lx, threatY);
-      ctx.scale(pulse, pulse);
+      ctx.scale(approachScale * urgencyPulse, approachScale * urgencyPulse);
 
-      // Glow for settlement
+      // Settlement glow
       if (t.def.type === 'settlement') {
         ctx.shadowColor = '#ffd700';
         ctx.shadowBlur = 15 + Math.sin(game.elapsed * 8) * 5;
       }
 
-      ctx.font = '32px serif';
+      ctx.font = '28px serif';
       ctx.fillText(t.def.emoji, 0, 0);
       ctx.restore();
 
-      // Timer bar under threat
-      const barW = 40;
-      const barH = 4;
-      const barX = lx - barW / 2;
-      const barY = threatY + 22;
-      const fill = t.timer / t.spawnFrames;
-      ctx.fillStyle = '#333';
-      ctx.fillRect(barX, barY, barW, barH);
-      ctx.fillStyle = fill > 0.3 ? '#4a7c59' : '#cc3333';
-      ctx.fillRect(barX, barY, barW * fill, barH);
+      // Progress indicator dot on the path
+      if (t.progress < 0.85) {
+        ctx.fillStyle = t.def.type === 'settlement'
+          ? 'rgba(255, 215, 0, 0.5)'
+          : `rgba(255, 100, 100, ${0.2 + t.progress * 0.4})`;
+        ctx.beginPath();
+        ctx.arc(lx, threatY + 18, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // ── Draw miss effects (red flash on lane) ──
+    for (const m of game.missEffects) {
+      const lx = getLaneX(m.lane, w);
+      const progress = m.frame / m.maxFrames;
+      ctx.save();
+      ctx.globalAlpha = (1 - progress) * 0.4;
+      ctx.fillStyle = '#ff3333';
+      ctx.fillRect(lx - 24, spawnY, 48, pathLength + 20);
+      ctx.restore();
+
+      // "MISS" text
+      if (m.frame < 15) {
+        ctx.save();
+        ctx.globalAlpha = 1 - progress;
+        ctx.font = 'bold 16px monospace';
+        ctx.fillStyle = '#ff4444';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('MISS!', lx, groundY - 40 - m.frame * 1.5);
+        ctx.restore();
+      }
     }
 
     // ── Draw player character ──
     const playerCenterX = game.playerPos === 'left'
-      ? (getLaneX(0, w) + getLaneX(1, w)) / 2
-      : (getLaneX(1, w) + getLaneX(2, w)) / 2;
-    const playerY = groundY - 70;
+      ? getLaneX(1, w)    // center of lanes 0,1,2
+      : getLaneX(3, w);   // center of lanes 2,3,4
+    const playerY = groundY - 55;
 
     // Body
-    ctx.font = '36px serif';
+    ctx.font = '32px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('🧑‍⚖️', playerCenterX, playerY);
 
-    // Hammers (gavels) — one per covered lane
-    const [lane0, lane1] = coveredLanes(game.playerPos);
-    const hammerLanes = [lane0, lane1];
-    for (let i = 0; i < 2; i++) {
-      const hx = getLaneX(hammerLanes[i], w);
-      const hy = groundY - 50;
-      const swingActive = game.hammerAnim[i] > 0;
-      const swingProgress = swingActive ? game.hammerAnim[i] / SMASH_ANIM_FRAMES : 0;
-      const angle = swingActive ? Math.sin(swingProgress * Math.PI) * -0.6 : 0;
+    // ── Draw hammers with wind-up / strike / follow-through animation ──
+    const covLanes = coveredLanes(game.playerPos);
+    for (let i = 0; i < 3; i++) {
+      const hammerLane = covLanes[i];
+      const hx = getLaneX(hammerLane, w);
+      const hy = groundY - 8;
+      const remaining = game.hammerAnim[i];
+
+      let angle = 0;
+      let scale = 1;
+      let hammerY = hy;
+
+      if (remaining > 0) {
+        if (remaining > HAMMER_STRIKE_FRAMES + HAMMER_FOLLOW_FRAMES) {
+          // Wind-up phase: pull back
+          const windProgress = (remaining - HAMMER_STRIKE_FRAMES - HAMMER_FOLLOW_FRAMES) / HAMMER_WIND_FRAMES;
+          angle = windProgress * 0.8;
+          hammerY = hy - windProgress * 12;
+          scale = 1 + windProgress * 0.15;
+        } else if (remaining > HAMMER_FOLLOW_FRAMES) {
+          // Strike phase: fast slam down
+          const strikeProgress = 1 - (remaining - HAMMER_FOLLOW_FRAMES) / HAMMER_STRIKE_FRAMES;
+          angle = 0.8 * (1 - strikeProgress) + (-0.5) * strikeProgress;
+          hammerY = hy - 12 * (1 - strikeProgress);
+          scale = 1.15 - strikeProgress * 0.2;
+        } else {
+          // Follow-through: settle back
+          const followProgress = 1 - remaining / HAMMER_FOLLOW_FRAMES;
+          angle = -0.5 * (1 - followProgress);
+          scale = 0.95 + followProgress * 0.05;
+        }
+      }
 
       ctx.save();
-      ctx.translate(hx, hy);
+      ctx.translate(hx, hammerY);
       ctx.rotate(angle);
-      ctx.font = '26px serif';
+      ctx.scale(scale, scale);
+      ctx.font = '22px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillText('🔨', 0, 0);
       ctx.restore();
 
-      // Draw line connecting character to hammer
-      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      // Arm line from player to hammer
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
       ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
+      ctx.setLineDash([3, 5]);
       ctx.beginPath();
-      ctx.moveTo(playerCenterX, playerY + 10);
-      ctx.lineTo(hx, hy);
+      ctx.moveTo(playerCenterX, playerY + 8);
+      ctx.lineTo(hx, hammerY);
       ctx.stroke();
       ctx.setLineDash([]);
     }
 
-    // Coverage indicator — highlight covered lanes
-    for (const cl of [cov0, cov1]) {
+    // ── Draw hit effects (POW! WHAM! etc.) ──
+    for (const e of game.hitEffects) {
+      const progress = e.frame / e.maxFrames;
+      const scale = 0.5 + (1 - Math.abs(progress - 0.2)) * 0.8;
+      const alpha = progress < 0.1 ? progress / 0.1 : 1 - (progress - 0.1) / 0.9;
+      const yOffset = -progress * 40;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, alpha);
+      ctx.translate(e.x, e.y + yOffset);
+      ctx.scale(scale, scale);
+
+      // Text outline
+      ctx.font = 'bold 20px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 3;
+      ctx.strokeText(e.text, 0, 0);
+
+      // Fill
+      ctx.fillStyle = e.color;
+      ctx.fillText(e.text, 0, 0);
+      ctx.restore();
+    }
+
+    // ── Coverage indicator — subtle highlight on covered lanes ──
+    for (const cl of covered) {
       const lx = getLaneX(cl, w);
-      ctx.fillStyle = 'rgba(74, 124, 89, 0.12)';
+      ctx.fillStyle = 'rgba(74, 124, 89, 0.06)';
       ctx.beginPath();
-      ctx.ellipse(lx, groundY, w * 0.1, holeH / 2 + 5, 0, 0, Math.PI * 2);
+      ctx.ellipse(lx, groundY, 24, 12, 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
+    ctx.restore(); // undo shake translate
+
     // Update HUD
-    setHudState(prev => ({
-      ...prev,
+    setHudState(prevState => ({
+      ...prevState,
       score: game.score,
       misses: game.misses,
       elapsed: game.elapsed,
@@ -454,7 +659,12 @@ export default function LawsuitApp(): React.ReactElement {
     game.settlementSpawned = false;
     game.chatIndex = 0;
     game.chatCooldown = 200;
-    game.hammerAnim = [0, 0];
+    game.hammerAnim = [0, 0, 0];
+    game.hitEffects = [];
+    game.missEffects = [];
+    game.shakeFrames = 0;
+    game.shakeOffset = { x: 0, y: 0 };
+    game.effectId = 0;
     prevKeysRef.current = new Set();
     setHudState({ score: 0, misses: 0, elapsed: 0, phase: 'playing', chatMessages: [] });
     rafRef.current = requestAnimationFrame(gameLoop);
@@ -572,15 +782,15 @@ export default function LawsuitApp(): React.ReactElement {
           <div className={styles.overlayIcon}>⚖️</div>
           <div className={styles.overlayTitle}>Lawsuit Defense</div>
           <div className={styles.overlayText}>
-            Legal threats pop up from 3 lanes. You hold two gavels — one in each hand —
-            covering 2 of the 3 lanes at a time. Slide LEFT or RIGHT to choose which
-            two lanes to cover. Threats in your lanes get smashed automatically.
+            Legal threats slide down {NUM_LANES} lanes toward your desk. You hold gavels
+            covering 3 lanes at a time. Slide LEFT or RIGHT to choose which
+            side to defend. Threats in your lanes get smashed automatically.
             Miss {MAX_MISSES} and you lose. Survive {GAME_DURATION} seconds to win.
           </div>
           <div className={styles.controls}>
-            <span className={styles.controlKey}>←</span> Cover lanes 1 &amp; 2
+            <span className={styles.controlKey}>←</span> Cover lanes 1-3
             &nbsp;&nbsp;
-            <span className={styles.controlKey}>→</span> Cover lanes 2 &amp; 3
+            <span className={styles.controlKey}>→</span> Cover lanes 3-5
           </div>
           <button className={styles.startButton} onClick={startGame}>
             Begin Defense

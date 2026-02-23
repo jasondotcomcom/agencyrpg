@@ -24,6 +24,8 @@ import CheatIndicator from './components/CheatIndicator/CheatIndicator';
 import OnboardingScreen from './components/Onboarding/OnboardingScreen';
 import Screensaver from './components/Screensaver/Screensaver';
 import { LOCKED_BRIEFS } from './data/lockedBriefs';
+import { NG_PLUS_LOCKED_BRIEFS, buildBrewedAwakeningsNgPlus } from './data/ngPlusBriefs';
+import type { LegacyPrestigeFlags } from './components/Ending/EndingSequence';
 
 // ─── Mobile Detection ─────────────────────────────────────────────────────────
 
@@ -144,6 +146,21 @@ function AppContent() {
           `Starting with $${bonusFunds.toLocaleString()} budget and ${bonusRep} reputation from your previous run.`
         );
       }, 3500));
+
+      // NG+ Brewed Awakenings: deliver "Phase 2: Franchise Launch" as the first brief
+      if (!localStorage.getItem('agencyrpg_first_brief_sent')) {
+        localStorage.setItem('agencyrpg_first_brief_sent', '1');
+        const delay = 7000 + Math.random() * 3000;
+        timers.push(setTimeout(() => {
+          const ngBrewedEmail = buildBrewedAwakeningsNgPlus();
+          addEmail(ngBrewedEmail);
+          addNotification(
+            '📧 New Brief!',
+            'Brewed Awakenings is back — Maya wants to work with you again. Check your inbox.'
+          );
+          triggerCampaignEvent('NEW_BRIEF_ARRIVED', { clientName: 'Brewed Awakenings' });
+        }, delay));
+      }
     } else {
       const hasProgress = campaigns.length > 0;
       if (hasProgress && isFreshSessionRef.current) {
@@ -154,8 +171,9 @@ function AppContent() {
             'Your progress has been saved. Pick up where you left off.'
           );
         }, 500));
-      } else if (!hasProgress) {
+      } else if (!hasProgress && !localStorage.getItem('agencyrpg_first_brief_sent')) {
         // First playthrough — deliver Brewed Awakenings as the first "New Brief!" moment
+        localStorage.setItem('agencyrpg_first_brief_sent', '1');
         const delay = 5000 + Math.random() * 3000; // 5-8 seconds
         timers.push(setTimeout(() => {
           addEmail({
@@ -214,14 +232,14 @@ function AppContent() {
           setTimeout(() => {
             addMessage({
               id: `morgan-insight-${Date.now()}`,
-              channel: 'creative',
+              channel: 'general',
               authorId: 'strategist',
               text: insight,
               timestamp: Date.now(),
               reactions: [],
               isRead: false,
             });
-          }, 8000 + Math.random() * 4000); // 8-12s after brief
+          }, 12000 + Math.random() * 5000); // 12-17s after brief
         }, delay));
       }
     }
@@ -234,8 +252,32 @@ function AppContent() {
     const completedCount = campaigns.filter(c => c.phase === 'completed').length;
     if (completedCount <= prevCompletedCountRef.current) return;
 
-    const toUnlock = LOCKED_BRIEFS.filter(
-      entry => entry.unlockAt <= completedCount && entry.unlockAt > prevCompletedCountRef.current,
+    // Build the full list of briefs eligible for this run
+    const legacy = loadLegacy();
+    const flags: LegacyPrestigeFlags = legacy?.prestigeFlags ?? {};
+    let allBriefs = [...LOCKED_BRIEFS];
+
+    if (legacy) {
+      // Add NG+ briefs that match the player's prestige flags
+      const eligible = NG_PLUS_LOCKED_BRIEFS.filter(entry => {
+        if (entry.requiresLegacyFlag && !flags[entry.requiresLegacyFlag as keyof LegacyPrestigeFlags]) return false;
+        if (entry.unlockAtReputation) return false; // reputation-gated briefs handled separately
+        return true;
+      });
+      allBriefs = [...allBriefs, ...eligible];
+    }
+
+    // Track delivered briefs to prevent duplicates
+    const deliveredKey = 'agencyrpg_delivered_briefs';
+    let delivered: string[] = [];
+    try { delivered = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]'); } catch { /* */ }
+    const deliveredSet = new Set(delivered);
+
+    const toUnlock = allBriefs.filter(
+      entry => !entry.unlockAtReputation
+        && entry.unlockAt <= completedCount
+        && entry.unlockAt > prevCompletedCountRef.current
+        && !deliveredSet.has(entry.briefId),
     );
 
     toUnlock.forEach((entry, i) => {
@@ -248,11 +290,59 @@ function AppContent() {
           `${entry.clientName} wants to work with your agency. Check your inbox.`,
         );
         triggerCampaignEvent('NEW_BRIEF_ARRIVED', { clientName: entry.clientName });
+
+        // Record delivery
+        try {
+          const current: string[] = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]');
+          if (!current.includes(entry.briefId)) {
+            current.push(entry.briefId);
+            localStorage.setItem(deliveredKey, JSON.stringify(current));
+          }
+        } catch { /* non-fatal */ }
       }, delay);
     });
 
     prevCompletedCountRef.current = completedCount;
   }, [campaigns, addEmail, addNotification, triggerCampaignEvent]);
+
+  // Reputation watcher: deliver reputation-gated briefs when threshold is crossed
+  useEffect(() => {
+    const rep = repState.currentReputation;
+    const deliveredKey = 'agencyrpg_rep_briefs_delivered';
+    let delivered: string[] = [];
+    try { delivered = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]'); } catch { /* */ }
+
+    // Gather all reputation-gated briefs (from both base and NG+ pools)
+    const legacy = loadLegacy();
+    const flags: LegacyPrestigeFlags = legacy?.prestigeFlags ?? {};
+    const repBriefs = [...LOCKED_BRIEFS, ...(legacy ? NG_PLUS_LOCKED_BRIEFS : [])].filter(entry => {
+      if (!entry.unlockAtReputation) return false;
+      if (entry.requiresLegacyFlag && !flags[entry.requiresLegacyFlag as keyof LegacyPrestigeFlags]) return false;
+      if (entry.requiresNgPlus && !legacy) return false;
+      if (delivered.includes(entry.briefId)) return false;
+      return rep >= entry.unlockAtReputation;
+    });
+
+    repBriefs.forEach((entry, i) => {
+      const delay = 2000 + i * 3000;
+      setTimeout(() => {
+        addEmail(entry.buildEmail({ playerName: playerName ?? undefined }));
+        addNotification(
+          '📧 New Brief!',
+          `${entry.clientName} wants to work with your agency. Check your inbox.`,
+        );
+        triggerCampaignEvent('NEW_BRIEF_ARRIVED', { clientName: entry.clientName });
+
+        try {
+          const current: string[] = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]');
+          if (!current.includes(entry.briefId)) {
+            current.push(entry.briefId);
+            localStorage.setItem(deliveredKey, JSON.stringify(current));
+          }
+        } catch { /* non-fatal */ }
+      }, delay);
+    });
+  }, [repState.currentReputation, addEmail, addNotification, triggerCampaignEvent, playerName]);
 
   return (
     <>

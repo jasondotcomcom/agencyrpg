@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import type { Email, EmailFilter, EmailSort } from '../types/email';
 import { initialEmails } from '../data/initialEmails';
+import { loadLegacy } from '../components/Ending/EndingSequence';
+import { buildNgPlusInitialEmails } from '../data/ngPlusBriefs';
 import { emitSave } from '../utils/saveSignal';
 
 const STORAGE_KEY = 'agencyrpg_emails';
@@ -12,10 +14,21 @@ function loadEmails(): Email[] | null {
     const parsed: Email[] = JSON.parse(saved);
     // Revive Date objects
     const savedEmails = parsed.map(e => ({ ...e, timestamp: new Date(e.timestamp) }));
-    // Merge in any new initial emails not present in saved data (for game updates)
+    // Merge in any new initial emails not present in saved data (for game updates).
+    // Give new emails timestamps older than the oldest saved email so they don't
+    // jump to the top of the inbox on every reload.
     const savedIds = new Set(savedEmails.map(e => e.id));
     const newEmails = initialEmails.filter(e => !savedIds.has(e.id));
-    return [...newEmails, ...savedEmails];
+    if (newEmails.length > 0) {
+      const oldestSaved = savedEmails.reduce(
+        (min, e) => Math.min(min, new Date(e.timestamp).getTime()),
+        Date.now()
+      );
+      newEmails.forEach((e, i) => {
+        e.timestamp = new Date(oldestSaved - (newEmails.length - i) * 60000);
+      });
+    }
+    return [...savedEmails, ...newEmails];
   } catch {
     return null;
   }
@@ -42,8 +55,22 @@ type EmailAction =
   | { type: 'ACCEPT_BRIEF'; payload: string };
 
 const savedEmails = loadEmails();
+
+// In NG+ with no saved emails, swap the 3 original campaign briefs for NG+ returning client versions
+function getInitialEmails(): Email[] {
+  if (savedEmails) return savedEmails;
+  const legacy = loadLegacy();
+  if (!legacy) return initialEmails;
+
+  // Replace FocusFlow (email-002), Timberwolf (email-003), RewindTime (email-012) with NG+ versions
+  const swapIds = new Set(['email-002', 'email-003', 'email-012']);
+  const keptEmails = initialEmails.filter(e => !swapIds.has(e.id));
+  const ngPlusEmails = buildNgPlusInitialEmails();
+  return [...ngPlusEmails, ...keptEmails];
+}
+
 const initialState: EmailState = {
-  emails: savedEmails ?? initialEmails,
+  emails: getInitialEmails(),
   selectedEmailId: null,
   filter: 'all',
   sort: 'date_desc',
