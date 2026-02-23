@@ -84,7 +84,7 @@ interface GameState {
   settlementSpawned: boolean;
   chatIndex: number;
   chatCooldown: number;
-  hammerAnim: [number, number, number]; // frames remaining for left/center/right hammer
+  hammerAnim: [number, number]; // frames remaining for left/right gavel
   hitEffects: HitEffect[];
   missEffects: MissEffect[];
   shakeFrames: number;       // screen shake countdown
@@ -101,8 +101,10 @@ function getLaneX(lane: number, w: number): number {
 }
 
 function coveredLanes(pos: PlayerPosition): number[] {
-  // Left covers 0,1,2 — Right covers 2,3,4 — lane 2 always covered
-  return pos === 'left' ? [0, 1, 2] : [2, 3, 4];
+  // Each position = 2 gavels (one per hand). Player body doesn't block.
+  // Left: gavels cover lanes 0,1 — Right: gavels cover lanes 3,4
+  // Lane 2 (center) is the gap — never covered by either position.
+  return pos === 'left' ? [0, 1] : [3, 4];
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -125,7 +127,7 @@ export default function LawsuitApp(): React.ReactElement {
     settlementSpawned: false,
     chatIndex: 0,
     chatCooldown: 200,
-    hammerAnim: [0, 0, 0],
+    hammerAnim: [0, 0],
     hitEffects: [],
     missEffects: [],
     shakeFrames: 0,
@@ -168,9 +170,10 @@ export default function LawsuitApp(): React.ReactElement {
       def = THREAT_DEFS[Math.floor(Math.random() * maxIndex)];
     }
 
-    // Continuous speed ramp: quick reaction time from the start, frantic by end
-    const baseSpeed = 0.010 + t * 0.016; // 0.010 → 0.026
-    const variance = baseSpeed * 0.25 * (Math.random() - 0.5);
+    // Quadratic ease-in: first 20s feel almost too easy, then it tightens
+    const ramp = t * t; // slow change early, accelerates late
+    const baseSpeed = 0.004 + ramp * 0.022; // 0.004 (~4s travel) → 0.026 (~0.6s travel)
+    const variance = baseSpeed * 0.2 * (Math.random() - 0.5);
     const speed = baseSpeed + variance;
 
     game.threats.push({
@@ -237,18 +240,21 @@ export default function LawsuitApp(): React.ReactElement {
       game.playerPos = 'right';
     }
 
-    // ── Spawn threats — continuous ramp, quick from the start ──
-    // 45 frames (~0.75s) between spawns at start → 13 frames (~0.22s) at end
-    const spawnInterval = Math.round(45 - t * 32);
+    // ── Spawn threats — slow and deliberate start, frantic finish ──
+    // Quadratic ramp: 120 frames (~2s) at start → 15 frames (~0.25s) at end
+    const ramp = t * t;
+    const spawnInterval = Math.round(120 - ramp * 105);
     game.spawnCooldown--;
     if (game.spawnCooldown <= 0) {
       spawnThreat(game);
-      // Double-spawn chance increases over time (10% → 35%)
-      const doubleChance = 0.10 + t * 0.25;
-      if (Math.random() < doubleChance) {
-        spawnThreat(game);
+      // No double-spawns for first 30s, then ramp 0% → 30%
+      if (game.elapsed > 30) {
+        const doubleChance = ((game.elapsed - 30) / (GAME_DURATION - 30)) * 0.30;
+        if (Math.random() < doubleChance) {
+          spawnThreat(game);
+        }
       }
-      game.spawnCooldown = spawnInterval + Math.floor(Math.random() * Math.max(4, 12 - t * 10));
+      game.spawnCooldown = spawnInterval + Math.floor(Math.random() * Math.max(5, 15 - ramp * 12));
     }
 
     // ── Chat distractions ──
@@ -293,9 +299,9 @@ export default function LawsuitApp(): React.ReactElement {
           game.score += thr.def.points;
           game.totalSmashed++;
 
-          // Determine which hammer index (0=left, 1=center, 2=right relative to covered)
+          // Determine which gavel (0=left hand, 1=right hand)
           const covIdx = covered.indexOf(thr.lane);
-          const hammerIdx = Math.min(covIdx, 2);
+          const hammerIdx = Math.min(covIdx, 1);
           game.hammerAnim[hammerIdx] = HAMMER_TOTAL;
 
           // Hit effect
@@ -357,7 +363,7 @@ export default function LawsuitApp(): React.ReactElement {
     });
 
     // Decrement hammer animations
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       if (game.hammerAnim[i] > 0) game.hammerAnim[i]--;
     }
 
@@ -528,21 +534,20 @@ export default function LawsuitApp(): React.ReactElement {
       }
     }
 
-    // ── Draw player character (at top) ──
-    const playerCenterX = game.playerPos === 'left'
-      ? getLaneX(1, w)    // center of lanes 0,1,2
-      : getLaneX(3, w);   // center of lanes 2,3,4
-    const playerY = strikeZoneY - 35;
+    // ── Draw player character (above the gavel line, between the two gavels) ──
+    const covLanes = coveredLanes(game.playerPos);
+    // Player body sits between the two gavel lanes
+    const playerCenterX = (getLaneX(covLanes[0], w) + getLaneX(covLanes[1], w)) / 2;
+    const playerY = strikeZoneY - 40;
 
-    // Body
+    // Body — drawn above gavel line, does NOT block any lane
     ctx.font = '32px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('🧑‍⚖️', playerCenterX, playerY);
 
-    // ── Draw hammers with wind-up / strike / follow-through animation ──
-    const covLanes = coveredLanes(game.playerPos);
-    for (let i = 0; i < 3; i++) {
+    // ── Draw 2 gavels (one per hand) with wind-up / strike / follow-through ──
+    for (let i = 0; i < 2; i++) {
       const hammerLane = covLanes[i];
       const hx = getLaneX(hammerLane, w);
       const hy = strikeZoneY + 8;
@@ -560,7 +565,7 @@ export default function LawsuitApp(): React.ReactElement {
           hammerY = hy + windProgress * 12;
           scale = 1 + windProgress * 0.15;
         } else if (remaining > HAMMER_FOLLOW_FRAMES) {
-          // Strike: slam up
+          // Strike: slam down
           const strikeProgress = 1 - (remaining - HAMMER_FOLLOW_FRAMES) / HAMMER_STRIKE_FRAMES;
           angle = 0.8 * (1 - strikeProgress) + (-0.5) * strikeProgress;
           hammerY = hy + 12 * (1 - strikeProgress);
@@ -577,18 +582,18 @@ export default function LawsuitApp(): React.ReactElement {
       ctx.translate(hx, hammerY);
       ctx.rotate(angle);
       ctx.scale(scale, scale);
-      ctx.font = '22px serif';
+      ctx.font = '24px serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('🔨', 0, 0);
       ctx.restore();
 
-      // Arm line from player to hammer
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-      ctx.lineWidth = 1;
+      // Arm line from player to gavel
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1.5;
       ctx.setLineDash([3, 5]);
       ctx.beginPath();
-      ctx.moveTo(playerCenterX, playerY + 8);
+      ctx.moveTo(playerCenterX, playerY + 10);
       ctx.lineTo(hx, hammerY);
       ctx.stroke();
       ctx.setLineDash([]);
@@ -655,11 +660,11 @@ export default function LawsuitApp(): React.ReactElement {
     game.threats = [];
     game.playerPos = 'left';
     game.nextId = 0;
-    game.spawnCooldown = 20; // First threat appears almost immediately
+    game.spawnCooldown = 40; // First threat after ~0.7s — gives player a beat to orient
     game.settlementSpawned = false;
     game.chatIndex = 0;
     game.chatCooldown = 200;
-    game.hammerAnim = [0, 0, 0];
+    game.hammerAnim = [0, 0];
     game.hitEffects = [];
     game.missEffects = [];
     game.shakeFrames = 0;
@@ -782,15 +787,15 @@ export default function LawsuitApp(): React.ReactElement {
           <div className={styles.overlayIcon}>⚖️</div>
           <div className={styles.overlayTitle}>Lawsuit Defense</div>
           <div className={styles.overlayText}>
-            Legal threats pop up from below! You hold gavels
-            covering 3 lanes at a time. Slide LEFT or RIGHT to choose which
-            side to defend. Threats in your lanes get smashed automatically.
+            Legal threats pop up from below! You hold a gavel in each hand,
+            covering 2 lanes per side. Slide LEFT or RIGHT to choose which
+            side to defend. Threats under your gavels get smashed automatically.
             Miss {MAX_MISSES} and you lose. Survive {GAME_DURATION} seconds to win.
           </div>
           <div className={styles.controls}>
-            <span className={styles.controlKey}>←</span> Cover lanes 1-3
+            <span className={styles.controlKey}>←</span> Cover lanes 1-2
             &nbsp;&nbsp;
-            <span className={styles.controlKey}>→</span> Cover lanes 3-5
+            <span className={styles.controlKey}>→</span> Cover lanes 4-5
           </div>
           <button className={styles.startButton} onClick={startGame}>
             Begin Defense
