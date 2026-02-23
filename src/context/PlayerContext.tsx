@@ -41,12 +41,18 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   const logOff = useCallback(() => {
     if (playerName) screensaverNameRef.current = playerName;
-    localStorage.removeItem(STORAGE_KEY);
+    // Don't remove from localStorage — just hide the UI behind the screensaver
     setPlayerNameState(null);
     setShowScreensaver(true);
   }, [playerName]);
 
   const dismissScreensaver = useCallback(() => {
+    // Restore the player name so the desktop reappears (not onboarding)
+    const savedName = localStorage.getItem(STORAGE_KEY) || screensaverNameRef.current;
+    if (savedName) {
+      localStorage.setItem(STORAGE_KEY, savedName);
+      setPlayerNameState(savedName);
+    }
     setShowScreensaver(false);
   }, []);
 

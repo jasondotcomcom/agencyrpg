@@ -5,7 +5,6 @@ import { useWindowContext } from './WindowContext';
 import { useAchievementContext } from './AchievementContext';
 import { useAgencyFunds } from './AgencyFundsContext';
 import { useEndingContext } from './EndingContext';
-import { useCheatContext } from './CheatContext';
 import { usePlayerContext } from './PlayerContext';
 import type { ConductFlag } from '../data/conductEvents';
 import {
@@ -162,7 +161,6 @@ export function ConductProvider({ children }: { children: React.ReactNode }) {
   const { unlockAchievement, incrementCounter } = useAchievementContext();
   const { deductFunds } = useAgencyFunds();
   const { triggerEndingSequence } = useEndingContext();
-  const { setHRWatcherActive } = useCheatContext();
   const { playerName } = usePlayerContext();
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
@@ -231,7 +229,6 @@ export function ConductProvider({ children }: { children: React.ReactNode }) {
         // HR Warning
         warningSet?.messages.forEach((msg, i) => addChatMsg(msg.authorId, msg.text, 1000 + i * 2500));
         setMorale('low');
-        setHRWatcherActive(true);
         addNotification('⚠️ HR Warning', 'Pat from HR has issued a formal warning. Check #general.');
         break;
       }
@@ -341,7 +338,7 @@ export function ConductProvider({ children }: { children: React.ReactNode }) {
         break;
       }
     }
-  }, [addChatMsg, setMorale, setHRWatcherActive, addNotification, focusOrOpenWindow,
+  }, [addChatMsg, setMorale, addNotification, focusOrOpenWindow,
       addEmail, deductFunds, unlockAchievement, triggerEndingSequence, playerName]);
 
   // ── Report Incident ────────────────────────────────────────────────────────

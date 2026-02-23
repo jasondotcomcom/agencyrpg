@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useConductContext } from '../../../context/ConductContext';
+import { useWindowContext } from '../../../context/WindowContext';
 import { HR_TRAINING_SLIDES } from '../../../data/conductEvents';
 import styles from './HRTrainingApp.module.css';
 
 export default function HRTrainingApp(): React.ReactElement {
   const { completeTraining } = useConductContext();
+  const { closeWindow } = useWindowContext();
   const [slideIndex, setSlideIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [canProceed, setCanProceed] = useState(false);
@@ -31,6 +33,7 @@ export default function HRTrainingApp(): React.ReactElement {
   const handleNext = () => {
     if (isLast) {
       completeTraining();
+      closeWindow('hrtraining');
     } else {
       setSlideIndex(prev => prev + 1);
     }
