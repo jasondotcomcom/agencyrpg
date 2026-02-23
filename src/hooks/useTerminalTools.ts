@@ -10,6 +10,8 @@ export interface AgencyTool {
   description: string;
   category: string;
   sampleOutput: string;
+  runPromptHint?: string;
+  outputFormat?: 'text' | 'html';
   createdAt: number;
 }
 

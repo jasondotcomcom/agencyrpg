@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { DesktopIcon as DesktopIconType } from '../../types';
 import { useWindowContext } from '../../context/WindowContext';
 import { useEmailContext } from '../../context/EmailContext';
 import { useChatContext } from '../../context/ChatContext';
 import { useAchievementContext } from '../../context/AchievementContext';
 import { usePortfolioContext } from '../../context/PortfolioContext';
+import { useTerminalTools } from '../../hooks/useTerminalTools';
 import DesktopIcon from './DesktopIcon';
 import ContextMenu from './ContextMenu';
 import styles from './Desktop.module.css';
@@ -34,9 +35,21 @@ export default function Desktop() {
   const { getUnreadCount: getChatUnreadCount } = useChatContext();
   const { recordAppOpened, unlockAchievement } = useAchievementContext();
   const { entries: portfolioEntries } = usePortfolioContext();
+  const terminalTools = useTerminalTools();
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const unreadCount = getUnreadCount();
   const chatUnreadCount = getChatUnreadCount();
+
+  // Merge built tools as desktop icons
+  const allIcons = useMemo<DesktopIconType[]>(() => {
+    const toolIcons: DesktopIconType[] = terminalTools.map(t => ({
+      id: `icon-tool-${t.id}`,
+      label: t.name.replace(/_/g, ' '),
+      icon: `tool:${t.icon}`,
+      appId: `tool:${t.id}`,
+    }));
+    return [...defaultIcons, ...toolIcons];
+  }, [terminalTools]);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     visible: false,
     x: 0,
@@ -84,13 +97,13 @@ export default function Desktop() {
 
   const handleOpenFromContext = useCallback(() => {
     if (contextMenu.iconId) {
-      const icon = defaultIcons.find(i => i.id === contextMenu.iconId);
+      const icon = allIcons.find(i => i.id === contextMenu.iconId);
       if (icon) {
         focusOrOpenWindow(icon.appId, icon.label);
       }
     }
     handleCloseContextMenu();
-  }, [contextMenu.iconId, focusOrOpenWindow, handleCloseContextMenu]);
+  }, [contextMenu.iconId, allIcons, focusOrOpenWindow, handleCloseContextMenu]);
 
   return (
     <div
@@ -99,7 +112,7 @@ export default function Desktop() {
       onContextMenu={(e) => handleContextMenu(e, null)}
     >
       <div className={styles.iconGrid}>
-        {defaultIcons.map(icon => (
+        {allIcons.map(icon => (
           <DesktopIcon
             key={icon.id}
             icon={icon}

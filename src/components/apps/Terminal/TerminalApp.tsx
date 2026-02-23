@@ -12,6 +12,7 @@ import { useEmailContext } from '../../../context/EmailContext';
 import { AWARD_DEFS } from '../../../data/awards';
 import { teamMembers } from '../../../data/team';
 import { formatBudget } from '../../../types/campaign';
+import { storeHtmlPreview } from '../../../utils/htmlPreviewStore';
 import styles from './TerminalApp.module.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -23,6 +24,8 @@ interface AgencyTool {
   description: string;
   category: string;
   sampleOutput: string;
+  runPromptHint?: string;
+  outputFormat?: 'text' | 'html';
   createdAt: number;
 }
 
@@ -68,7 +71,7 @@ const HELP_TEXT = `Available commands:
   team                  Show current campaign team
   list                  List your saved tools
   build [description]   Build a new AI tool
-  run [name]            Run a saved tool
+  run [name]            Run a tool (AI-powered, uses your current brief)
   delete [name]         Delete a saved tool
   clear                 Clear the terminal
 
@@ -234,13 +237,17 @@ function buildToolPrompt(description: string): string {
 
 The player wants: "${description}"
 
-Generate a realistic, useful agency tool. Respond with ONLY a valid JSON object — no markdown, no explanation, no code blocks.
+Generate a realistic, useful agency tool. The tool can produce text output, OR if the player's description suggests something visual (landing page, microsite, chart, mockup, form, calculator, interactive widget), set outputFormat to "html" so the tool renders in a live preview window.
+
+Respond with ONLY a valid JSON object — no markdown, no explanation, no code blocks.
 
 {
   "name": "short_tool_name_in_snake_case",
   "icon": "single_relevant_emoji",
   "description": "One sentence: what this tool does.",
-  "category": "analytics|creative|client|operations|finance",
+  "category": "analytics|creative|client|operations|finance|visual",
+  "outputFormat": "text|html",
+  "runPromptHint": "A 1-2 sentence instruction describing exactly what this tool should generate when run against a campaign brief. Be specific about the output format and content type. If outputFormat is html, describe the HTML/CSS/JS to generate.",
   "sampleOutput": "A realistic 3–5 sentence output that the tool would produce. Include specific data points, metrics, percentages, or strategic recommendations that feel authentic to an ad agency. You may use line breaks for structure."
 }`;
 }
@@ -318,7 +325,7 @@ export default function TerminalApp(): React.ReactElement {
   const { addProfit, deductFunds, state: fundsState } = useAgencyFunds();
   const { state: repState, addReputation } = useReputationContext();
   const { triggerEndingSequence, sendAcquisitionOffer } = useEndingContext();
-  const { getActiveCampaigns } = useCampaignContext();
+  const { getActiveCampaigns, recordToolUsed } = useCampaignContext();
   const { addNotification, focusOrOpenWindow } = useWindowContext();
   const { entries: portfolioEntries, attachAward, addEntry } = usePortfolioContext();
   const { applyMinScore, setOneTimeMinScore, toggleNightmareMode,
@@ -425,11 +432,13 @@ export default function TerminalApp(): React.ReactElement {
       if (!jsonMatch) throw new Error('No JSON found in AI response.');
 
       const toolDef = JSON.parse(jsonMatch[0]);
-      const { name, icon, description: desc, category, sampleOutput } = toolDef;
+      const { name, icon, description: desc, category, sampleOutput, runPromptHint, outputFormat } = toolDef;
 
       if (!name || !icon || !desc || !sampleOutput) {
         throw new Error('Incomplete tool definition from AI.');
       }
+
+      const fmt = outputFormat === 'html' ? 'html' as const : 'text' as const;
 
       const newTool: AgencyTool = {
         id: `tool-${Date.now()}`,
@@ -438,6 +447,8 @@ export default function TerminalApp(): React.ReactElement {
         description: String(desc),
         category: String(category || 'operations'),
         sampleOutput: String(sampleOutput),
+        runPromptHint: runPromptHint ? String(runPromptHint) : String(desc),
+        outputFormat: fmt,
         createdAt: Date.now(),
       };
 
@@ -467,6 +478,159 @@ export default function TerminalApp(): React.ReactElement {
       setIsBuilding(false);
     }
   }, [addLine, addLines, tools, unlockAchievement]);
+
+  // ─── Live Tool Run (AI-powered) ───────────────────────────────────────────────
+
+  const handleRun = useCallback(async (tool: AgencyTool) => {
+    setIsBuilding(true);
+
+    const activeCampaign = getActiveCampaigns()[0] ?? null;
+
+    addLines([
+      ['info',    `─── Running: ${tool.icon}  ${tool.name} ──────────────────`],
+    ]);
+
+    if (activeCampaign) {
+      addLine('output', `📋 Applied to: ${activeCampaign.campaignName} (${activeCampaign.phase})`);
+    } else {
+      addLine('output', '📋 No active campaign — running with general agency context');
+    }
+
+    addLine('output', '⏳ Generating with AI...');
+
+    // Build contextual prompt
+    const hint = tool.runPromptHint || tool.description;
+    let contextBlock: string;
+
+    if (activeCampaign) {
+      const { brief, clientName, campaignName, phase, clientBudget, productionBudget, productionSpent } = activeCampaign;
+      const members = activeCampaign.conceptingTeam
+        ? teamMembers.filter(m => activeCampaign.conceptingTeam!.memberIds.includes(m.id))
+        : [];
+      const teamDesc = members.length > 0
+        ? members.map(m => `${m.name} (${m.role} — ${m.specialty})`).join(', ')
+        : 'No team assigned yet';
+
+      contextBlock = `CURRENT CAMPAIGN:
+- Campaign: ${campaignName}
+- Client: ${clientName}
+- Phase: ${phase}
+- Challenge: ${brief.challenge}
+- Target Audience: ${brief.audience}
+- Key Message: ${brief.message}
+- Vibe / Tone: ${brief.vibe}
+- Total Budget: $${clientBudget.toLocaleString()}
+- Production Budget Remaining: $${(productionBudget - productionSpent).toLocaleString()}
+- Timeline: ${brief.timeline}
+- Team: ${teamDesc}`;
+    } else {
+      contextBlock = `AGENCY STATUS:
+- Funds: $${fundsState.totalFunds.toLocaleString()}
+- Reputation: ${repState.currentReputation} pts (${repState.currentTier.name})
+- Team Morale: ${morale}
+- Available Team: ${teamMembers.map(m => `${m.name} (${m.role})`).join(', ')}`;
+    }
+
+    const isHtml = tool.outputFormat === 'html';
+
+    const prompt = isHtml
+      ? `You are running the "${tool.name.replace(/_/g, ' ')}" tool inside Agency OS — a creative advertising agency simulation.
+
+TOOL PURPOSE: ${hint}
+
+${contextBlock}
+
+Generate a COMPLETE, self-contained HTML document for this tool. Rules:
+- Output ONLY the HTML — no markdown, no code fences, no explanation
+- Start with <!DOCTYPE html> or <html>
+- Include all CSS inline (in a <style> tag) and any JS inline (in a <script> tag)
+- Use modern, clean design — soft colors, good typography, responsive layout
+- Be SPECIFIC to this exact campaign/client — use their actual name, challenge, audience, and data
+- Make it visually polished and immediately useful
+- If interactive (form, calculator, generator), make the interactions work with inline JS
+- Each run should produce fresh, varied output`
+      : `You are running the "${tool.name.replace(/_/g, ' ')}" tool inside Agency OS Terminal — a creative advertising agency simulation.
+
+TOOL PURPOSE: ${hint}
+
+${contextBlock}
+
+Generate output for this tool based on the context above. Rules:
+- Be SPECIFIC to this exact campaign/client — use their actual name, challenge, audience, and data
+- Format for a monospace terminal: no markdown headers (no # or **), use plain text, dashes, and ASCII structure
+- Include concrete data points, metrics, recommendations, or creative options as appropriate
+- Keep output focused and useful — 8-20 lines max
+- Each run should produce fresh, varied output — never repeat the same result`;
+
+    try {
+      const response = await fetch('/api/anthropic/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5-20250929',
+          max_tokens: isHtml ? 4000 : 800,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '');
+        throw new Error(`API ${response.status}: ${errText.slice(0, 100)}`);
+      }
+
+      const data = await response.json();
+      const output: string = data.content[0].text;
+
+      // Detect HTML in output (explicit format or auto-detect)
+      const looksLikeHtml = isHtml || /^\s*<!DOCTYPE|^\s*<html/i.test(output.trim());
+
+      if (looksLikeHtml) {
+        // Extract HTML — strip markdown code fences if present
+        let html = output;
+        const fenceMatch = html.match(/```(?:html)?\s*\n([\s\S]*?)```/);
+        if (fenceMatch) html = fenceMatch[1];
+
+        // Store and open in preview window
+        const previewId = storeHtmlPreview(html, tool.name.replace(/_/g, ' '));
+        focusOrOpenWindow(`preview:${previewId}`, `${tool.icon} ${tool.name.replace(/_/g, ' ')}`);
+
+        addLines([
+          ['blank',   ''],
+          ['success', '✓ Opened in preview window.'],
+          ['info',    '─────────────────────────────────────────────'],
+        ]);
+      } else {
+        // Print text output in terminal
+        addLine('blank', '');
+        for (const line of output.split('\n')) {
+          addLine('output', line);
+        }
+        addLines([
+          ['blank',   ''],
+          ['success', '✓ Done.'],
+          ['info',    '─────────────────────────────────────────────'],
+        ]);
+      }
+
+      // Record tool usage for campaign scoring
+      if (activeCampaign) {
+        recordToolUsed(activeCampaign.id, tool.id);
+      }
+    } catch {
+      // Fallback to cached sample output
+      addLines([
+        ['blank',   ''],
+        ['output',  '⚠ Live mode unavailable — showing cached output:'],
+        ['blank',   ''],
+        ['output',  tool.sampleOutput],
+        ['blank',   ''],
+        ['success', '✓ Done (cached).'],
+        ['info',    '─────────────────────────────────────────────'],
+      ]);
+    } finally {
+      setIsBuilding(false);
+    }
+  }, [addLine, addLines, getActiveCampaigns, recordToolUsed, focusOrOpenWindow, fundsState.totalFunds, repState.currentReputation, repState.currentTier.name, morale]);
 
   // ─── Natural Language Interpret (AI fallback) ────────────────────────────────
 
@@ -1631,14 +1795,7 @@ Human Resources
         } else {
           // Used a tool during an active campaign
           if (getActiveCampaigns().length > 0) unlockAchievement('used-tool-on-campaign');
-          addLines([
-            ['info',    `─── Running: ${tool.icon} ${tool.name} ──────────────`],
-            ['blank',   ''],
-            ['output',  tool.sampleOutput],
-            ['blank',   ''],
-            ['success', '✓ Done.'],
-            ['info',    '─────────────────────────────────────────────'],
-          ]);
+          await handleRun(tool);
         }
       }
     }
@@ -1688,7 +1845,7 @@ Human Resources
     }
   }, [
     addLine, addLines, tools, fundsState, repState, morale,
-    addProfit, setMorale, handleBuild, handleInterpret,
+    addProfit, setMorale, handleBuild, handleRun, handleInterpret,
     triggerEndingSequence, sendAcquisitionOffer, getActiveCampaigns, addReputation,
     addNotification, portfolioEntries, attachAward, addEntry, addMessage, addEmail,
     applyMinScore, setOneTimeMinScore, toggleNightmareMode,

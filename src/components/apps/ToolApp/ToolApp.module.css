@@ -1,0 +1,163 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #16213e, #1a1a2e);
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.toolIcon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.toolName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #a8d8ea;
+  text-transform: capitalize;
+}
+
+.toolDesc {
+  font-size: 12px;
+  color: #8888aa;
+  margin-top: 2px;
+}
+
+.context {
+  padding: 8px 20px;
+  font-size: 11px;
+  color: #7fc4dc;
+  background: rgba(168, 216, 234, 0.05);
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.actions {
+  padding: 12px 20px;
+  display: flex;
+  gap: 8px;
+}
+
+.runButton {
+  padding: 8px 20px;
+  background: #a8d8ea;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.runButton:hover:not(:disabled) {
+  background: #7fc4dc;
+}
+
+.runButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.htmlBadge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #a8e6cf;
+  background: rgba(168, 230, 207, 0.15);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.error {
+  padding: 6px 20px;
+  font-size: 11px;
+  color: #ffb7b2;
+}
+
+.output {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0 12px 12px;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.outputHeader {
+  padding: 6px 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6a6a8a;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.outputText {
+  flex: 1;
+  padding: 12px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-y: auto;
+  color: #c8c8e0;
+}
+
+.outputHtml {
+  flex: 1;
+  border: none;
+  background: #fff;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  font-size: 10px;
+  color: #5a5a7a;
+  border-top: 1px solid #2a2a4a;
+}
+
+.category {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(168, 216, 234, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.budget {
+  color: #a8e6cf;
+}
+
+.notFound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #8888aa;
+  font-size: 14px;
+}

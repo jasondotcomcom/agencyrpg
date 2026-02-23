@@ -93,9 +93,9 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
       conceptBoldness: 0.5, // Could be calculated from concept selection
     });
 
-    // Apply tool usage bonus (+2 per unique tool used, max +5)
+    // Apply tool usage bonus (+2 per unique tool used, max +8)
     const toolsUsedCount = campaign.toolsUsed?.length ?? 0;
-    const toolBonus = Math.min(toolsUsedCount * 2, 5);
+    const toolBonus = Math.min(toolsUsedCount * 2, 8);
     const toolScore = toolBonus > 0
       ? { ...baseScore, total: Math.min(baseScore.total + toolBonus, 100) }
       : baseScore;

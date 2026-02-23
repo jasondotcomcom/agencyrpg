@@ -216,7 +216,11 @@ export default function DesktopIcon({
       }}
     >
       <div className={styles.iconImage}>
-        {icons[icon.icon] || icons.help}
+        {icon.icon.startsWith('tool:') ? (
+          <span className={styles.emojiIcon}>{icon.icon.slice(5)}</span>
+        ) : (
+          icons[icon.icon] || icons.help
+        )}
         {badgeCount !== undefined && badgeCount > 0 && (
           <span className={styles.badge}>
             {badgeCount > 9 ? '9+' : badgeCount}

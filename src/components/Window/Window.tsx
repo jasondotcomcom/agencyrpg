@@ -21,6 +21,8 @@ import { useSettingsContext } from '../../context/SettingsContext';
 
 const SkiFreeApp = lazy(() => import('../apps/SkiFree/SkiFreeApp'));
 const LawsuitApp = lazy(() => import('../apps/Lawsuit/LawsuitApp'));
+const ToolApp = lazy(() => import('../apps/ToolApp/ToolApp'));
+const HtmlPreview = lazy(() => import('../apps/HtmlPreview/HtmlPreview'));
 
 import HRTrainingApp from '../apps/HRTraining/HRTrainingApp';
 import styles from './Window.module.css';
@@ -162,6 +164,12 @@ function AppContent({ appId }: { appId: string }) {
     case 'about':
       return <AboutContent />;
     default:
+      if (appId.startsWith('tool:')) {
+        return <Suspense fallback={<div style={{ padding: 24, textAlign: 'center' }}>Loading tool...</div>}><ToolApp toolId={appId.slice(5)} /></Suspense>;
+      }
+      if (appId.startsWith('preview:')) {
+        return <Suspense fallback={<div style={{ padding: 24, textAlign: 'center' }}>Loading preview...</div>}><HtmlPreview previewId={appId.slice(8)} /></Suspense>;
+      }
       return <PlaceholderContent appId={appId} />;
   }
 }
