@@ -6,10 +6,11 @@ import styles from './SkiFreeApp.module.css';
 
 const SKIER_SPEED = 3;
 const SCROLL_SPEED = 3.5;
+const BOOST_MULTIPLIER = 2.4;
 const YETI_APPEAR_TIME = 30; // seconds
 const YETI_SURVIVAL_TIME = 60; // seconds for achievement
 const YETI_BASE_SPEED = 3.8;
-const YETI_ACCEL = 0.015; // speed increase per frame
+const YETI_ACCEL = 0.015;
 const OBSTACLE_SPAWN_RATE = 0.035;
 const FLAG_SPAWN_RATE = 0.012;
 const FLAG_POINTS = 100;
@@ -18,6 +19,7 @@ const DISTANCE_POINTS_PER_FRAME = 1;
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type GamePhase = 'start' | 'playing' | 'gameover';
+type SkierDir = 'left' | 'center' | 'right';
 
 interface Obstacle {
   x: number;
@@ -42,6 +44,23 @@ interface Yeti {
   eatFrame: number;
 }
 
+interface SkiTrack {
+  x: number;
+  y: number;
+  dir: SkierDir;
+  age: number;
+}
+
+interface SprayParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function SkiFreeApp() {
@@ -56,11 +75,15 @@ export default function SkiFreeApp() {
   const [elapsed, setElapsed] = useState(0);
   const [yetiActive, setYetiActive] = useState(false);
   const [deathMsg, setDeathMsg] = useState('');
+  const [boosting, setBoosting] = useState(false);
 
-  // Game state refs (mutable during rAF loop)
   const gameRef = useRef({
     skierX: 0,
     skierY: 0,
+    skierDir: 'center' as SkierDir,
+    skierAngle: 0,        // current visual angle (smooth interpolation)
+    boosting: false,
+    boostUsed: false,      // track if F was ever pressed (for achievement)
     obstacles: [] as Obstacle[],
     flags: [] as Flag[],
     yeti: null as Yeti | null,
@@ -71,11 +94,15 @@ export default function SkiFreeApp() {
     canvasH: 0,
     gameOver: false,
     skierVisible: true,
-    // Snow particle system
     snowflakes: [] as { x: number; y: number; r: number; speed: number; drift: number }[],
+    tracks: [] as SkiTrack[],
+    trackTimer: 0,
+    spray: [] as SprayParticle[],
+    prevDir: 'center' as SkierDir,
+    speedLines: [] as { x: number; y: number; len: number; alpha: number }[],
   });
 
-  // ── Resize canvas to fill container ───────────────────────────────────────
+  // ── Resize canvas ───────────────────────────────────────────────────────
 
   const resizeCanvas = useCallback(() => {
     const container = containerRef.current;
@@ -89,7 +116,7 @@ export default function SkiFreeApp() {
     gameRef.current.canvasH = h;
   }, []);
 
-  // ── Initialize snowflakes ─────────────────────────────────────────────────
+  // ── Initialize snowflakes ───────────────────────────────────────────────
 
   const initSnow = useCallback(() => {
     const g = gameRef.current;
@@ -105,13 +132,17 @@ export default function SkiFreeApp() {
     }
   }, []);
 
-  // ── Start game ────────────────────────────────────────────────────────────
+  // ── Start game ──────────────────────────────────────────────────────────
 
   const startGame = useCallback(() => {
     resizeCanvas();
     const g = gameRef.current;
     g.skierX = g.canvasW / 2;
     g.skierY = g.canvasH * 0.2;
+    g.skierDir = 'center';
+    g.skierAngle = 0;
+    g.boosting = false;
+    g.boostUsed = false;
     g.obstacles = [];
     g.flags = [];
     g.yeti = null;
@@ -120,15 +151,21 @@ export default function SkiFreeApp() {
     g.elapsed = 0;
     g.gameOver = false;
     g.skierVisible = true;
+    g.tracks = [];
+    g.trackTimer = 0;
+    g.spray = [];
+    g.prevDir = 'center';
+    g.speedLines = [];
     initSnow();
     setScore(0);
     setElapsed(0);
     setYetiActive(false);
     setDeathMsg('');
+    setBoosting(false);
     setPhase('playing');
   }, [resizeCanvas, initSnow]);
 
-  // ── Spawn helpers ─────────────────────────────────────────────────────────
+  // ── Spawn helpers ───────────────────────────────────────────────────────
 
   const spawnObstacle = useCallback((g: typeof gameRef.current) => {
     const types: Array<{ type: Obstacle['type']; emoji: string; w: number; h: number }> = [
@@ -157,16 +194,31 @@ export default function SkiFreeApp() {
     });
   }, []);
 
-  // ── Collision detection ───────────────────────────────────────────────────
+  // ── Collision ───────────────────────────────────────────────────────────
 
   const rectsOverlap = (
     ax: number, ay: number, aw: number, ah: number,
     bx: number, by: number, bw: number, bh: number,
-  ) => {
-    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
-  };
+  ) => ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
 
-  // ── Game loop ─────────────────────────────────────────────────────────────
+  // ── Emit snow spray ─────────────────────────────────────────────────────
+
+  const emitSpray = useCallback((g: typeof gameRef.current, dir: 'left' | 'right') => {
+    const count = 4 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < count; i++) {
+      g.spray.push({
+        x: g.skierX + (dir === 'left' ? 8 : -8),
+        y: g.skierY + 10,
+        vx: (dir === 'left' ? 1 : -1) * (1 + Math.random() * 2),
+        vy: -(0.5 + Math.random() * 1.5),
+        life: 15 + Math.floor(Math.random() * 10),
+        maxLife: 25,
+        size: 2 + Math.random() * 2,
+      });
+    }
+  }, []);
+
+  // ── Game loop ───────────────────────────────────────────────────────────
 
   const gameLoop = useCallback(() => {
     const canvas = canvasRef.current;
@@ -177,36 +229,92 @@ export default function SkiFreeApp() {
 
     if (g.gameOver) return;
 
-    // ── Update elapsed time
     g.elapsed = (performance.now() - g.startTime) / 1000;
 
-    // ── Handle input
+    // ── Input
     const keys = keysRef.current;
-    if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) {
-      g.skierX -= SKIER_SPEED;
+    const movingLeft = keys.has('ArrowLeft') || keys.has('a') || keys.has('A');
+    const movingRight = keys.has('ArrowRight') || keys.has('d') || keys.has('D');
+    const isBoosting = keys.has('f') || keys.has('F');
+
+    // Boost state
+    g.boosting = isBoosting;
+    if (isBoosting && !g.boostUsed) {
+      g.boostUsed = true;
+      unlockAchievement('f-to-go-fast');
     }
-    if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) {
-      g.skierX += SKIER_SPEED;
+
+    // Direction
+    const newDir: SkierDir = movingLeft ? 'left' : movingRight ? 'right' : 'center';
+
+    // Detect direction change for spray
+    if (newDir !== g.prevDir && newDir !== 'center' && g.prevDir !== 'center') {
+      emitSpray(g, newDir === 'left' ? 'right' : 'left');
     }
-    // Clamp skier
+    g.prevDir = newDir;
+    g.skierDir = newDir;
+
+    // Smooth angle interpolation
+    const targetAngle = newDir === 'left' ? -0.25 : newDir === 'right' ? 0.25 : 0;
+    g.skierAngle += (targetAngle - g.skierAngle) * 0.2;
+
+    // Movement
+    const moveSpeed = isBoosting ? SKIER_SPEED * 1.5 : SKIER_SPEED;
+    if (movingLeft) g.skierX -= moveSpeed;
+    if (movingRight) g.skierX += moveSpeed;
     g.skierX = Math.max(16, Math.min(g.canvasW - 16, g.skierX));
 
-    // ── Spawn obstacles & flags
+    // ── Scroll speed
+    const baseSpeed = SCROLL_SPEED + g.elapsed * 0.02;
+    const speed = isBoosting ? baseSpeed * BOOST_MULTIPLIER : baseSpeed;
+
+    // ── Spawn
     if (Math.random() < OBSTACLE_SPAWN_RATE) spawnObstacle(g);
     if (Math.random() < FLAG_SPAWN_RATE) spawnFlag(g);
 
-    // ── Scroll obstacles upward
-    const speed = SCROLL_SPEED + g.elapsed * 0.02; // gradually speed up
-    for (const obs of g.obstacles) {
-      obs.y -= speed;
-    }
-    for (const flag of g.flags) {
-      if (!flag.collected) flag.y -= speed;
-    }
-
-    // ── Remove off-screen
+    // ── Move obstacles/flags
+    for (const obs of g.obstacles) obs.y -= speed;
+    for (const flag of g.flags) { if (!flag.collected) flag.y -= speed; }
     g.obstacles = g.obstacles.filter(o => o.y > -40);
     g.flags = g.flags.filter(f => f.y > -40 || f.collected);
+
+    // ── Ski tracks
+    g.trackTimer++;
+    if (g.trackTimer >= 3) {
+      g.trackTimer = 0;
+      g.tracks.push({ x: g.skierX, y: g.skierY + 14, dir: g.skierDir, age: 0 });
+    }
+    for (const t of g.tracks) {
+      t.y -= speed;
+      t.age++;
+    }
+    g.tracks = g.tracks.filter(t => t.y > -10 && t.age < 120);
+
+    // ── Snow spray particles
+    for (const p of g.spray) {
+      p.x += p.vx;
+      p.y += p.vy - speed * 0.3;
+      p.vy += 0.1;
+      p.life--;
+    }
+    g.spray = g.spray.filter(p => p.life > 0);
+
+    // ── Speed lines (when boosting)
+    if (isBoosting) {
+      if (Math.random() < 0.4) {
+        g.speedLines.push({
+          x: Math.random() * g.canvasW,
+          y: -10,
+          len: 20 + Math.random() * 30,
+          alpha: 0.3 + Math.random() * 0.3,
+        });
+      }
+    }
+    for (const sl of g.speedLines) {
+      sl.y -= speed * 1.5;
+      sl.alpha -= 0.01;
+    }
+    g.speedLines = g.speedLines.filter(sl => sl.alpha > 0 && sl.y + sl.len > -10);
 
     // ── Collision: skier vs obstacles
     const skierW = 24;
@@ -218,7 +326,6 @@ export default function SkiFreeApp() {
       const ox = obs.x - obs.width / 2;
       const oy = obs.y - obs.height / 2;
       if (rectsOverlap(sx + 4, sy + 4, skierW - 8, skierH - 8, ox + 4, oy + 4, obs.width - 8, obs.height - 8)) {
-        // Hit obstacle - game over
         g.gameOver = true;
         setDeathMsg('You crashed into a ' + obs.type + '!');
         setScore(Math.floor(g.score));
@@ -239,8 +346,8 @@ export default function SkiFreeApp() {
       }
     }
 
-    // ── Score from distance
-    g.score += DISTANCE_POINTS_PER_FRAME;
+    // ── Score
+    g.score += DISTANCE_POINTS_PER_FRAME * (isBoosting ? 2 : 1);
 
     // ── Yeti logic
     if (g.elapsed >= YETI_APPEAR_TIME && !g.yeti) {
@@ -254,21 +361,31 @@ export default function SkiFreeApp() {
     }
 
     if (g.yeti && !g.yeti.eating) {
-      // Chase the player
       const dx = g.skierX - g.yeti.x;
       const dy = g.skierY - g.yeti.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       g.yeti.speed += YETI_ACCEL;
+
+      // When boosting, yeti can't keep up — effective chase speed is reduced
+      const effectiveYetiSpeed = isBoosting ? g.yeti.speed * 0.6 : g.yeti.speed;
+
       if (dist > 0) {
-        g.yeti.x += (dx / dist) * g.yeti.speed;
-        g.yeti.y += (dy / dist) * g.yeti.speed;
+        g.yeti.x += (dx / dist) * effectiveYetiSpeed;
+        g.yeti.y += (dy / dist) * effectiveYetiSpeed;
       }
 
-      // Check yeti catches player
+      // Yeti also scrolls up with the world
+      g.yeti.y -= speed * 0.3;
+
       if (dist < 20) {
         g.yeti.eating = true;
         g.yeti.eatFrame = 0;
+      }
+
+      // If boosting pushes yeti off screen, it's gone
+      if (g.yeti.y > g.canvasH + 200) {
+        g.yeti = null;
       }
     }
 
@@ -283,14 +400,13 @@ export default function SkiFreeApp() {
         unlockAchievement('f-to-pay-respects');
         return;
       }
-      // During eating animation: skier fades, yeti grows
       if (g.yeti.eatFrame > 30) {
         g.skierVisible = false;
       }
     }
 
-    // ── Yeti survival achievement
-    if (g.elapsed >= YETI_SURVIVAL_TIME && g.yeti && !g.yeti.eating) {
+    // ── Yeti survival achievement (must have used boost to earn it)
+    if (g.elapsed >= YETI_SURVIVAL_TIME && g.boostUsed && (!g.yeti || (!g.yeti.eating))) {
       unlockAchievement('outran-the-yeti');
     }
 
@@ -298,10 +414,7 @@ export default function SkiFreeApp() {
     for (const s of g.snowflakes) {
       s.y -= speed * 0.3;
       s.x += s.drift;
-      if (s.y < -5) {
-        s.y = g.canvasH + 5;
-        s.x = Math.random() * g.canvasW;
-      }
+      if (s.y < -5) { s.y = g.canvasH + 5; s.x = Math.random() * g.canvasW; }
       if (s.x < 0) s.x = g.canvasW;
       if (s.x > g.canvasW) s.x = 0;
     }
@@ -318,19 +431,42 @@ export default function SkiFreeApp() {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, g.canvasW, g.canvasH);
 
-    // ── Ski tracks (faint lines behind skier)
+    // ── Speed lines (boost effect)
+    if (g.speedLines.length > 0) {
+      ctx.save();
+      ctx.strokeStyle = '#b0d4f1';
+      ctx.lineWidth = 1;
+      for (const sl of g.speedLines) {
+        ctx.globalAlpha = sl.alpha;
+        ctx.beginPath();
+        ctx.moveTo(sl.x, sl.y);
+        ctx.lineTo(sl.x, sl.y + sl.len);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // ── Ski tracks (carving trail)
     ctx.save();
-    ctx.strokeStyle = 'rgba(180, 200, 220, 0.3)';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([8, 6]);
-    ctx.beginPath();
-    ctx.moveTo(g.skierX - 5, g.skierY + 14);
-    ctx.lineTo(g.skierX - 5, 0);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(g.skierX + 5, g.skierY + 14);
-    ctx.lineTo(g.skierX + 5, 0);
-    ctx.stroke();
+    for (const t of g.tracks) {
+      const alpha = Math.max(0, 0.25 - t.age * 0.002);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = 'rgba(160, 185, 210, 1)';
+      ctx.lineWidth = 1.5;
+
+      // Track offset based on direction (carving effect)
+      const offset = t.dir === 'left' ? -3 : t.dir === 'right' ? 3 : 0;
+
+      ctx.beginPath();
+      ctx.moveTo(t.x - 4 + offset, t.y);
+      ctx.lineTo(t.x - 4 + offset, t.y + 4);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(t.x + 4 + offset, t.y);
+      ctx.lineTo(t.x + 4 + offset, t.y + 4);
+      ctx.stroke();
+    }
     ctx.restore();
 
     // ── Snowflakes
@@ -341,12 +477,24 @@ export default function SkiFreeApp() {
       ctx.fill();
     }
 
+    // ── Snow spray particles
+    if (g.spray.length > 0) {
+      ctx.save();
+      for (const p of g.spray) {
+        const alpha = p.life / p.maxLife;
+        ctx.globalAlpha = alpha * 0.6;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     // ── Obstacles
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '24px serif';
     for (const obs of g.obstacles) {
-      // Slight shadow
       ctx.save();
       ctx.globalAlpha = 0.15;
       ctx.fillStyle = '#000';
@@ -367,7 +515,7 @@ export default function SkiFreeApp() {
       }
     }
 
-    // ── Skier
+    // ── Skier (with directional lean)
     if (g.skierVisible) {
       let skierAlpha = 1;
       if (g.yeti && g.yeti.eating) {
@@ -375,8 +523,19 @@ export default function SkiFreeApp() {
       }
       ctx.save();
       ctx.globalAlpha = skierAlpha;
+      ctx.translate(g.skierX, g.skierY);
+      ctx.rotate(g.skierAngle);
+
+      // Boost glow effect
+      if (isBoosting) {
+        ctx.shadowColor = 'rgba(100, 180, 255, 0.5)';
+        ctx.shadowBlur = 12;
+      }
+
       ctx.font = '26px serif';
-      ctx.fillText('⛷️', g.skierX, g.skierY);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⛷️', 0, 0);
       ctx.restore();
     }
 
@@ -385,14 +544,12 @@ export default function SkiFreeApp() {
       ctx.save();
       let yetiSize = 32;
       if (g.yeti.eating) {
-        // Grow during eat animation
         yetiSize = 32 + g.yeti.eatFrame * 0.8;
       }
       ctx.font = `${yetiSize}px serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      // Yeti shadow
       ctx.globalAlpha = 0.2;
       ctx.fillStyle = '#000';
       ctx.beginPath();
@@ -400,28 +557,28 @@ export default function SkiFreeApp() {
       ctx.fill();
 
       ctx.globalAlpha = 1;
-      ctx.fillText('🏔️', g.yeti.x, g.yeti.y); // Yeti rendered as monster
-      // Draw a second layer for the actual abominable snowman feel
+      ctx.fillText('🏔️', g.yeti.x, g.yeti.y);
       ctx.font = `${yetiSize}px serif`;
       ctx.fillText('👹', g.yeti.x, g.yeti.y);
       ctx.restore();
     }
 
-    // ── Sync React state periodically (every ~15 frames for perf)
+    // ── Sync React state periodically
     if (Math.floor(g.elapsed * 60) % 15 === 0) {
       setScore(Math.floor(g.score));
       setElapsed(Math.floor(g.elapsed));
       setYetiActive(!!g.yeti && !g.yeti.eating);
+      setBoosting(g.boosting);
     }
 
     rafRef.current = requestAnimationFrame(gameLoop);
-  }, [spawnObstacle, spawnFlag, unlockAchievement]);
+  }, [spawnObstacle, spawnFlag, unlockAchievement, emitSpray]);
 
-  // ── Key handlers ──────────────────────────────────────────────────────────
+  // ── Key handlers ────────────────────────────────────────────────────────
 
   useEffect(() => {
     const handleDown = (e: KeyboardEvent) => {
-      if (['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D'].includes(e.key)) {
+      if (['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D', 'f', 'F'].includes(e.key)) {
         e.preventDefault();
         keysRef.current.add(e.key);
       }
@@ -438,7 +595,7 @@ export default function SkiFreeApp() {
     };
   }, []);
 
-  // ── Start / stop game loop ────────────────────────────────────────────────
+  // ── Start / stop game loop ──────────────────────────────────────────────
 
   useEffect(() => {
     if (phase === 'playing') {
@@ -449,7 +606,7 @@ export default function SkiFreeApp() {
     };
   }, [phase, gameLoop]);
 
-  // ── Resize observer ───────────────────────────────────────────────────────
+  // ── Resize observer ─────────────────────────────────────────────────────
 
   useEffect(() => {
     const container = containerRef.current;
@@ -460,19 +617,20 @@ export default function SkiFreeApp() {
     return () => ro.disconnect();
   }, [resizeCanvas]);
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════
   // RENDER
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════
 
   return (
     <div ref={containerRef} className={styles.container}>
       <canvas ref={canvasRef} className={styles.canvas} />
 
-      {/* HUD - visible during play */}
+      {/* HUD */}
       {phase === 'playing' && (
         <div className={styles.hud}>
           <span className={styles.score}>SCORE: {score}</span>
           <span className={styles.timer}>{elapsed}s</span>
+          {boosting && <span className={styles.boostIndicator}>BOOST</span>}
           {yetiActive && <span className={styles.yetiWarning}>!! YETI !!</span>}
         </div>
       )}

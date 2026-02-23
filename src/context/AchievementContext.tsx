@@ -230,8 +230,9 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'solitaire-champion',   name: 'Solitaire Champion',      icon: '🃏', description: 'Won a game of Solitaire.' },
   { id: 'card-shark',           name: 'Card Shark',              icon: '🦈', description: 'Won Solitaire in under 3 minutes.' },
   { id: 'minesweeper-master',   name: 'Minesweeper Master',      icon: '💣', description: 'Beat Minesweeper without hitting a mine.' },
-  { id: 'outran-the-yeti',      name: 'Outran the Yeti',         icon: '⛷️', description: 'Survived 60 seconds in SkiFree.' },
+  { id: 'outran-the-yeti',      name: 'Outran the Yeti',         icon: '⛷️', description: 'Escaped the yeti using the speed boost.' },
   { id: 'f-to-pay-respects',    name: 'F to Pay Respects',       icon: '🏔️', description: 'Got eaten by the yeti in SkiFree.' },
+  { id: 'f-to-go-fast',         name: 'F to Go Fast',            icon: '💨', description: 'Discovered the speed boost in SkiFree.' },
 ];
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────

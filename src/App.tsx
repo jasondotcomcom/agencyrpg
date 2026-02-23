@@ -74,7 +74,7 @@ function AppContent() {
   const { state: repState, hideLevelUp } = useReputationContext();
   const { campaigns } = useCampaignContext();
   const { addEmail } = useEmailContext();
-  const { triggerCampaignEvent, morale } = useChatContext();
+  const { triggerCampaignEvent, morale, addMessage } = useChatContext();
   const { unlockAchievement } = useAchievementContext();
   const { playerName, setPlayerName, showScreensaver, dismissScreensaver, screensaverName } = usePlayerContext();
   const prevCompletedCountRef = useRef(campaigns.filter(c => c.phase === 'completed').length);
@@ -202,12 +202,32 @@ function AppContent() {
             'Brewed Awakenings wants to work with your agency. Check your inbox.'
           );
           triggerCampaignEvent('NEW_BRIEF_ARRIVED', { clientName: 'Brewed Awakenings' });
+
+          // Morgan (strategist) chimes in with context a few seconds after the brief lands
+          const morganInsights = [
+            'Heads up on Brewed Awakenings — they\'re opening in the Arts District. Lots of competition but also lots of foot traffic from gallery crawls. Could be an angle.',
+            'Saw the Brewed Awakenings brief come through. Their founder Maya was a creative director before switching careers. She\'s going to have opinions — but good ones.',
+            'The coffee shop brief is interesting. I did some digging — the Arts District has 3 coffee shops but none of them do events or community stuff. That\'s the gap.',
+          ];
+          const insight = morganInsights[Math.floor(Math.random() * morganInsights.length)];
+
+          setTimeout(() => {
+            addMessage({
+              id: `morgan-insight-${Date.now()}`,
+              channel: 'creative',
+              authorId: 'strategist',
+              text: insight,
+              timestamp: Date.now(),
+              reactions: [],
+              isRead: false,
+            });
+          }, 8000 + Math.random() * 4000); // 8-12s after brief
         }, delay));
       }
     }
 
     return () => timers.forEach(clearTimeout);
-  }, [playerName, campaigns, addNotification, addEmail, triggerCampaignEvent]);
+  }, [playerName, campaigns, addNotification, addEmail, triggerCampaignEvent, addMessage]);
 
   // Unlock new briefs as campaigns complete
   useEffect(() => {
