@@ -16,31 +16,50 @@ interface MicroGamesProps {
   onSeeResults?: () => void;
 }
 
-// ─── Game Picker (category-aware, no back-to-back same category) ────────────
+// ─── Weighted Game Picker (2-category lookback, weight-aware) ────────────────
+
+function weightedPick(pool: GameDef[]): GameDef {
+  const totalWeight = pool.reduce((sum, g) => sum + (g.weight ?? 1.0), 0);
+  let r = Math.random() * totalWeight;
+  for (const g of pool) {
+    r -= g.weight ?? 1.0;
+    if (r <= 0) return g;
+  }
+  return pool[pool.length - 1];
+}
 
 function pickNextGame(
   phase: WaitPhase,
   recentIds: Set<string>,
   lastCategory: MechanicCategory | null,
+  secondLastCategory: MechanicCategory | null,
 ): GameDef {
   const phaseMatch = (g: GameDef) => g.waitPhase === phase || g.waitPhase === 'both';
 
-  // Best: different category AND not recently played
+  // Best: different from last 2 categories AND not recently played
   let pool = ALL_GAMES.filter(g =>
-    phaseMatch(g) && !recentIds.has(g.id) && g.category !== lastCategory
+    phaseMatch(g) && !recentIds.has(g.id) &&
+    g.category !== lastCategory && g.category !== secondLastCategory
   );
 
-  // Fallback 1: allow same category but not recently played
+  // Fallback 1: different from last category, not recently played
+  if (pool.length === 0) {
+    pool = ALL_GAMES.filter(g =>
+      phaseMatch(g) && !recentIds.has(g.id) && g.category !== lastCategory
+    );
+  }
+
+  // Fallback 2: not recently played
   if (pool.length === 0) {
     pool = ALL_GAMES.filter(g => phaseMatch(g) && !recentIds.has(g.id));
   }
 
-  // Fallback 2: allow everything for this phase
+  // Fallback 3: allow everything for this phase
   if (pool.length === 0) {
     pool = ALL_GAMES.filter(g => phaseMatch(g));
   }
 
-  return pool[Math.floor(Math.random() * pool.length)];
+  return weightedPick(pool);
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────────
@@ -61,6 +80,7 @@ export default function MicroGames({
   const [gameKey, setGameKey] = useState(0); // Forces full remount between games
   const recentRef = useRef<Set<string>>(new Set());
   const lastCategoryRef = useRef<MechanicCategory | null>(null);
+  const secondLastCategoryRef = useRef<MechanicCategory | null>(null);
   const resolvedRef = useRef(false);
   const gameStartTimeRef = useRef(0);
 
@@ -77,7 +97,7 @@ export default function MicroGames({
 
   // Pick first game
   useEffect(() => {
-    const game = pickNextGame(phase, recentRef.current, null);
+    const game = pickNextGame(phase, recentRef.current, null, null);
     setCurrentGame(game);
     setGameMember(pickMember());
   }, [phase, pickMember]);
@@ -418,12 +438,13 @@ export default function MicroGames({
       ? currentGame!.winMsg(member)
       : currentGame!.failMsg(member);
 
-    // Track recent games (last 8)
+    // Track recent games (last 12)
     recentRef.current.add(currentGame!.id);
-    if (recentRef.current.size > 8) {
+    if (recentRef.current.size > 12) {
       const first = recentRef.current.values().next().value;
       if (first !== undefined) recentRef.current.delete(first);
     }
+    secondLastCategoryRef.current = lastCategoryRef.current;
     lastCategoryRef.current = currentGame!.category;
 
     // Track achievements
@@ -439,7 +460,7 @@ export default function MicroGames({
         checkCampaignAchievements();
         setGamePhase('complete');
       } else {
-        const next = pickNextGame(phase, recentRef.current, lastCategoryRef.current);
+        const next = pickNextGame(phase, recentRef.current, lastCategoryRef.current, secondLastCategoryRef.current);
         setCurrentGame(next);
         setGameMember(pickMember());
         setGameKey(k => k + 1); // Force fresh component tree

@@ -23,6 +23,8 @@ export interface GameDef {
   duration: number;
   category: MechanicCategory;
   waitPhase: WaitPhase | 'both';
+  /** Selection weight — higher = more likely to be picked (default 1.0) */
+  weight?: number;
   /** If true, surviving the full timer = win (dodge/avoid games) */
   survivorGame?: boolean;
   render: (onWin: (meta?: GameResultMeta) => void, onFail: (meta?: GameResultMeta) => void, member: TeamMember) => ReactElement;

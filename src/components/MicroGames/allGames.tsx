@@ -17,6 +17,9 @@ import {
   LayerSearchGame,
   TabCloseGame,
   SpinBuildGame,
+  TypoFindGame,
+  SpotDifferenceGame,
+  SwipeGame,
 } from './GameMechanics';
 
 // ─── Theme Selection Helpers ─────────────────────────────────────────────────
@@ -202,7 +205,7 @@ const matchClientSets: MatchClientSet[] = [
   { client: 'QSR Chain',       correct: '🍔 BurgerBarn',     decoys: ['👔 Law Firm', '🔬 Research Lab'] },
 ];
 
-// ─── ALL 34 GAMES ───────────────────────────────────────────────────────────
+// ─── ALL 55 GAMES ───────────────────────────────────────────────────────────
 
 export const ALL_GAMES: GameDef[] = [
 
@@ -250,22 +253,53 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'FILE THE DOCUMENTS!',
     duration: 12000,
     category: 'drag',
+    weight: 1.5,
     waitPhase: 'generating',
-    render: (onWin) => (
-      <DragDropGame
-        items={shuffle([
-          { id: 'a', emoji: '📊', label: 'Research', correctZone: 'strategy' },
-          { id: 'b', emoji: '🎨', label: 'Mood Board', correctZone: 'creative' },
-          { id: 'c', emoji: '📅', label: 'Timeline', correctZone: 'production' },
-        ])}
-        zones={[
-          { id: 'strategy', emoji: '📁', label: 'Strategy' },
-          { id: 'creative', emoji: '📁', label: 'Creative' },
-          { id: 'production', emoji: '📁', label: 'Production' },
-        ]}
-        onWin={onWin}
-      />
-    ),
+    render: (onWin) => {
+      const themes = [
+        {
+          name: 'Department Files',
+          items: shuffle([
+            { id: 'a', emoji: '📊', label: 'Research', correctZone: 'strategy' },
+            { id: 'b', emoji: '🎨', label: 'Mood Board', correctZone: 'creative' },
+            { id: 'c', emoji: '📅', label: 'Timeline', correctZone: 'production' },
+          ]),
+          zones: [
+            { id: 'strategy', emoji: '📁', label: 'Strategy' },
+            { id: 'creative', emoji: '📁', label: 'Creative' },
+            { id: 'production', emoji: '📁', label: 'Production' },
+          ],
+        },
+        {
+          name: 'Media Assets',
+          items: shuffle([
+            { id: 'a', emoji: '🎬', label: 'Video cut', correctZone: 'video' },
+            { id: 'b', emoji: '📸', label: 'Product shot', correctZone: 'photo' },
+            { id: 'c', emoji: '🎵', label: 'Jingle', correctZone: 'audio' },
+          ]),
+          zones: [
+            { id: 'video', emoji: '📁', label: 'Video' },
+            { id: 'photo', emoji: '📁', label: 'Photo' },
+            { id: 'audio', emoji: '📁', label: 'Audio' },
+          ],
+        },
+        {
+          name: 'Sprint Tasks',
+          items: shuffle([
+            { id: 'a', emoji: '🐛', label: 'Bug fix', correctZone: 'urgent' },
+            { id: 'b', emoji: '✨', label: 'New feature', correctZone: 'backlog' },
+            { id: 'c', emoji: '📝', label: 'Documentation', correctZone: 'nice' },
+          ]),
+          zones: [
+            { id: 'urgent', emoji: '📁', label: 'Urgent' },
+            { id: 'backlog', emoji: '📁', label: 'Backlog' },
+            { id: 'nice', emoji: '📁', label: 'Nice-to-have' },
+          ],
+        },
+      ];
+      const theme = pickTheme('file-this', themes);
+      return <DragDropGame items={theme.items} zones={theme.zones} onWin={onWin} />;
+    },
     winMsg: (m) => `Organized! ${m.name} can find everything now.`,
     failMsg: () => `Papers everywhere... someone find the brief.`,
   },
@@ -274,14 +308,24 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'TRASH THE BAD IDEA!',
     duration: 8000,
     category: 'drag',
+    weight: 1.5,
     waitPhase: 'concepting',
-    render: (onWin) => (
-      <SimpleDragGame
-        sourceEmoji="📝" sourceLabel="Bad Idea"
-        targetEmoji="🗑️" targetLabel="Trash"
-        onWin={onWin}
-      />
-    ),
+    render: (onWin) => {
+      const items = [
+        { emoji: '📝', label: 'Bad Idea' },
+        { emoji: '🖼️', label: 'Old Logo Draft' },
+        { emoji: '💬', label: 'Rejected Tagline' },
+        { emoji: '📷', label: 'Bad Stock Photo' },
+      ];
+      const item = pickRandom(items);
+      return (
+        <SimpleDragGame
+          sourceEmoji={item.emoji} sourceLabel={item.label}
+          targetEmoji="🗑️" targetLabel="Trash"
+          onWin={onWin}
+        />
+      );
+    },
     winMsg: (m) => `Good call. ${m.name} agrees — that one was bad.`,
     failMsg: () => `That bad idea is still on the table...`,
   },
@@ -290,6 +334,7 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'SORT THE MOOD BOARD!',
     duration: 15000,
     category: 'drag',
+    weight: 1.5,
     waitPhase: 'concepting',
     render: (onWin) => {
       const sets = [
@@ -326,22 +371,48 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'BUILD THE DECK!',
     duration: 10000,
     category: 'drag',
+    weight: 1.5,
     waitPhase: 'generating',
-    render: (onWin) => (
-      <DragDropGame
-        items={shuffle([
-          { id: 'a', emoji: '1️⃣', label: 'Intro', correctZone: 'slot1' },
-          { id: 'b', emoji: '2️⃣', label: 'Strategy', correctZone: 'slot2' },
-          { id: 'c', emoji: '3️⃣', label: 'Creative', correctZone: 'slot3' },
-        ])}
-        zones={[
-          { id: 'slot1', emoji: '📑', label: 'Slide 1' },
-          { id: 'slot2', emoji: '📑', label: 'Slide 2' },
-          { id: 'slot3', emoji: '📑', label: 'Slide 3' },
-        ]}
-        onWin={onWin}
-      />
-    ),
+    render: (onWin) => {
+      const themes = [
+        {
+          name: 'Campaign Deck',
+          items: [
+            { id: 'a', emoji: '1️⃣', label: 'Intro', correctZone: 'slot1' },
+            { id: 'b', emoji: '2️⃣', label: 'Strategy', correctZone: 'slot2' },
+            { id: 'c', emoji: '3️⃣', label: 'Creative', correctZone: 'slot3' },
+          ],
+        },
+        {
+          name: 'Pitch Deck',
+          items: [
+            { id: 'a', emoji: '1️⃣', label: 'Problem', correctZone: 'slot1' },
+            { id: 'b', emoji: '2️⃣', label: 'Solution', correctZone: 'slot2' },
+            { id: 'c', emoji: '3️⃣', label: 'Ask', correctZone: 'slot3' },
+          ],
+        },
+        {
+          name: 'Report',
+          items: [
+            { id: 'a', emoji: '1️⃣', label: 'Summary', correctZone: 'slot1' },
+            { id: 'b', emoji: '2️⃣', label: 'Results', correctZone: 'slot2' },
+            { id: 'c', emoji: '3️⃣', label: 'Next Steps', correctZone: 'slot3' },
+          ],
+        },
+      ];
+      const theme = pickTheme('build-deck', themes);
+      return (
+        <DragDropGame
+          items={shuffle(theme.items)}
+          zones={[
+            { id: 'slot1', emoji: '📑', label: 'Slide 1' },
+            { id: 'slot2', emoji: '📑', label: 'Slide 2' },
+            { id: 'slot3', emoji: '📑', label: 'Slide 3' },
+          ]}
+          onWin={onWin}
+        />
+      );
+    },
     winMsg: (m) => `Deck ordered! ${m.name} approves the flow.`,
     failMsg: () => `Slides are out of order...`,
   },
@@ -350,6 +421,7 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'FEED THE BRIEF!',
     duration: 10000,
     category: 'drag',
+    weight: 1.5,
     waitPhase: 'concepting',
     render: (onWin) => (
       <DragDropGame
@@ -374,6 +446,7 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'ORGANIZE THE THINKING!',
     duration: 12000,
     category: 'drag',
+    weight: 1.5,
     waitPhase: 'both',
     render: (onWin) => {
       const theme = pickTheme('organize-thinking', organizeThemes);
@@ -458,6 +531,7 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'SPIN FOR APPROVAL!',
     duration: 10000,
     category: 'flick',
+    weight: 0.3,
     waitPhase: 'both',
     render: (onWin, onFail) => {
       const targets = [45, 135, 225, 315];
@@ -481,6 +555,7 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'BUDGET ROULETTE!',
     duration: 10000,
     category: 'flick',
+    weight: 0.3,
     waitPhase: 'both',
     render: (onWin, onFail) => {
       const targets = [45, 135, 225, 315];
@@ -504,6 +579,7 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'CLIENT ROULETTE!',
     duration: 10000,
     category: 'flick',
+    weight: 0.3,
     waitPhase: 'both',
     render: (onWin, onFail) => {
       const targets = [45, 135, 225, 315];
@@ -527,6 +603,7 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'DEADLINE SPINNER!',
     duration: 10000,
     category: 'flick',
+    weight: 0.3,
     waitPhase: 'both',
     render: (onWin, onFail) => {
       const targets = [45, 135, 225, 315];
@@ -550,6 +627,7 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'FEEDBACK ROULETTE!',
     duration: 10000,
     category: 'flick',
+    weight: 0.3,
     waitPhase: 'both',
     render: (onWin, onFail) => {
       const targets = [45, 135, 225, 315];
@@ -573,6 +651,7 @@ export const ALL_GAMES: GameDef[] = [
     instruction: 'SPIN THE CHAIR!',
     duration: 10000,
     category: 'flick',
+    weight: 0.3,
     waitPhase: 'both',
     render: (onWin, onFail) => {
       const targets = [45, 135, 225, 315];
@@ -853,18 +932,30 @@ export const ALL_GAMES: GameDef[] = [
     duration: 10000,
     category: 'physical',
     waitPhase: 'generating',
-    render: (onWin) => (
-      <LayerSearchGame
-        layers={[
+    render: (onWin) => {
+      const layerSets = [
+        { name: 'Classic', layers: [
           { emoji: '📧', label: 'Old emails',      color: 'rgba(168,216,234,0.3)' },
           { emoji: '🍕', label: 'Pizza menu',       color: 'rgba(255,183,178,0.3)' },
           { emoji: '📝', label: 'Meeting notes',    color: 'rgba(249,231,159,0.3)' },
           { emoji: '📎', label: 'Random clip art',  color: 'rgba(195,174,214,0.3)' },
-        ]}
-        targetEmoji="📋"
-        onWin={onWin}
-      />
-    ),
+        ]},
+        { name: 'Messy Desk', layers: [
+          { emoji: '☕', label: 'Coffee stain',     color: 'rgba(195,174,214,0.3)' },
+          { emoji: '🧾', label: 'Old receipts',     color: 'rgba(249,231,159,0.3)' },
+          { emoji: '🖊️', label: 'Broken pens',     color: 'rgba(168,216,234,0.3)' },
+          { emoji: '📰', label: 'Yesterday news',   color: 'rgba(255,183,178,0.3)' },
+        ]},
+        { name: 'Digital Chaos', layers: [
+          { emoji: '🗂️', label: 'Downloads folder', color: 'rgba(168,216,234,0.3)' },
+          { emoji: '🔔', label: 'Slack alerts',      color: 'rgba(255,183,178,0.3)' },
+          { emoji: '📊', label: 'Old reports',       color: 'rgba(249,231,159,0.3)' },
+          { emoji: '🎵', label: 'Spotify popup',     color: 'rgba(195,174,214,0.3)' },
+        ]},
+      ];
+      const set = pickTheme('find-brief', layerSets);
+      return <LayerSearchGame layers={set.layers} targetEmoji="📋" onWin={onWin} />;
+    },
     winMsg: (m) => `Found it! ${m.name} says 'only slightly crumpled.'`,
     failMsg: () => `Still searching... it's here somewhere.`,
   },
@@ -903,10 +994,17 @@ export const ALL_GAMES: GameDef[] = [
     category: 'puzzle',
     waitPhase: 'both',
     render: (onWin, onFail) => {
+      const wifiThemes = [
+        { name: 'Unplug', correct: { emoji: '🔌', label: 'Unplug & replug' }, decoys: [{ emoji: '📞', label: 'Call IT' }, { emoji: '🔨', label: 'Hit it' }] },
+        { name: 'Reset', correct: { emoji: '🔄', label: 'Reset the router' }, decoys: [{ emoji: '📞', label: 'Call IT' }, { emoji: '🙏', label: 'Hope for the best' }] },
+        { name: 'Channel', correct: { emoji: '📡', label: 'Switch to 5GHz' }, decoys: [{ emoji: '🔨', label: 'Hit it' }, { emoji: '📧', label: 'Email IT' }] },
+        { name: 'Password', correct: { emoji: '🔑', label: 'Re-enter password' }, decoys: [{ emoji: '📞', label: 'Call ISP' }, { emoji: '🔌', label: 'Cut the cord' }] },
+        { name: 'Firmware', correct: { emoji: '⬆️', label: 'Update firmware' }, decoys: [{ emoji: '🗑️', label: 'Trash it' }, { emoji: '🙏', label: 'Pray' }] },
+      ];
+      const theme = pickTheme('fix-wifi', wifiThemes);
       const opts = shuffle([
-        { emoji: '🔌', label: 'Unplug & replug', correct: true  },
-        { emoji: '📞', label: 'Call IT',          correct: false },
-        { emoji: '🔨', label: 'Hit it',           correct: false },
+        { ...theme.correct, correct: true },
+        ...theme.decoys.map(d => ({ ...d, correct: false })),
       ]);
       return <PickOneGame options={opts} onWin={onWin} onFail={onFail} />;
     },
@@ -964,5 +1062,517 @@ export const ALL_GAMES: GameDef[] = [
     ),
     winMsg: (m) => `Cohesive campaign! ${m.name} is proud.`,
     failMsg: () => `The elements scattered... needs more glue.`,
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW DRAG GAMES (10 games, weight: 1.5)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'sort-media',
+    instruction: 'SORT THE MEDIA ASSETS!',
+    duration: 12000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'generating',
+    render: (onWin) => (
+      <DragDropGame
+        items={shuffle([
+          { id: 'a', emoji: '🎬', label: 'Video cut', correctZone: 'video' },
+          { id: 'b', emoji: '📸', label: 'Product photo', correctZone: 'photo' },
+          { id: 'c', emoji: '🎵', label: 'Audio clip', correctZone: 'audio' },
+        ])}
+        zones={[
+          { id: 'video', emoji: '📹', label: 'Video' },
+          { id: 'photo', emoji: '🖼️', label: 'Photo' },
+          { id: 'audio', emoji: '🔊', label: 'Audio' },
+        ]}
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Media sorted! ${m.name} has what they need.`,
+    failMsg: () => `Assets are scattered across the server...`,
+  },
+  {
+    id: 'match-platform',
+    instruction: 'MATCH THE PLATFORM!',
+    duration: 10000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'generating',
+    render: (onWin) => (
+      <DragDropGame
+        items={shuffle([
+          { id: 'a', emoji: '🎞️', label: 'Reel', correctZone: 'ig' },
+          { id: 'b', emoji: '🧵', label: 'Thread', correctZone: 'x' },
+          { id: 'c', emoji: '📝', label: 'Article', correctZone: 'li' },
+        ])}
+        zones={[
+          { id: 'ig', emoji: '📸', label: 'Instagram' },
+          { id: 'x', emoji: '🐦', label: 'X' },
+          { id: 'li', emoji: '💼', label: 'LinkedIn' },
+        ]}
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Right platform, right content! ${m.name} approves.`,
+    failMsg: () => `Wrong platform... the algorithm is confused.`,
+  },
+  {
+    id: 'plan-sprint',
+    instruction: 'PLAN THE SPRINT!',
+    duration: 12000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'both',
+    render: (onWin) => (
+      <DragDropGame
+        items={shuffle([
+          { id: 'a', emoji: '🐛', label: 'Bug fix', correctZone: 'now' },
+          { id: 'b', emoji: '✨', label: 'New feature', correctZone: 'next' },
+          { id: 'c', emoji: '🔬', label: 'Research', correctZone: 'later' },
+        ])}
+        zones={[
+          { id: 'now', emoji: '🔥', label: 'This Sprint' },
+          { id: 'next', emoji: '📋', label: 'Next Sprint' },
+          { id: 'later', emoji: '📅', label: 'Backlog' },
+        ]}
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Sprint planned! ${m.name} knows the priorities.`,
+    failMsg: () => `Sprint planning in shambles...`,
+  },
+  {
+    id: 'allocate-budget',
+    instruction: 'ALLOCATE THE BUDGET!',
+    duration: 10000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'generating',
+    render: (onWin) => (
+      <DragDropGame
+        items={shuffle([
+          { id: 'a', emoji: '📺', label: 'TV buy', correctZone: 'media' },
+          { id: 'b', emoji: '🎨', label: 'Design work', correctZone: 'creative' },
+          { id: 'c', emoji: '📊', label: 'Analytics', correctZone: 'ops' },
+        ])}
+        zones={[
+          { id: 'media', emoji: '💰', label: 'Media' },
+          { id: 'creative', emoji: '💰', label: 'Creative' },
+          { id: 'ops', emoji: '💰', label: 'Ops' },
+        ]}
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Budget allocated! ${m.name} is impressed.`,
+    failMsg: () => `Budget is a mess... finance is calling.`,
+  },
+  {
+    id: 'pick-palette',
+    instruction: 'BUILD THE COLOR PALETTE!',
+    duration: 10000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'concepting',
+    render: (onWin) => (
+      <DragDropGame
+        items={shuffle([
+          { id: 'a', emoji: '🔴', label: 'CTA Red', correctZone: 'cta' },
+          { id: 'b', emoji: '⚪', label: 'White', correctZone: 'bg' },
+          { id: 'c', emoji: '🔵', label: 'Brand Blue', correctZone: 'primary' },
+        ])}
+        zones={[
+          { id: 'cta', emoji: '🎯', label: 'CTA' },
+          { id: 'bg', emoji: '🖼️', label: 'Background' },
+          { id: 'primary', emoji: '🏷️', label: 'Primary' },
+        ]}
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Palette locked! ${m.name} loves the colors.`,
+    failMsg: () => `Colors are clashing... back to swatches.`,
+  },
+  {
+    id: 'phase-campaign',
+    instruction: 'PLAN THE CAMPAIGN PHASES!',
+    duration: 10000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'concepting',
+    render: (onWin) => (
+      <DragDropGame
+        items={shuffle([
+          { id: 'a', emoji: '👀', label: 'Teaser', correctZone: 'p1' },
+          { id: 'b', emoji: '🚀', label: 'Hero launch', correctZone: 'p2' },
+          { id: 'c', emoji: '🔄', label: 'Retarget', correctZone: 'p3' },
+        ])}
+        zones={[
+          { id: 'p1', emoji: '1️⃣', label: 'Phase 1' },
+          { id: 'p2', emoji: '2️⃣', label: 'Phase 2' },
+          { id: 'p3', emoji: '3️⃣', label: 'Phase 3' },
+        ]}
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Campaign phased perfectly! ${m.name} is on board.`,
+    failMsg: () => `Phases out of order... the campaign is confused.`,
+  },
+  {
+    id: 'target-audience',
+    instruction: 'TARGET THE AUDIENCE!',
+    duration: 10000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'concepting',
+    render: (onWin) => (
+      <DragDropGame
+        items={shuffle([
+          { id: 'a', emoji: '😂', label: 'Gen Z meme', correctZone: 'young' },
+          { id: 'b', emoji: '💼', label: 'LinkedIn post', correctZone: 'pro' },
+          { id: 'c', emoji: '📰', label: 'Print ad', correctZone: 'mature' },
+        ])}
+        zones={[
+          { id: 'young', emoji: '🧑', label: '18-24' },
+          { id: 'pro', emoji: '👔', label: '25-44' },
+          { id: 'mature', emoji: '🧓', label: '45+' },
+        ]}
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Audience matched! ${m.name} knows the demo.`,
+    failMsg: () => `Wrong audience... the message missed.`,
+  },
+  {
+    id: 'review-creative',
+    instruction: 'REVIEW THE CREATIVE!',
+    duration: 12000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'generating',
+    render: (onWin) => (
+      <DragDropGame
+        items={shuffle([
+          { id: 'a', emoji: '🖼️', label: 'Banner ad', correctZone: 'approve' },
+          { id: 'b', emoji: '📝', label: 'Rough draft', correctZone: 'revise' },
+          { id: 'c', emoji: '🚫', label: 'Off-brand', correctZone: 'scrap' },
+        ])}
+        zones={[
+          { id: 'approve', emoji: '✅', label: 'Approve' },
+          { id: 'revise', emoji: '🔄', label: 'Revise' },
+          { id: 'scrap', emoji: '🗑️', label: 'Scrap' },
+        ]}
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Creative reviewed! ${m.name} agrees with the calls.`,
+    failMsg: () => `Review pile is still growing...`,
+  },
+  {
+    id: 'submit-invoice',
+    instruction: 'SUBMIT THE INVOICE!',
+    duration: 8000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'generating',
+    render: (onWin) => (
+      <SimpleDragGame
+        sourceEmoji="🧾" sourceLabel="Invoice"
+        targetEmoji="🏦" targetLabel="Accounting"
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Submitted! ${m.name} says payment is coming.`,
+    failMsg: () => `Invoice still on the desk... finance is waiting.`,
+  },
+  {
+    id: 'archive-brief',
+    instruction: 'ARCHIVE THE OLD BRIEF!',
+    duration: 8000,
+    category: 'drag',
+    weight: 1.5,
+    waitPhase: 'generating',
+    render: (onWin) => (
+      <SimpleDragGame
+        sourceEmoji="📋" sourceLabel="Old Brief"
+        targetEmoji="🗄️" targetLabel="Archive"
+        onWin={onWin}
+      />
+    ),
+    winMsg: (m) => `Archived! ${m.name} is keeping things tidy.`,
+    failMsg: () => `Old briefs cluttering the workspace...`,
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW PUZZLE GAMES (3 games — new mechanics)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'spot-typo',
+    instruction: 'SPOT THE TYPO!',
+    duration: 12000,
+    category: 'puzzle',
+    waitPhase: 'both',
+    render: (onWin, onFail) => {
+      const typoThemes = [
+        { name: 'Headline 1', words: ['Launch', 'Your', 'Brand', 'Toaday', 'With', 'Style'], typoIndex: 3 },
+        { name: 'Headline 2', words: ['Premium', 'Qualty', 'Design', 'For', 'Every', 'Client'], typoIndex: 1 },
+        { name: 'Headline 3', words: ['The', 'Future', 'Of', 'Marketng', 'Is', 'Here'], typoIndex: 3 },
+        { name: 'Headline 4', words: ['Bold', 'Ideas', 'Deserve', 'Bold', 'Exection'], typoIndex: 4 },
+        { name: 'Headline 5', words: ['Driving', 'Results', 'Thorugh', 'Creative', 'Strategy'], typoIndex: 2 },
+        { name: 'Headline 6', words: ['Innovative', 'Solutons', 'For', 'Modern', 'Brands'], typoIndex: 1 },
+      ];
+      const theme = pickTheme('spot-typo', typoThemes);
+      return <TypoFindGame words={theme.words} typoIndex={theme.typoIndex} onWin={onWin} onFail={onFail} />;
+    },
+    winMsg: (m) => `Sharp eye! ${m.name} is glad someone caught that.`,
+    failMsg: () => `Wrong word... the typo slipped through.`,
+  },
+  {
+    id: 'spot-error',
+    instruction: 'SPOT THE ERROR!',
+    duration: 12000,
+    category: 'puzzle',
+    waitPhase: 'both',
+    render: (onWin, onFail) => {
+      const errorThemes = [
+        {
+          name: 'Logo Color',
+          panelA: { emoji: '🔵', lines: ['Brand Blue', '#0066CC', 'Approved'] },
+          panelB: { emoji: '🟣', lines: ['Brand Blue', '#6600CC', 'Wrong hex!'] },
+          errorPanel: 'B' as const,
+        },
+        {
+          name: 'Launch Date',
+          panelA: { emoji: '📅', lines: ['Launch: Mar 15', 'Q1 Campaign', 'On schedule'] },
+          panelB: { emoji: '📅', lines: ['Launch: Mar 51', 'Q1 Campaign', 'Bad date!'] },
+          errorPanel: 'B' as const,
+        },
+        {
+          name: 'Client Name',
+          panelA: { emoji: '🏢', lines: ['Client: Acme Co', 'Est. 1995', 'NYC'] },
+          panelB: { emoji: '🏢', lines: ['Client: Acme Co', 'Est. 1995', 'NVC'] },
+          errorPanel: 'B' as const,
+        },
+        {
+          name: 'Price Error',
+          panelA: { emoji: '💰', lines: ['Package: $5,000', 'Includes design', '3 revisions'] },
+          panelB: { emoji: '💰', lines: ['Package: $50,000', 'Includes design', '3 revisions'] },
+          errorPanel: 'B' as const,
+        },
+      ];
+      const theme = pickTheme('spot-error', errorThemes);
+      return (
+        <SpotDifferenceGame
+          panelA={theme.panelA}
+          panelB={theme.panelB}
+          errorPanel={theme.errorPanel}
+          onWin={onWin}
+          onFail={onFail}
+        />
+      );
+    },
+    winMsg: (m) => `Error caught! ${m.name} dodged a bullet.`,
+    failMsg: () => `That panel was fine... the error was elsewhere.`,
+  },
+  {
+    id: 'triage-email',
+    instruction: 'TRIAGE THE INBOX!',
+    duration: 12000,
+    category: 'puzzle',
+    waitPhase: 'both',
+    render: (onWin, onFail) => {
+      const triageThemes = [
+        {
+          name: 'Email Triage',
+          leftLabel: 'Archive',
+          rightLabel: 'Reply',
+          items: [
+            { emoji: '📧', label: 'Client: "Urgent update"', correct: 'right' as const },
+            { emoji: '📧', label: 'Newsletter: "10 tips"', correct: 'left' as const },
+            { emoji: '📧', label: 'Boss: "Call me"', correct: 'right' as const },
+            { emoji: '📧', label: 'Spam: "You won!"', correct: 'left' as const },
+          ],
+        },
+        {
+          name: 'Idea Review',
+          leftLabel: 'Kill',
+          rightLabel: 'Keep',
+          items: [
+            { emoji: '💡', label: 'AR billboard concept', correct: 'right' as const },
+            { emoji: '💡', label: 'Comic Sans rebrand', correct: 'left' as const },
+            { emoji: '💡', label: 'Interactive social', correct: 'right' as const },
+            { emoji: '💡', label: 'Fax campaign', correct: 'left' as const },
+          ],
+        },
+        {
+          name: 'Expenses',
+          leftLabel: 'Reject',
+          rightLabel: 'Approve',
+          items: [
+            { emoji: '🧾', label: 'Client lunch $45', correct: 'right' as const },
+            { emoji: '🧾', label: 'Massage chair $800', correct: 'left' as const },
+            { emoji: '🧾', label: 'Software license $120', correct: 'right' as const },
+            { emoji: '🧾', label: 'Gold stapler $300', correct: 'left' as const },
+          ],
+        },
+      ];
+      const theme = pickTheme('triage-email', triageThemes);
+      return (
+        <SwipeGame
+          items={theme.items}
+          leftLabel={theme.leftLabel}
+          rightLabel={theme.rightLabel}
+          onWin={onWin}
+          onFail={onFail}
+        />
+      );
+    },
+    winMsg: (m) => `Inbox zero! ${m.name} is impressed with the efficiency.`,
+    failMsg: () => `Wrong call... that one needed attention.`,
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW GAMES USING EXISTING MECHANICS (7 games)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'approve-layout',
+    instruction: 'APPROVE THE LAYOUT!',
+    duration: 10000,
+    category: 'puzzle',
+    waitPhase: 'generating',
+    render: (onWin, onFail) => {
+      const sets = [
+        { context: 'Which layout works for a landing page?', correct: 'F-pattern', decoys: ['Z-spiral', 'Random scatter'] },
+        { context: 'Best grid for a product catalog?', correct: '3-column grid', decoys: ['Single column', 'Diagonal layout'] },
+        { context: 'Hero section layout for conversion?', correct: 'CTA above fold', decoys: ['CTA in footer', 'No CTA'] },
+      ];
+      const set = pickRandom(sets);
+      return (
+        <PickOneGame
+          context={set.context}
+          options={shuffle([
+            { emoji: '✅', label: set.correct, correct: true },
+            ...set.decoys.map(d => ({ emoji: '📐', label: d, correct: false })),
+          ])}
+          onWin={onWin}
+          onFail={onFail}
+        />
+      );
+    },
+    winMsg: (m) => `Layout approved! ${m.name} says it flows perfectly.`,
+    failMsg: () => `That layout won't convert... back to wireframes.`,
+  },
+  {
+    id: 'budget-math',
+    instruction: 'CHECK THE BUDGET!',
+    duration: 10000,
+    category: 'puzzle',
+    waitPhase: 'generating',
+    render: (onWin, onFail) => {
+      const sets = [
+        { context: '$50k budget, $30k spent. How much left?', correct: '$20,000', decoys: ['$30,000', '$50,000'] },
+        { context: '15% of $100k for media buy?', correct: '$15,000', decoys: ['$10,000', '$25,000'] },
+        { context: 'Split $60k equally across 3 channels?', correct: '$20k each', decoys: ['$30k each', '$15k each'] },
+      ];
+      const set = pickRandom(sets);
+      return (
+        <PickOneGame
+          context={set.context}
+          options={shuffle([
+            { emoji: '💰', label: set.correct, correct: true },
+            ...set.decoys.map(d => ({ emoji: '💰', label: d, correct: false })),
+          ])}
+          onWin={onWin}
+          onFail={onFail}
+        />
+      );
+    },
+    winMsg: (m) => `Math checks out! ${m.name} trusts your numbers.`,
+    failMsg: () => `That math doesn't add up... finance flagged it.`,
+  },
+  {
+    id: 'pitch-idea',
+    instruction: 'PITCH THE IDEA!',
+    duration: 8000,
+    category: 'timing',
+    waitPhase: 'concepting',
+    render: (onWin, onFail) => (
+      <TimingMeterGame
+        sweetSpotStart={0.35}
+        sweetSpotEnd={0.60}
+        speed={0.009}
+        label="Pitch confidence — hit the sweet spot!"
+        onWin={onWin}
+        onFail={onFail}
+      />
+    ),
+    winMsg: (m) => `Nailed the pitch! ${m.name} is sold.`,
+    failMsg: () => `Pitch fell flat... room went quiet.`,
+  },
+  {
+    id: 'brew-coffee',
+    instruction: 'BREW THE COFFEE!',
+    duration: 7000,
+    category: 'physical',
+    waitPhase: 'both',
+    render: (onWin) => (
+      <RapidClickGame targetClicks={8} emoji="☕" label="Brew strength" onWin={onWin} />
+    ),
+    winMsg: (m) => `Perfect brew! ${m.name} needed that.`,
+    failMsg: () => `Coffee is still weak... team morale drops.`,
+  },
+  {
+    id: 'smash-deadline',
+    instruction: 'SMASH THE DEADLINE!',
+    duration: 6000,
+    category: 'physical',
+    waitPhase: 'generating',
+    render: (onWin) => (
+      <RapidClickGame targetClicks={15} emoji="⏰" label="Deadline progress" onWin={onWin} />
+    ),
+    winMsg: (m) => `Deadline smashed! ${m.name} high-fives the team.`,
+    failMsg: () => `Missed the deadline... overtime incoming.`,
+  },
+  {
+    id: 'focus-mode',
+    instruction: 'ACTIVATE FOCUS MODE!',
+    duration: 9000,
+    category: 'physical',
+    waitPhase: 'generating',
+    render: (onWin, onFail) => {
+      const tabSets = [
+        [
+          { label: 'Design File',     isWork: true,  icon: '🎨' },
+          { label: 'Social media',    isWork: false, icon: '📱' },
+          { label: 'Sports scores',   isWork: false, icon: '⚽' },
+          { label: 'Weather',         isWork: false, icon: '🌤️' },
+          { label: 'Online store',    isWork: false, icon: '🛍️' },
+        ],
+        [
+          { label: 'Strategy Doc',    isWork: true,  icon: '📊' },
+          { label: 'Movie trailers',  isWork: false, icon: '🎬' },
+          { label: 'Food delivery',   isWork: false, icon: '🍕' },
+          { label: 'Travel deals',    isWork: false, icon: '✈️' },
+          { label: 'Memes',           isWork: false, icon: '😂' },
+        ],
+      ];
+      return <TabCloseGame tabs={pickRandom(tabSets)} onWin={onWin} onFail={onFail} />;
+    },
+    winMsg: (m) => `Focus mode on! ${m.name} can concentrate now.`,
+    failMsg: () => `You closed the work tab! Focus lost.`,
+  },
+  {
+    id: 'hold-elevator',
+    instruction: 'HOLD THE ELEVATOR!',
+    duration: 8000,
+    category: 'hold',
+    waitPhase: 'both',
+    render: (onWin, onFail) => (
+      <HoldButtonGame holdDuration={3500} emoji="🛗" label="Hold for the client!" onWin={onWin} onFail={onFail} />
+    ),
+    winMsg: (m) => `Client made it! ${m.name} says good save.`,
+    failMsg: () => `Doors closed... the client took the stairs.`,
   },
 ];
