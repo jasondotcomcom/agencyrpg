@@ -29,7 +29,7 @@ export interface ChatMessage {
 
 // ─── Morale ───────────────────────────────────────────────────────────────────
 
-export type MoraleLevel = 'high' | 'medium' | 'low';
+export type MoraleLevel = 'high' | 'medium' | 'low' | 'toxic' | 'mutiny';
 
 // ─── Campaign Event Types ─────────────────────────────────────────────────────
 
@@ -45,7 +45,9 @@ export type ChatCampaignEvent =
   | 'HR_WARNING'
   | 'TEAM_COMPLAINT'
   | 'CONDUCT_POSITIVE'
-  | 'LEVEL_UP';
+  | 'LEVEL_UP'
+  | 'SKETCHY_BRIEF_ACCEPTED'
+  | 'BRIEF_DECLINED';
 
 export interface ChatEventContext {
   campaignName?: string;
@@ -59,6 +61,7 @@ export interface ChatEventContext {
   deliverableDescriptions?: string[];
   tierName?: string;
   tierDescription?: string;
+  isSketchyClient?: boolean;
 }
 
 // ─── Message Template (used by chatMessages.ts) ──────────────────────────────

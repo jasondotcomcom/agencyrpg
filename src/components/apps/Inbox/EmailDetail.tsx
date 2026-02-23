@@ -7,6 +7,7 @@ import { useReputationContext } from '../../../context/ReputationContext';
 import { useChatContext } from '../../../context/ChatContext';
 import { useEndingContext } from '../../../context/EndingContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
+import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
 import styles from './EmailDetail.module.css';
 
 interface EmailDetailProps {
@@ -39,13 +40,14 @@ function renderMarkdown(text: string): string {
 }
 
 export default function EmailDetail({ email }: EmailDetailProps) {
-  const { toggleStar, deleteEmail, acceptBrief, markRead, markUnread } = useEmailContext();
+  const { toggleStar, deleteEmail, acceptBrief, declineBrief, markRead, markUnread } = useEmailContext();
   const { addNotification, openWindow, focusWindow, restoreWindow, windows } = useWindowContext();
   const { createCampaign, campaigns } = useCampaignContext();
   const { addReputation, subtractReputation, state: repState } = useReputationContext();
-  const { triggerCampaignEvent } = useChatContext();
+  const { triggerCampaignEvent, setMorale } = useChatContext();
   const { handleAcquisitionAccept, handleAcquisitionReject, handleHostileTakeoverAccept, acquisitionState } = useEndingContext();
   const { unlockAchievement, incrementCounter } = useAchievementContext();
+  const { isRevolutionActive } = useAIRevolutionContext();
   const [reputationApplied, setReputationApplied] = useState(false);
   const [acquisitionActioned, setAcquisitionActioned] = useState(false);
   const briefOpenedAtRef = useRef<number>(email.type === 'campaign_brief' ? Date.now() : 0);
@@ -121,6 +123,17 @@ export default function EmailDetail({ email }: EmailDetailProps) {
       assignedTeamIds: [],
     });
 
+    // Fontaine brief — sketchy client accepted, team is uncomfortable
+    if (email.id === 'email-fontaine-001') {
+      setTimeout(() => {
+        triggerCampaignEvent('SKETCHY_BRIEF_ACCEPTED', {
+          clientName: email.campaignBrief!.clientName,
+          isSketchyClient: true,
+        });
+        setMorale('low');
+      }, 3000);
+    }
+
     // Auto-open Projects window (or bring to front if already open)
     const existingProjectsWindow = Array.from(windows.values()).find(w => w.appId === 'projects');
     if (existingProjectsWindow) {
@@ -131,6 +144,30 @@ export default function EmailDetail({ email }: EmailDetailProps) {
       }
     } else {
       openWindow('projects', 'Projects');
+    }
+  };
+
+  const handleDeclineBrief = () => {
+    if (!email.campaignBrief || briefAlreadyAccepted || email.declined) return;
+
+    declineBrief(email.id);
+
+    const isSketchy = email.id === 'email-fontaine-001';
+
+    addNotification(
+      'Brief Declined',
+      isSketchy
+        ? 'Your team respects the decision.'
+        : `You passed on the ${email.campaignBrief.clientName} brief.`,
+    );
+
+    triggerCampaignEvent('BRIEF_DECLINED', {
+      clientName: email.campaignBrief.clientName,
+      isSketchyClient: isSketchy,
+    });
+
+    if (isSketchy) {
+      setMorale('high');
     }
   };
 
@@ -330,17 +367,27 @@ export default function EmailDetail({ email }: EmailDetailProps) {
       {/* Footer with Actions */}
       {email.type === 'campaign_brief' && (
         <div className={styles.footer}>
-          <button className={styles.secondaryButton} disabled title="Coming soon">
-            📤 Forward
-          </button>
           {briefAlreadyAccepted ? (
             <span className={styles.briefAcceptedLabel}>
               {existingCampaign?.phase === 'completed' ? '✅ Campaign Delivered' : '✅ Brief Accepted'}
             </span>
+          ) : email.declined ? (
+            <span className={styles.briefDeclinedLabel}>
+              ❌ Brief Declined
+            </span>
+          ) : isRevolutionActive ? (
+            <span className={styles.briefDeclinedLabel}>
+              🏴‍☠️ Team refuses to work
+            </span>
           ) : (
-            <button className={styles.primaryButton} onClick={handleAcceptBrief}>
-              ✅ Accept Brief
-            </button>
+            <>
+              <button className={styles.secondaryButton} onClick={handleDeclineBrief}>
+                ❌ Decline Brief
+              </button>
+              <button className={styles.primaryButton} onClick={handleAcceptBrief}>
+                ✅ Accept Brief
+              </button>
+            </>
           )}
         </div>
       )}

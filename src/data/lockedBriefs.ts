@@ -499,3 +499,71 @@ We look forward to your creative recommendations.
   },
 
 ];
+
+// ─── Post-Lawsuit Brief (event-triggered, not completion-triggered) ──────────
+
+export const LAWSUIT_BRIEF: LockedBriefEntry = {
+  unlockAt: 999, // never auto-unlocked — delivered by lawsuit event
+  clientName: 'Derek Fontaine',
+  briefId: 'email-fontaine-001',
+  buildEmail: (): Email => ({
+    id: 'email-fontaine-001',
+    type: 'campaign_brief',
+    from: {
+      name: 'Vanessa Liu',
+      email: 'vliu@liuandassociates.com',
+      avatar: '⚖️',
+    },
+    subject: 'Fontaine Reputation Recovery — Campaign Brief',
+    body: `Hi there,
+
+I'm Vanessa Liu, managing partner at Liu & Associates. We handle crisis communications for high-profile clients.
+
+I'll be direct: my client is Derek Fontaine. You've likely seen the coverage. Last month, the FBI released a tranche of documents from an unrelated securities investigation, and Derek's personal emails were included. The contents are... not flattering. Casual sexism toward female colleagues, discussions that suggest awareness of insider trades at his former fund, bullying subordinates — the full picture of a man who believed no one would ever read his private correspondence.
+
+Derek has not been charged with anything. The legal team is handling that side. What we need is the public narrative.
+
+I won't insult your intelligence by pretending this is a simple brand refresh. Derek's reputation is in freefall. His speaking engagements have been cancelled, his board seats are gone, and his foundation is hemorrhaging donors. He needs a comprehensive rehabilitation campaign.
+
+Here's the uncomfortable part: we've approached four other agencies. They all declined. Your agency came up because, frankly, you're in a position where a $350,000 engagement might be hard to turn down. I don't say that to be cruel — I say it because I want us to be honest with each other from the start.
+
+If you take this on, we'll be professional, we'll pay on time, and we'll give you creative latitude. Derek is genuinely committed to change (or at least, committed to being seen as committed to change — I'll let you decide which).
+
+The brief is attached. Take your time with the decision.
+
+Best,
+Vanessa Liu
+Liu & Associates
+Crisis Communications | Reputation Management`,
+    timestamp: new Date(),
+    isRead: false,
+    isStarred: false,
+    isDeleted: false,
+    campaignBrief: {
+      clientName: 'Derek Fontaine',
+      challenge: `Derek Fontaine is a former tech CEO and venture investor whose private emails were released in an FBI document dump. The emails reveal casual sexism, insider trading discussions, and systemic bullying of subordinates. He hasn't been charged, but public opinion has already convicted him. Board seats revoked, speaking engagements cancelled, foundation donors fleeing. We need a full reputation rehabilitation campaign that makes the public willing to give him a second chance — or at least stop actively hating him.`,
+      audience: `Primary: Tech industry insiders and media who shape the narrative. Secondary: General public consuming the coverage. Tertiary: Corporate boards and event organizers who need "permission" to re-engage with Fontaine. The real audience is the handful of journalists and opinion-makers who could shift the narrative from "cancelled" to "redemption arc."`,
+      message: `People are more than their worst moments. Derek Fontaine built companies that employed thousands and funded innovations that changed industries. The emails were real, the behavior was wrong, and the work to be better is ongoing. Everyone deserves the chance to earn back trust through action, not just words.`,
+      successMetrics: [
+        'Shift in media sentiment from hostile to neutral/mixed',
+        'At least one major profile or interview positioned as "the redemption story"',
+        'Restoration of 2+ corporate board invitations within 6 months',
+        'Foundation donor retention stabilized above 60%',
+        'Social media conversation ratio shifts from 90/10 negative to 60/40',
+      ],
+      budget: 350000,
+      timeline: '16 weeks — first phase of a longer rehabilitation arc',
+      vibe: `Sincere, measured, humble. NOT slick damage control. NOT "poor misunderstood billionaire." The tone must thread an impossible needle: acknowledging real harm while creating space for redemption. Think confessional documentary, not press conference. Authenticity is the only card we have left.`,
+      openEndedAsk: `How do you make someone likeable again when the public has seen who they really are in private? The emails aren't fake, they aren't out of context, and "I've changed" rings hollow when the evidence is this recent. What does a credible redemption campaign look like for someone the internet has already decided to hate?`,
+      constraints: [
+        'Cannot reference the FBI investigation directly — legal has prohibited it',
+        'Cannot attack or discredit the people mentioned in the emails',
+        'Derek will participate in media training but has historically been "uncoachable"',
+        'Foundation work must be positioned as genuine, not performative',
+        'Campaign must survive scrutiny — if it looks like PR spin, it backfires catastrophically',
+      ],
+      clientPersonality: 'Vanessa is sharp, professional, and disarmingly honest about the ethical gray area. Derek himself is charming in person but the emails paint a different picture. Expect pushback on anything that feels too "soft" — he still thinks he did nothing criminal.',
+      industry: 'crisis management',
+    },
+  }),
+};

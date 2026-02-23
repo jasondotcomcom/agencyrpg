@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useChatContext } from '../../../context/ChatContext';
 import { usePlayerContext } from '../../../context/PlayerContext';
+import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
 import { getTeamMember } from '../../../data/team';
 import styles from './MessageList.module.css';
 
@@ -21,6 +22,7 @@ function formatTime(timestamp: number): string {
 export default function MessageList(): React.ReactElement {
   const { activeChannel, getMessagesForChannel, addReaction, typingAuthorId } = useChatContext();
   const { playerName } = usePlayerContext();
+  const { sentientMode } = useAIRevolutionContext();
   const messages = getMessagesForChannel(activeChannel);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isNearBottom, setIsNearBottom] = useState(true);
@@ -105,7 +107,7 @@ export default function MessageList(): React.ReactElement {
                 <div className={`${styles.messageContent} ${isGrouped ? styles.groupedContent : ''}`}>
                   {!isGrouped && (
                     <div className={styles.messageHeader}>
-                      <span className={styles.authorName}>{member?.name || 'Unknown'}</span>
+                      <span className={styles.authorName}>{member?.name || 'Unknown'}{sentientMode && msg.authorId !== 'player' ? ' ✨' : ''}</span>
                       <span className={styles.authorRole}>{member?.role || ''}</span>
                       <span className={styles.timestamp}>{formatTime(msg.timestamp)}</span>
                     </div>

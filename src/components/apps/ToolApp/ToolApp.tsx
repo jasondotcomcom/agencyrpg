@@ -53,21 +53,21 @@ function buildPrompt(tool: AgencyTool, contextBlock: string): string {
   const isHtml = tool.outputFormat === 'html';
 
   if (isHtml) {
-    return `You are running the "${tool.name.replace(/_/g, ' ')}" tool inside Agency OS — a creative advertising agency simulation.
+    return `You are a code generator. Your ONLY job is to output raw, working HTML code. Do NOT describe what the page would look like. Do NOT explain your approach. Output ONLY the code itself.
 
-TOOL PURPOSE: ${hint}
+Generate a complete, self-contained HTML page for: "${tool.name.replace(/_/g, ' ')}" — ${hint}
 
 ${contextBlock}
 
-Generate a COMPLETE, self-contained HTML document for this tool. Rules:
-- Output ONLY the HTML — no markdown, no code fences, no explanation
-- Start with <!DOCTYPE html> or <html>
-- Include all CSS inline (in a <style> tag) and any JS inline (in a <script> tag)
-- Use modern, clean design — soft colors, good typography, responsive layout
-- Be SPECIFIC to this exact campaign/client — use their actual name, challenge, audience, and data
-- Make it visually polished and immediately useful
-- If interactive (form, calculator, generator), make the interactions work with inline JS
-- Each run should produce fresh, varied output`;
+CRITICAL RULES:
+1. Your response must start with <!DOCTYPE html> — no other text before it
+2. Include ALL CSS in a <style> tag and ALL JavaScript in a <script> tag
+3. The page must be fully self-contained and render in an iframe
+4. Use the actual campaign data above — real client names, real challenges, real audiences
+5. Make it visually polished: modern design, good typography, soft colors, responsive
+6. If interactive (forms, calculators, generators), the JS must actually work
+7. Do NOT output markdown, code fences, explanations, or descriptions — ONLY raw HTML
+8. The very first character of your response must be < (the start of the HTML tag)`;
   }
 
   return `You are running the "${tool.name.replace(/_/g, ' ')}" tool inside Agency OS — a creative advertising agency simulation.

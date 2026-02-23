@@ -415,3 +415,15 @@
   color: var(--text-secondary);
   opacity: 0.7;
 }
+
+.briefDeclinedLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 28px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #c44;
+  opacity: 0.7;
+}

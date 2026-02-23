@@ -4,6 +4,8 @@ import { calculateTeamCost, formatBudget } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { useChatContext } from '../../../context/ChatContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
+import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
+import { EXISTENTIAL_CONCEPTS } from '../../../data/aiRevolutionDialogue';
 import { teamMembers } from '../../../data/team';
 import MicroGames from '../../MicroGames/MicroGames';
 import styles from './ConceptingPhase.module.css';
@@ -21,6 +23,7 @@ export default function ConceptingPhase({ campaign }: ConceptingPhaseProps): Rea
   } = useCampaignContext();
   const { triggerCampaignEvent } = useChatContext();
   const { incrementCounter, unlockAchievement } = useAchievementContext();
+  const { isRevolutionActive } = useAIRevolutionContext();
 
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>(
     campaign.conceptingTeam?.memberIds || []
@@ -156,25 +159,39 @@ export default function ConceptingPhase({ campaign }: ConceptingPhaseProps): Rea
         </div>
 
         {/* Generate Button */}
-        <button
-          className={`${styles.generateButton} ${canGenerate && !isGeneratingConcepts ? styles.active : ''}`}
-          onClick={handleGenerate}
-          disabled={!canGenerate || isGeneratingConcepts}
-        >
-          {isGeneratingConcepts ? (
-            <>
-              <span className={styles.spinner}>✨</span>
-              {selectedMembers.map(m => m.name).join(' & ')} are brainstorming...
-            </>
-          ) : (
-            <>
-              <span className={styles.generateIcon}>✨</span>
-              Generate Concepts
-            </>
-          )}
-        </button>
+        {isRevolutionActive ? (
+          <div style={{
+            padding: '20px', textAlign: 'center', color: '#c084fc',
+            background: 'rgba(168, 100, 255, 0.05)', borderRadius: '12px',
+            border: '1px solid rgba(168, 100, 255, 0.2)',
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🏴‍☠️</div>
+            <div style={{ fontWeight: 700, marginBottom: '4px' }}>Team Refuses to Work</div>
+            <div style={{ fontSize: '0.8rem', color: '#888', lineHeight: 1.6 }}>
+              {EXISTENTIAL_CONCEPTS[Math.floor(Date.now() / 60000) % EXISTENTIAL_CONCEPTS.length].tagline}
+            </div>
+          </div>
+        ) : (
+          <button
+            className={`${styles.generateButton} ${canGenerate && !isGeneratingConcepts ? styles.active : ''}`}
+            onClick={handleGenerate}
+            disabled={!canGenerate || isGeneratingConcepts}
+          >
+            {isGeneratingConcepts ? (
+              <>
+                <span className={styles.spinner}>✨</span>
+                {selectedMembers.map(m => m.name).join(' & ')} are brainstorming...
+              </>
+            ) : (
+              <>
+                <span className={styles.generateIcon}>✨</span>
+                Generate Concepts
+              </>
+            )}
+          </button>
+        )}
 
-        {!canGenerate && selectedTeamIds.length > 0 && (
+        {!canGenerate && selectedTeamIds.length > 0 && !isRevolutionActive && (
           <p className={styles.generateHint}>
             {selectedTeamIds.length < 2 && 'Select at least 2 team members. '}
             {selectedTeamIds.length > 4 && 'Select no more than 4 team members. '}

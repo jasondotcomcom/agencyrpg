@@ -7,6 +7,8 @@ const moraleLabels: Record<MoraleLevel, string> = {
   high: '\uD83D\uDD25 Fired Up',
   medium: '\uD83D\uDE0A Steady',
   low: '\uD83D\uDE13 Running Low',
+  toxic: '\u2620\uFE0F Toxic',
+  mutiny: '\uD83C\uDFF4\u200D\u2620\uFE0F Mutiny',
 };
 
 export default function MoraleIndicator(): React.ReactElement {

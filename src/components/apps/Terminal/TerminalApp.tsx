@@ -233,23 +233,15 @@ function loadTools(): AgencyTool[] {
 }
 
 function buildToolPrompt(description: string): string {
-  return `You are generating a tool definition for a creative advertising agency simulation game called Agency OS Terminal.
+  return `You are generating a tool definition for a creative advertising agency simulation game.
 
 The player wants: "${description}"
 
-Generate a realistic, useful agency tool. The tool can produce text output, OR if the player's description suggests something visual (landing page, microsite, chart, mockup, form, calculator, interactive widget), set outputFormat to "html" so the tool renders in a live preview window.
+Generate a realistic, useful agency tool. If the description suggests something visual (landing page, microsite, chart, mockup, form, calculator, interactive widget), set outputFormat to "html". Otherwise set outputFormat to "text".
 
-Respond with ONLY a valid JSON object — no markdown, no explanation, no code blocks.
+CRITICAL: Respond with ONLY a valid JSON object. No markdown, no backticks, no code fences, no preamble, no explanation — just the raw JSON starting with { and ending with }.
 
-{
-  "name": "short_tool_name_in_snake_case",
-  "icon": "single_relevant_emoji",
-  "description": "One sentence: what this tool does.",
-  "category": "analytics|creative|client|operations|finance|visual",
-  "outputFormat": "text|html",
-  "runPromptHint": "A 1-2 sentence instruction describing exactly what this tool should generate when run against a campaign brief. Be specific about the output format and content type. If outputFormat is html, describe the HTML/CSS/JS to generate.",
-  "sampleOutput": "A realistic 3–5 sentence output that the tool would produce. Include specific data points, metrics, percentages, or strategic recommendations that feel authentic to an ad agency. You may use line breaks for structure."
-}`;
+{"name":"short_tool_name_in_snake_case","icon":"single_relevant_emoji","description":"One sentence: what this tool does.","category":"analytics|creative|client|operations|finance|visual","outputFormat":"text|html","runPromptHint":"A 1-2 sentence instruction describing what this tool generates when run against a campaign brief. If html: describe the HTML/CSS/JS page to generate.","sampleOutput":"A realistic 3-5 sentence sample output with data points and metrics."}`;
 }
 
 // ─── Natural language intent detection ───────────────────────────────────────
@@ -427,11 +419,21 @@ export default function TerminalApp(): React.ReactElement {
       const data = await response.json();
       const rawText: string = data.content[0].text;
 
-      // Extract JSON object from response
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No JSON found in AI response.');
+      // Extract JSON object from response — strip code fences if present
+      let cleaned = rawText.trim();
+      // Strip markdown code fences: ```json ... ``` or ``` ... ```
+      const fenceMatch = cleaned.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
+      if (fenceMatch) cleaned = fenceMatch[1].trim();
+      // Find the JSON object in the (possibly larger) text
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error(`No JSON found in AI response. Raw: ${cleaned.slice(0, 200)}`);
 
-      const toolDef = JSON.parse(jsonMatch[0]);
+      let toolDef;
+      try {
+        toolDef = JSON.parse(jsonMatch[0]);
+      } catch (parseErr) {
+        throw new Error(`Invalid JSON: ${String(parseErr).slice(0, 100)}. Raw: ${jsonMatch[0].slice(0, 200)}`);
+      }
       const { name, icon, description: desc, category, sampleOutput, runPromptHint, outputFormat } = toolDef;
 
       if (!name || !icon || !desc || !sampleOutput) {
@@ -534,21 +536,21 @@ export default function TerminalApp(): React.ReactElement {
     const isHtml = tool.outputFormat === 'html';
 
     const prompt = isHtml
-      ? `You are running the "${tool.name.replace(/_/g, ' ')}" tool inside Agency OS — a creative advertising agency simulation.
+      ? `You are a code generator. Your ONLY job is to output raw, working HTML code. Do NOT describe what the page would look like. Do NOT explain your approach. Output ONLY the code itself.
 
-TOOL PURPOSE: ${hint}
+Generate a complete, self-contained HTML page for: "${tool.name.replace(/_/g, ' ')}" — ${hint}
 
 ${contextBlock}
 
-Generate a COMPLETE, self-contained HTML document for this tool. Rules:
-- Output ONLY the HTML — no markdown, no code fences, no explanation
-- Start with <!DOCTYPE html> or <html>
-- Include all CSS inline (in a <style> tag) and any JS inline (in a <script> tag)
-- Use modern, clean design — soft colors, good typography, responsive layout
-- Be SPECIFIC to this exact campaign/client — use their actual name, challenge, audience, and data
-- Make it visually polished and immediately useful
-- If interactive (form, calculator, generator), make the interactions work with inline JS
-- Each run should produce fresh, varied output`
+CRITICAL RULES:
+1. Your response must start with <!DOCTYPE html> — no other text before it
+2. Include ALL CSS in a <style> tag and ALL JavaScript in a <script> tag
+3. The page must be fully self-contained and render in an iframe
+4. Use the actual campaign data above — real client names, real challenges, real audiences
+5. Make it visually polished: modern design, good typography, soft colors, responsive
+6. If interactive (forms, calculators, generators), the JS must actually work
+7. Do NOT output markdown, code fences, explanations, or descriptions — ONLY raw HTML
+8. The very first character of your response must be < (the start of the HTML tag)`
       : `You are running the "${tool.name.replace(/_/g, ' ')}" tool inside Agency OS Terminal — a creative advertising agency simulation.
 
 TOOL PURPOSE: ${hint}

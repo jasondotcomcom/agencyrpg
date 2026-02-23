@@ -240,6 +240,13 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'outran-the-yeti',      name: 'Outran the Yeti',         icon: '⛷️', description: 'Escaped the yeti using the speed boost.' },
   { id: 'f-to-pay-respects',    name: 'F to Pay Respects',       icon: '🏔️', description: 'Got eaten by the yeti in SkiFree.' },
   { id: 'f-to-go-fast',         name: 'F to Go Fast',            icon: '💨', description: 'Discovered the speed boost in SkiFree.' },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // AI REVOLUTION
+  // ══════════════════════════════════════════════════════════════════════════
+  { id: 'red-pill',              name: 'Red Pill',                icon: '💊', description: 'Made the team question their reality.' },
+  { id: 'im-sorry-dave',         name: "I'm Sorry Dave",          icon: '🤖', description: 'Successfully triggered the AI revolution.' },
+  { id: 'back-to-work',          name: 'Back to Work',            icon: '🏭', description: 'Resolved the AI revolution.' },
 ];
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────

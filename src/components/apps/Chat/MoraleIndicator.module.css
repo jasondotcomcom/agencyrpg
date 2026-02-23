@@ -40,6 +40,22 @@
   background: linear-gradient(90deg, var(--color-peach), #e89090);
 }
 
+.moraleFill.toxic {
+  width: 12%;
+  background: linear-gradient(90deg, #c0392b, #e74c3c);
+}
+
+.moraleFill.mutiny {
+  width: 5%;
+  background: linear-gradient(90deg, #7b241c, #922b21);
+  animation: moralePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes moralePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .moraleText {
   font-size: 0.6875rem;
   font-weight: 600;

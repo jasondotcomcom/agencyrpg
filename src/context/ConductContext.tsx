@@ -147,6 +147,8 @@ interface ConductContextValue {
   completeLawsuit: (result: 'won' | 'lost' | 'settled') => void;
   completeTraining: () => void;
   isTeamMemberAvailable: (id: string) => boolean;
+  setTeamUnavailable: (ids: string[]) => void;
+  clearTeamUnavailable: () => void;
 }
 
 const ConductContext = createContext<ConductContextValue | null>(null);
@@ -446,6 +448,14 @@ export function ConductProvider({ children }: { children: React.ReactNode }) {
     return !state.teamUnavailable.includes(id);
   }, [state.teamUnavailable]);
 
+  const setTeamUnavailable = useCallback((ids: string[]) => {
+    dispatch({ type: 'SET_TEAM_UNAVAILABLE', payload: ids });
+  }, []);
+
+  const clearTeamUnavailable = useCallback(() => {
+    dispatch({ type: 'CLEAR_TEAM_UNAVAILABLE' });
+  }, []);
+
   return (
     <ConductContext.Provider value={{
       conductScore: state.conductScore,
@@ -461,6 +471,8 @@ export function ConductProvider({ children }: { children: React.ReactNode }) {
       completeLawsuit,
       completeTraining,
       isTeamMemberAvailable,
+      setTeamUnavailable,
+      clearTeamUnavailable,
     }}>
       {children}
     </ConductContext.Provider>

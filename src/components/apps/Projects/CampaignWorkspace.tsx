@@ -45,7 +45,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
   const { submitCampaign: submitToReputation, processPendingEvents, addReputation, subtractReputation, state: repState } = useReputationContext();
   const { addEmail } = useEmailContext();
   const { addProfit } = useAgencyFunds();
-  const { triggerCampaignEvent } = useChatContext();
+  const { triggerCampaignEvent, morale } = useChatContext();
   const { addEntry, attachAward } = usePortfolioContext();
   const { checkForEnding, checkForHostileTakeover } = useEndingContext();
   const { cheat, consumeOneTimeBonus } = useCheatContext();
@@ -100,19 +100,27 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
       ? { ...baseScore, total: Math.min(baseScore.total + toolBonus, 100) }
       : baseScore;
 
+    // Apply morale penalty
+    let moralePenalty = 0;
+    if (morale === 'toxic') moralePenalty = -10;
+    if (morale === 'mutiny') moralePenalty = -25;
+    const moraleScore = moralePenalty !== 0
+      ? { ...toolScore, total: Math.max(toolScore.total + moralePenalty, 0) }
+      : toolScore;
+
     // Apply cheat modifiers
-    let cheatTotal = toolScore.total + cheat.scoreBonus;
+    let cheatTotal = moraleScore.total + cheat.scoreBonus;
     const scoreFloor = Math.max(cheat.minScore, cheat.oneTimeMinScore);
     if (scoreFloor > 0) cheatTotal = Math.max(cheatTotal, scoreFloor);
     cheatTotal = Math.min(cheatTotal, 100);
 
     const cheatFeedback = cheat.nightmareMode
       ? NIGHTMARE_FEEDBACKS[Math.floor(Math.random() * NIGHTMARE_FEEDBACKS.length)]
-      : toolScore.feedback;
+      : moraleScore.feedback;
 
-    const score = (cheatTotal !== toolScore.total || cheat.nightmareMode)
-      ? { ...toolScore, total: cheatTotal, feedback: cheatFeedback }
-      : toolScore;
+    const score = (cheatTotal !== moraleScore.total || cheat.nightmareMode)
+      ? { ...moraleScore, total: cheatTotal, feedback: cheatFeedback }
+      : moraleScore;
 
     // Consume the one-time pitchperfect bonus after it's been applied
     if (cheat.oneTimeMinScore > 0) consumeOneTimeBonus();

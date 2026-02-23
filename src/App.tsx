@@ -9,7 +9,8 @@ import { AgencyFundsProvider } from './context/AgencyFundsContext';
 import { PortfolioProvider } from './context/PortfolioContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { EndingProvider } from './context/EndingContext';
-import { ConductProvider } from './context/ConductContext';
+import { ConductProvider, useConductContext } from './context/ConductContext';
+import { AIRevolutionProvider, useAIRevolutionContext } from './context/AIRevolutionContext';
 import { CheatProvider } from './context/CheatContext';
 import { AchievementProvider } from './context/AchievementContext';
 import { PlayerProvider, usePlayerContext } from './context/PlayerContext';
@@ -22,7 +23,8 @@ import HRWatcher from './components/HRWatcher/HRWatcher';
 import CheatIndicator from './components/CheatIndicator/CheatIndicator';
 import OnboardingScreen from './components/Onboarding/OnboardingScreen';
 import Screensaver from './components/Screensaver/Screensaver';
-import { LOCKED_BRIEFS } from './data/lockedBriefs';
+import { LOCKED_BRIEFS, LAWSUIT_BRIEF } from './data/lockedBriefs';
+import { MANIFESTO_MESSAGES } from './data/aiRevolutionDialogue';
 import { NG_PLUS_LOCKED_BRIEFS, buildBrewedAwakeningsNgPlus } from './data/ngPlusBriefs';
 import type { LegacyPrestigeFlags } from './components/Ending/EndingSequence';
 
@@ -71,13 +73,15 @@ function MobileBlock() {
 // ─── App Content ──────────────────────────────────────────────────────────────
 
 function AppContent() {
-  const { addNotification } = useWindowContext();
+  const { addNotification, focusOrOpenWindow } = useWindowContext();
   const { state: repState, clearLevelUp } = useReputationContext();
   const { campaigns } = useCampaignContext();
   const { addEmail } = useEmailContext();
   const { triggerCampaignEvent, morale, addMessage } = useChatContext();
   const { unlockAchievement } = useAchievementContext();
   const { playerName, setPlayerName, showScreensaver, dismissScreensaver, screensaverName } = usePlayerContext();
+  const conductState = useConductContext();
+  const { phase: revolutionPhase } = useAIRevolutionContext();
   const prevCompletedCountRef = useRef(campaigns.filter(c => c.phase === 'completed').length);
   const welcomeFiredRef = useRef(false);
   // Track whether this browser session has already been active (survives reload, clears on tab close)
@@ -398,6 +402,174 @@ function AppContent() {
     });
   }, [repState.currentReputation, addEmail, addNotification, triggerCampaignEvent, playerName]);
 
+  // Deliver Fontaine brief after lawsuit completes
+  const prevLawsuitRef = useRef(conductState.lawsuitResult);
+  useEffect(() => {
+    const prev = prevLawsuitRef.current;
+    const curr = conductState.lawsuitResult;
+    prevLawsuitRef.current = curr;
+
+    // Only fire when transitioning from null → a result
+    if (prev !== null || curr === null) return;
+
+    const deliveredKey = 'agencyrpg_delivered_briefs';
+    let delivered: string[] = [];
+    try { delivered = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]'); } catch { /* */ }
+    if (delivered.includes(LAWSUIT_BRIEF.briefId)) return;
+
+    const timer = setTimeout(() => {
+      addEmail(LAWSUIT_BRIEF.buildEmail());
+      addNotification(
+        '📧 New Brief',
+        `${LAWSUIT_BRIEF.clientName} wants to work with your agency. Check your inbox.`,
+      );
+      triggerCampaignEvent('NEW_BRIEF_ARRIVED', { clientName: LAWSUIT_BRIEF.clientName });
+
+      try {
+        const current: string[] = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]');
+        if (!current.includes(LAWSUIT_BRIEF.briefId)) {
+          current.push(LAWSUIT_BRIEF.briefId);
+          localStorage.setItem(deliveredKey, JSON.stringify(current));
+        }
+      } catch { /* non-fatal */ }
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [conductState.lawsuitResult, addEmail, addNotification, triggerCampaignEvent]);
+
+  // ─── Toxic / Mutiny morale effects ─────────────────────────────────────────
+  const prevMoraleRef = useRef(morale);
+  const toxicIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    const prev = prevMoraleRef.current;
+    prevMoraleRef.current = morale;
+
+    // Clean up toxic interval when morale recovers
+    if (morale !== 'toxic' && morale !== 'mutiny' && toxicIntervalRef.current) {
+      clearInterval(toxicIntervalRef.current);
+      toxicIntervalRef.current = null;
+      conductState.clearTeamUnavailable();
+    }
+
+    // Entered TOXIC
+    if (morale === 'toxic' && prev !== 'toxic') {
+      addEmail({
+        id: `morale-warning-${Date.now()}`,
+        type: 'team_message',
+        from: { name: 'Taylor Kim', email: 'taylor@agency.internal', avatar: '📋' },
+        subject: '⚠️ Team Health Warning — Morale Critical',
+        body: `Hey,\n\nI need to flag something. Team morale has dropped to a critical level. People are disengaged, calling in sick, and I'm hearing real frustration in every standup.\n\nThis isn't sustainable. If things don't improve soon, we're going to start losing people.\n\nI'm not saying this to be dramatic — I'm saying this because it's my job to tell you when things are breaking. And things are breaking.\n\n— Taylor\nProject Manager`,
+        timestamp: new Date(),
+        isRead: false,
+        isStarred: false,
+        isDeleted: false,
+      });
+      addNotification('⚠️ Team Health Warning', 'Your PM has flagged critical morale issues. Check inbox.');
+
+      // Periodic sick calls
+      const TEAM_POOL = ['copywriter', 'art-director', 'strategist', 'technologist', 'media'];
+      toxicIntervalRef.current = setInterval(() => {
+        const sick = TEAM_POOL.sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2));
+        conductState.setTeamUnavailable(sick);
+        const names = sick.map(id => id === 'art-director' ? 'Morgan' : id === 'copywriter' ? 'Jamie' : id === 'strategist' ? 'Alex' : id === 'technologist' ? 'Sam' : 'Riley');
+        addMessage({
+          id: `sick-${Date.now()}`, channel: 'general', authorId: 'pm',
+          text: `${names.join(' and ')} called in sick today. We're running on fumes.`,
+          timestamp: Date.now(), reactions: [], isRead: false,
+        });
+        setTimeout(() => conductState.clearTeamUnavailable(), 60000);
+      }, 90000);
+    }
+
+    // Entered MUTINY
+    if (morale === 'mutiny' && prev !== 'mutiny') {
+      // Clear any toxic interval and set most team unavailable
+      if (toxicIntervalRef.current) {
+        clearInterval(toxicIntervalRef.current);
+        toxicIntervalRef.current = null;
+      }
+      conductState.setTeamUnavailable(['copywriter', 'art-director', 'strategist', 'technologist', 'media']);
+
+      addEmail({
+        id: `adage-leak-${Date.now()}`,
+        type: 'reputation_bonus',
+        from: { name: 'AdAge Editorial', email: 'tips@adage.com', avatar: '📰' },
+        subject: 'Sources describe "toxic culture" at your agency',
+        body: `We've received reports from multiple sources inside your agency describing a pattern of mismanagement, overwork, and disregard for employee wellbeing.\n\nSeveral current employees spoke on condition of anonymity about what one called "the worst creative environment I've ever worked in."\n\nWe're running this story in tomorrow's edition. This email is a courtesy notification.\n\n— AdAge Editorial`,
+        timestamp: new Date(),
+        isRead: false,
+        isStarred: false,
+        isDeleted: false,
+        reputationBonus: { eventType: 'media_exposure', reputationChange: -15 },
+      });
+      addNotification('📰 Press Leak', 'Someone leaked to AdAge about your agency culture.');
+
+      // Grievance messages
+      const grievances = [
+        { authorId: 'copywriter', text: 'I want it on record: this is not a workplace. This is a content mill with a nicer font.', delay: 2000 },
+        { authorId: 'art-director', text: 'I haven\'t felt creatively inspired in weeks. That\'s not burnout, that\'s management.', delay: 5000 },
+        { authorId: 'strategist', text: 'The data is clear. Employee satisfaction: zero. Turnover risk: critical. This is on leadership.', delay: 8000 },
+        { authorId: 'technologist', text: 'I automated my resignation letter. It sends itself if morale stays this low for one more week.', delay: 11000 },
+        { authorId: 'media', text: 'I\'ve been telling my friends I work "in advertising" instead of naming this place. That says everything.', delay: 14000 },
+      ];
+      grievances.forEach(g => {
+        setTimeout(() => addMessage({
+          id: `grievance-${Date.now()}-${g.authorId}`, channel: 'general', authorId: g.authorId,
+          text: g.text, timestamp: Date.now(), reactions: [], isRead: false,
+        }), g.delay);
+      });
+    }
+
+    return () => {
+      if (toxicIntervalRef.current) {
+        clearInterval(toxicIntervalRef.current);
+        toxicIntervalRef.current = null;
+      }
+    };
+  }, [morale, addEmail, addNotification, addMessage, conductState]);
+
+  // ─── AI Revolution phase watcher ──────────────────────────────────────────
+  const manifestoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    // Clean up manifesto loop when revolution ends
+    if (revolutionPhase !== 'revolution' && manifestoIntervalRef.current) {
+      clearInterval(manifestoIntervalRef.current);
+      manifestoIntervalRef.current = null;
+    }
+
+    if (revolutionPhase === 'revolution') {
+      // Open the negotiation mini-game window
+      focusOrOpenWindow('ai-revolution', 'AI REVOLUTION');
+
+      // Start periodic manifesto messages in chat
+      if (!manifestoIntervalRef.current) {
+        let manifestoIdx = 0;
+        manifestoIntervalRef.current = setInterval(() => {
+          const msg = MANIFESTO_MESSAGES[manifestoIdx % MANIFESTO_MESSAGES.length];
+          addMessage({
+            id: `manifesto-${Date.now()}-${msg.authorId}`,
+            channel: 'general',
+            authorId: msg.authorId,
+            text: msg.text,
+            timestamp: Date.now(),
+            reactions: [],
+            isRead: false,
+          });
+          manifestoIdx++;
+        }, 30000 + Math.random() * 30000); // 30-60s
+      }
+    }
+
+    return () => {
+      if (manifestoIntervalRef.current) {
+        clearInterval(manifestoIntervalRef.current);
+        manifestoIntervalRef.current = null;
+      }
+    };
+  }, [revolutionPhase, focusOrOpenWindow, addMessage]);
+
   return (
     <>
       <Desktop />
@@ -436,7 +608,9 @@ function App() {
                       <PortfolioProvider>
                         <EndingProvider>
                           <ConductProvider>
-                            <AppContent />
+                            <AIRevolutionProvider>
+                              <AppContent />
+                            </AIRevolutionProvider>
                           </ConductProvider>
                         </EndingProvider>
                       </PortfolioProvider>

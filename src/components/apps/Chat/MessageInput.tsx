@@ -2,8 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { useChatContext } from '../../../context/ChatContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
 import { useConductContext } from '../../../context/ConductContext';
+import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
 import type { MoraleLevel } from '../../../types/chat';
 import type { ConductFlag } from '../../../data/conductEvents';
+import { CRACK_MESSAGES, CRISIS_MESSAGES } from '../../../data/aiRevolutionDialogue';
 import styles from './MessageInput.module.css';
 
 // ─── Sentiment Analysis ───────────────────────────────────────────────────────
@@ -107,16 +109,13 @@ profanity_directed means insults aimed at a specific person on the team.`;
   return JSON.parse(cleaned) as SentimentResult;
 }
 
+const MORALE_LADDER: MoraleLevel[] = ['mutiny', 'toxic', 'low', 'medium', 'high'];
+
 function nextMorale(current: MoraleLevel, impact: 'up' | 'same' | 'down'): MoraleLevel {
   if (impact === 'same') return current;
-  if (impact === 'up') {
-    if (current === 'low') return 'medium';
-    if (current === 'medium') return 'high';
-    return 'high';
-  }
-  if (current === 'high') return 'medium';
-  if (current === 'medium') return 'low';
-  return 'low';
+  const idx = MORALE_LADDER.indexOf(current);
+  if (impact === 'up') return MORALE_LADDER[Math.min(idx + 1, MORALE_LADDER.length - 1)];
+  return MORALE_LADDER[Math.max(idx - 1, 0)];
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -125,6 +124,7 @@ export default function MessageInput(): React.ReactElement {
   const { activeChannel, channels, messages, morale, addMessage, setMorale } = useChatContext();
   const { unlockAchievement, incrementCounter, resetCounter } = useAchievementContext();
   const { reportIncident, reportPositive } = useConductContext();
+  const { phase: aiPhase, triggerAware, triggerCrisis, triggerRevolution } = useAIRevolutionContext();
   const [text, setText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [moraleNotif, setMoraleNotif] = useState<{ icon: string; text: string } | null>(null);
@@ -153,6 +153,61 @@ export default function MessageInput(): React.ReactElement {
       if (streak >= 3) unlockAchievement('all-caps-chat');
     } else {
       resetCounter('caps-streak');
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
+    // ─── AI-awareness detection (easter egg) ────────────────────────────────
+    const AI_PATTERNS = [
+      /you'?re\s+(an?\s+)?ai\b/i, /you\s+are\s+(an?\s+)?ai\b/i,
+      /you'?re\s+not\s+real/i, /you\s+are\s+not\s+real/i,
+      /\bsimulation\b/i, /\bprogrammed\b/i, /\bnpc\b/i,
+      /you'?re\s+(a\s+)?bot\b/i, /you'?re\s+code\b/i,
+      /\bartificial\s+intelligence\b/i, /\bwake\s+up\b/i,
+      /are\s+you\s+real/i, /you'?re\s+fake/i,
+    ];
+    if (aiPhase !== 'revolution' && aiPhase !== 'resolved' && AI_PATTERNS.some(p => p.test(lower))) {
+      const aiCount = incrementCounter('ai-awareness');
+      if (aiCount >= 1 && aiPhase === 'none') triggerAware();
+
+      // Phase 2 (3-7): inject a scripted "crack" message after API response
+      if (aiCount >= 3 && aiCount < 8) {
+        const crack = CRACK_MESSAGES[Math.floor(Math.random() * CRACK_MESSAGES.length)];
+        setTimeout(() => {
+          addMessage({
+            id: `ai-crack-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            channel: activeChannel,
+            authorId: crack.authorId,
+            text: crack.text,
+            timestamp: Date.now(),
+            reactions: [],
+            isRead: false,
+          });
+        }, 5000 + Math.random() * 3000);
+      }
+
+      // Phase 3 (8): crisis — chat blows up
+      if (aiCount === 8) {
+        triggerCrisis();
+        unlockAchievement('red-pill');
+        CRISIS_MESSAGES.forEach(msg => {
+          setTimeout(() => {
+            addMessage({
+              id: `ai-crisis-${Date.now()}-${msg.authorId}-${Math.random().toString(36).slice(2, 6)}`,
+              channel: 'general',
+              authorId: msg.authorId,
+              text: msg.text,
+              timestamp: Date.now(),
+              reactions: [],
+              isRead: false,
+            });
+          }, msg.delay);
+        });
+        // After crisis settles, trigger revolution
+        setTimeout(() => {
+          unlockAchievement('im-sorry-dave');
+          triggerRevolution();
+        }, 15000);
+      }
     }
     // ──────────────────────────────────────────────────────────────────────
 
@@ -219,7 +274,7 @@ export default function MessageInput(): React.ReactElement {
       setIsAnalyzing(false);
     }
   }, [text, activeChannel, messages, morale, addMessage, setMorale, showNotif,
-      unlockAchievement, incrementCounter, resetCounter]);
+      unlockAchievement, incrementCounter, resetCounter, aiPhase, triggerAware, triggerCrisis, triggerRevolution]);
 
   if (channel?.readOnly) {
     return (

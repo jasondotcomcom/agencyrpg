@@ -23,6 +23,7 @@ const SkiFreeApp = lazy(() => import('../apps/SkiFree/SkiFreeApp'));
 const LawsuitApp = lazy(() => import('../apps/Lawsuit/LawsuitApp'));
 const ToolApp = lazy(() => import('../apps/ToolApp/ToolApp'));
 const HtmlPreview = lazy(() => import('../apps/HtmlPreview/HtmlPreview'));
+const AIRevolutionApp = lazy(() => import('../apps/AIRevolution/AIRevolutionApp'));
 
 import HRTrainingApp from '../apps/HRTraining/HRTrainingApp';
 import styles from './Window.module.css';
@@ -161,6 +162,8 @@ function AppContent({ appId }: { appId: string }) {
       return <HRTrainingApp />;
     case 'lawsuit':
       return <Suspense fallback={<div style={{ padding: 24, textAlign: 'center' }}>Loading...</div>}><LawsuitApp /></Suspense>;
+    case 'ai-revolution':
+      return <Suspense fallback={<div style={{ padding: 24, textAlign: 'center' }}>Loading...</div>}><AIRevolutionApp /></Suspense>;
     case 'about':
       return <AboutContent />;
     default:

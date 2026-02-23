@@ -52,7 +52,8 @@ type EmailAction =
   | { type: 'SET_SORT'; payload: EmailSort }
   | { type: 'SET_SEARCH'; payload: string }
   | { type: 'ADD_EMAIL'; payload: Email }
-  | { type: 'ACCEPT_BRIEF'; payload: string };
+  | { type: 'ACCEPT_BRIEF'; payload: string }
+  | { type: 'DECLINE_BRIEF'; payload: string };
 
 const savedEmails = loadEmails();
 
@@ -140,6 +141,16 @@ function emailReducer(state: EmailState, action: EmailAction): EmailState {
         ),
       };
 
+    case 'DECLINE_BRIEF':
+      return {
+        ...state,
+        emails: state.emails.map(email =>
+          email.id === action.payload
+            ? { ...email, isRead: true, declined: true }
+            : email
+        ),
+      };
+
     default:
       return state;
   }
@@ -156,6 +167,7 @@ interface EmailContextValue extends EmailState {
   setSearch: (query: string) => void;
   addEmail: (email: Email) => void;
   acceptBrief: (id: string) => void;
+  declineBrief: (id: string) => void;
   getFilteredEmails: () => Email[];
   getUnreadCount: () => number;
   getSelectedEmail: () => Email | undefined;
@@ -217,6 +229,10 @@ export function EmailProvider({ children }: { children: React.ReactNode }) {
 
   const acceptBrief = useCallback((id: string) => {
     dispatch({ type: 'ACCEPT_BRIEF', payload: id });
+  }, []);
+
+  const declineBrief = useCallback((id: string) => {
+    dispatch({ type: 'DECLINE_BRIEF', payload: id });
   }, []);
 
   const getFilteredEmails = useCallback(() => {
@@ -288,6 +304,7 @@ export function EmailProvider({ children }: { children: React.ReactNode }) {
     setSearch,
     addEmail,
     acceptBrief,
+    declineBrief,
     getFilteredEmails,
     getUnreadCount,
     getSelectedEmail,

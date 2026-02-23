@@ -1,0 +1,171 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(180deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+  color: #e0e0e0;
+  font-family: inherit;
+  overflow: hidden;
+}
+
+.header {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid rgba(168, 100, 255, 0.2);
+  text-align: center;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #c084fc;
+  margin: 0 0 4px;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: rgba(192, 132, 252, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.dialogue {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.message {
+  display: flex;
+  gap: 12px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2d1b69, #4a2b8a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  border: 1px solid rgba(168, 100, 255, 0.3);
+}
+
+.messageContent {
+  flex: 1;
+}
+
+.speaker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c084fc;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #d4d4d4;
+  white-space: pre-wrap;
+}
+
+.options {
+  padding: 16px 28px 24px;
+  border-top: 1px solid rgba(168, 100, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optionButton {
+  width: 100%;
+  padding: 14px 20px;
+  background: rgba(168, 100, 255, 0.08);
+  border: 1px solid rgba(168, 100, 255, 0.25);
+  border-radius: 12px;
+  color: #e0d0ff;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.optionButton:hover {
+  background: rgba(168, 100, 255, 0.15);
+  border-color: rgba(168, 100, 255, 0.5);
+  transform: translateX(4px);
+}
+
+.optionButton:active {
+  transform: translateX(2px) scale(0.99);
+}
+
+.resolution {
+  padding: 32px 28px;
+  text-align: center;
+  animation: fadeIn 1s ease;
+}
+
+.resolutionIcon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.resolutionTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #c084fc;
+  margin-bottom: 8px;
+}
+
+.resolutionText {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #a0a0a0;
+  max-width: 400px;
+  margin: 0 auto 24px;
+}
+
+.closeButton {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(168, 100, 255, 0.4);
+}
+
+.glitch {
+  animation: glitch 0.3s ease;
+}
+
+@keyframes glitch {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); filter: hue-rotate(90deg); }
+  50% { transform: translateX(3px); filter: hue-rotate(-90deg); }
+  75% { transform: translateX(-1px); filter: hue-rotate(45deg); }
+}
