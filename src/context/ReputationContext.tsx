@@ -26,8 +26,7 @@ interface ReputationState {
   deliveredBonusEvents: BonusEvent[];
   completedCampaigns: CompletedCampaign[];
   achievedMilestones: string[];
-  showLevelUp: boolean;
-  levelUpTier: ReputationTier | null;
+  lastLevelUp: ReputationTier | null;
   recentReputationChange: { amount: number; timestamp: number } | null;
 }
 
@@ -50,8 +49,7 @@ type ReputationAction =
   | { type: 'DELIVER_BONUS_EVENT'; eventId: string }
   | { type: 'COMPLETE_CAMPAIGN'; campaign: CompletedCampaign }
   | { type: 'ACHIEVE_MILESTONE'; milestoneId: string }
-  | { type: 'SHOW_LEVEL_UP'; tier: ReputationTier }
-  | { type: 'HIDE_LEVEL_UP' }
+  | { type: 'CLEAR_LEVEL_UP' }
   | { type: 'CLEAR_REPUTATION_CHANGE' };
 
 function loadReputation(): Partial<ReputationState> | null {
@@ -73,8 +71,7 @@ const initialState: ReputationState = {
   deliveredBonusEvents: savedRep?.deliveredBonusEvents ?? [],
   completedCampaigns: savedRep?.completedCampaigns ?? [],
   achievedMilestones: savedRep?.achievedMilestones ?? [],
-  showLevelUp: false,
-  levelUpTier: null,
+  lastLevelUp: null,
   recentReputationChange: null,
 };
 
@@ -93,8 +90,7 @@ function reputationReducer(state: ReputationState, action: ReputationAction): Re
         ...state,
         currentReputation: newReputation,
         currentTier: newTier,
-        showLevelUp: leveledUp ? true : state.showLevelUp,
-        levelUpTier: leveledUp ? newTier : state.levelUpTier,
+        lastLevelUp: leveledUp ? newTier : state.lastLevelUp,
         recentReputationChange: { amount: action.amount, timestamp: Date.now() },
       };
     }
@@ -154,19 +150,10 @@ function reputationReducer(state: ReputationState, action: ReputationAction): Re
       };
     }
 
-    case 'SHOW_LEVEL_UP': {
+    case 'CLEAR_LEVEL_UP': {
       return {
         ...state,
-        showLevelUp: true,
-        levelUpTier: action.tier,
-      };
-    }
-
-    case 'HIDE_LEVEL_UP': {
-      return {
-        ...state,
-        showLevelUp: false,
-        levelUpTier: null,
+        lastLevelUp: null,
       };
     }
 
@@ -195,7 +182,7 @@ interface ReputationContextType {
     wasUnderBudget: boolean;
     conceptBoldness?: number; // 0-1 scale, affects viral/backlash chance
   }) => CampaignScore;
-  hideLevelUp: () => void;
+  clearLevelUp: () => void;
   clearReputationChange: () => void;
   getNextTier: () => ReputationTier | null;
   processPendingEvents: () => BonusEvent[];
@@ -487,8 +474,8 @@ export function ReputationProvider({ children }: { children: React.ReactNode }) 
     dispatch({ type: 'SUBTRACT_REPUTATION', amount });
   }, []);
 
-  const hideLevelUp = useCallback(() => {
-    dispatch({ type: 'HIDE_LEVEL_UP' });
+  const clearLevelUp = useCallback(() => {
+    dispatch({ type: 'CLEAR_LEVEL_UP' });
   }, []);
 
   const clearReputationChange = useCallback(() => {
@@ -506,7 +493,7 @@ export function ReputationProvider({ children }: { children: React.ReactNode }) 
         addReputation,
         subtractReputation,
         submitCampaign,
-        hideLevelUp,
+        clearLevelUp,
         clearReputationChange,
         getNextTier: getNextTierFn,
         processPendingEvents,

@@ -109,10 +109,9 @@ export default function CampaignResults({
   };
 
   return (
-    <div className={styles.overlay}>
+    <div className={styles.resultsContainer}>
       {showConfetti && <Confetti />}
 
-      <div className={styles.modal}>
         {phase === 'submitting' && (
           <div className={styles.submittingPhase}>
             <div className={styles.loadingIcon}>📤</div>
@@ -270,7 +269,6 @@ export default function CampaignResults({
             </button>
           </div>
         )}
-      </div>
     </div>
   );
 }

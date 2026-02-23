@@ -13,8 +13,12 @@ const YETI_BASE_SPEED = 3.8;
 const YETI_ACCEL = 0.015;
 const OBSTACLE_SPAWN_RATE = 0.035;
 const FLAG_SPAWN_RATE = 0.012;
+const JUMP_SPAWN_RATE = 0.006;
 const FLAG_POINTS = 100;
+const JUMP_FLIP_BONUS = 250;
 const DISTANCE_POINTS_PER_FRAME = 1;
+const JUMP_AIRTIME = 60; // frames in air
+const FLIP_ROTATION_SPEED = Math.PI * 2 / 30; // one full rotation in 30 frames
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -34,6 +38,12 @@ interface Flag {
   x: number;
   y: number;
   collected: boolean;
+}
+
+interface JumpRamp {
+  x: number;
+  y: number;
+  hit: boolean;
 }
 
 interface Yeti {
@@ -86,7 +96,14 @@ export default function SkiFreeApp() {
     boostUsed: false,      // track if F was ever pressed (for achievement)
     obstacles: [] as Obstacle[],
     flags: [] as Flag[],
+    jumps: [] as JumpRamp[],
     yeti: null as Yeti | null,
+    airborne: false,
+    airTimer: 0,
+    flipping: false,
+    flipAngle: 0,
+    flipCount: 0,
+    landedBad: 0, // frames of slowdown from bad landing
     score: 0,
     startTime: 0,
     elapsed: 0,
@@ -138,14 +155,21 @@ export default function SkiFreeApp() {
     resizeCanvas();
     const g = gameRef.current;
     g.skierX = g.canvasW / 2;
-    g.skierY = g.canvasH * 0.2;
+    g.skierY = g.canvasH * 0.65;
     g.skierDir = 'center';
     g.skierAngle = 0;
     g.boosting = false;
     g.boostUsed = false;
     g.obstacles = [];
     g.flags = [];
+    g.jumps = [];
     g.yeti = null;
+    g.airborne = false;
+    g.airTimer = 0;
+    g.flipping = false;
+    g.flipAngle = 0;
+    g.flipCount = 0;
+    g.landedBad = 0;
     g.score = 0;
     g.startTime = performance.now();
     g.elapsed = 0;
@@ -191,6 +215,14 @@ export default function SkiFreeApp() {
       x: Math.random() * (g.canvasW - 40) + 20,
       y: g.canvasH + 20,
       collected: false,
+    });
+  }, []);
+
+  const spawnJump = useCallback((g: typeof gameRef.current) => {
+    g.jumps.push({
+      x: Math.random() * (g.canvasW - 80) + 40,
+      y: g.canvasH + 20,
+      hit: false,
     });
   }, []);
 
@@ -244,43 +276,110 @@ export default function SkiFreeApp() {
       unlockAchievement('f-to-go-fast');
     }
 
+    // Flip input (spacebar or up arrow while airborne)
+    const flipPressed = keys.has(' ') || keys.has('ArrowUp');
+    if (flipPressed && g.airborne && !g.flipping) {
+      g.flipping = true;
+      g.flipAngle = 0;
+    }
+
     // Direction
     const newDir: SkierDir = movingLeft ? 'left' : movingRight ? 'right' : 'center';
 
     // Detect direction change for spray
-    if (newDir !== g.prevDir && newDir !== 'center' && g.prevDir !== 'center') {
+    if (newDir !== g.prevDir && newDir !== 'center' && g.prevDir !== 'center' && !g.airborne) {
       emitSpray(g, newDir === 'left' ? 'right' : 'left');
     }
     g.prevDir = newDir;
     g.skierDir = newDir;
 
-    // Smooth angle interpolation
-    const targetAngle = newDir === 'left' ? -0.25 : newDir === 'right' ? 0.25 : 0;
-    g.skierAngle += (targetAngle - g.skierAngle) * 0.2;
+    // Smooth angle interpolation (only when grounded)
+    if (!g.airborne) {
+      const targetAngle = newDir === 'left' ? -0.25 : newDir === 'right' ? 0.25 : 0;
+      g.skierAngle += (targetAngle - g.skierAngle) * 0.2;
+    }
+
+    // Bad landing slowdown decay
+    if (g.landedBad > 0) g.landedBad--;
 
     // Movement
-    const moveSpeed = isBoosting ? SKIER_SPEED * 1.5 : SKIER_SPEED;
+    const landingPenalty = g.landedBad > 0 ? 0.4 : 1;
+    const moveSpeed = (isBoosting ? SKIER_SPEED * 1.5 : SKIER_SPEED) * landingPenalty;
     if (movingLeft) g.skierX -= moveSpeed;
     if (movingRight) g.skierX += moveSpeed;
     g.skierX = Math.max(16, Math.min(g.canvasW - 16, g.skierX));
 
     // ── Scroll speed
     const baseSpeed = SCROLL_SPEED + g.elapsed * 0.02;
-    const speed = isBoosting ? baseSpeed * BOOST_MULTIPLIER : baseSpeed;
+    const speed = (isBoosting ? baseSpeed * BOOST_MULTIPLIER : baseSpeed) * landingPenalty;
 
     // ── Spawn
     if (Math.random() < OBSTACLE_SPAWN_RATE) spawnObstacle(g);
     if (Math.random() < FLAG_SPAWN_RATE) spawnFlag(g);
+    if (Math.random() < JUMP_SPAWN_RATE) spawnJump(g);
 
-    // ── Move obstacles/flags
+    // ── Move obstacles/flags/jumps
     for (const obs of g.obstacles) obs.y -= speed;
     for (const flag of g.flags) { if (!flag.collected) flag.y -= speed; }
+    for (const jump of g.jumps) jump.y -= speed;
     g.obstacles = g.obstacles.filter(o => o.y > -40);
     g.flags = g.flags.filter(f => f.y > -40 || f.collected);
+    g.jumps = g.jumps.filter(j => j.y > -40);
 
-    // ── Ski tracks
+    // ── Skier hitbox (used for all collision checks)
+    const skierW = 24;
+    const skierH = 28;
+    const sx = g.skierX - skierW / 2;
+    const sy = g.skierY - skierH / 2;
+
+    // ── Airborne state (from jumps)
+    if (g.airborne) {
+      g.airTimer++;
+      if (g.flipping) {
+        g.flipAngle += FLIP_ROTATION_SPEED;
+        if (g.flipAngle >= Math.PI * 2) {
+          g.flipAngle = 0;
+          g.flipping = false;
+          g.flipCount++;
+        }
+      }
+      if (g.airTimer >= JUMP_AIRTIME) {
+        // Landing
+        g.airborne = false;
+        if (g.flipping) {
+          // Bad landing — was mid-flip when landing
+          g.landedBad = 90; // ~1.5 seconds of slowdown
+          g.flipping = false;
+          g.flipAngle = 0;
+        } else if (g.flipCount > 0) {
+          // Clean landing with completed flips — bonus!
+          g.score += JUMP_FLIP_BONUS * g.flipCount;
+        }
+        g.flipCount = 0;
+        g.airTimer = 0;
+      }
+    }
+
+    // ── Jump ramp collision (only when grounded)
+    if (!g.airborne) {
+      for (const jump of g.jumps) {
+        if (jump.hit) continue;
+        const jx = jump.x - 20;
+        const jy = jump.y - 10;
+        if (rectsOverlap(sx, sy, skierW, skierH, jx, jy, 40, 20)) {
+          jump.hit = true;
+          g.airborne = true;
+          g.airTimer = 0;
+          g.flipAngle = 0;
+          g.flipping = false;
+          g.flipCount = 0;
+        }
+      }
+    }
+
+    // ── Ski tracks (no tracks when airborne)
     g.trackTimer++;
-    if (g.trackTimer >= 3) {
+    if (g.trackTimer >= 3 && !g.airborne) {
       g.trackTimer = 0;
       g.tracks.push({ x: g.skierX, y: g.skierY + 14, dir: g.skierDir, age: 0 });
     }
@@ -316,13 +415,8 @@ export default function SkiFreeApp() {
     }
     g.speedLines = g.speedLines.filter(sl => sl.alpha > 0 && sl.y + sl.len > -10);
 
-    // ── Collision: skier vs obstacles
-    const skierW = 24;
-    const skierH = 28;
-    const sx = g.skierX - skierW / 2;
-    const sy = g.skierY - skierH / 2;
-
-    for (const obs of g.obstacles) {
+    // ── Collision: skier vs obstacles (skip when airborne — you fly over them)
+    if (!g.airborne) for (const obs of g.obstacles) {
       const ox = obs.x - obs.width / 2;
       const oy = obs.y - obs.height / 2;
       if (rectsOverlap(sx + 4, sy + 4, skierW - 8, skierH - 8, ox + 4, oy + 4, obs.width - 8, obs.height - 8)) {
@@ -367,16 +461,18 @@ export default function SkiFreeApp() {
 
       g.yeti.speed += YETI_ACCEL;
 
-      // When boosting, yeti can't keep up — effective chase speed is reduced
-      const effectiveYetiSpeed = isBoosting ? g.yeti.speed * 0.6 : g.yeti.speed;
+      // When boosting, yeti can't keep up — player pulls away
+      // Cap yeti speed so it doesn't become truly impossible over time
+      const cappedYetiSpeed = Math.min(g.yeti.speed, 6);
+      const effectiveYetiSpeed = isBoosting ? cappedYetiSpeed * 0.45 : cappedYetiSpeed;
 
       if (dist > 0) {
         g.yeti.x += (dx / dist) * effectiveYetiSpeed;
         g.yeti.y += (dy / dist) * effectiveYetiSpeed;
       }
 
-      // Yeti also scrolls up with the world
-      g.yeti.y -= speed * 0.3;
+      // Yeti also scrolls up with the world (faster when boosting = yeti falls behind)
+      g.yeti.y -= speed * 0.5;
 
       if (dist < 20) {
         g.yeti.eating = true;
@@ -515,7 +611,33 @@ export default function SkiFreeApp() {
       }
     }
 
-    // ── Skier (with directional lean)
+    // ── Jump ramps
+    for (const jump of g.jumps) {
+      if (!jump.hit) {
+        ctx.save();
+        ctx.fillStyle = '#8B6F47';
+        // Draw ramp shape (wedge)
+        ctx.beginPath();
+        ctx.moveTo(jump.x - 18, jump.y + 6);
+        ctx.lineTo(jump.x + 18, jump.y + 6);
+        ctx.lineTo(jump.x + 12, jump.y - 6);
+        ctx.lineTo(jump.x - 12, jump.y - 6);
+        ctx.closePath();
+        ctx.fill();
+        // Snow on top of ramp
+        ctx.fillStyle = '#E8F0FE';
+        ctx.beginPath();
+        ctx.moveTo(jump.x - 14, jump.y - 5);
+        ctx.lineTo(jump.x + 14, jump.y - 5);
+        ctx.lineTo(jump.x + 12, jump.y - 8);
+        ctx.lineTo(jump.x - 12, jump.y - 8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // ── Skier (with directional lean / airborne animation)
     if (g.skierVisible) {
       let skierAlpha = 1;
       if (g.yeti && g.yeti.eating) {
@@ -523,8 +645,29 @@ export default function SkiFreeApp() {
       }
       ctx.save();
       ctx.globalAlpha = skierAlpha;
-      ctx.translate(g.skierX, g.skierY);
-      ctx.rotate(g.skierAngle);
+
+      // Airborne: rise and fall arc + shadow below
+      const airProgress = g.airborne ? g.airTimer / JUMP_AIRTIME : 0;
+      const airHeight = g.airborne ? Math.sin(airProgress * Math.PI) * 40 : 0;
+
+      if (g.airborne) {
+        // Shadow on ground
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.ellipse(g.skierX, g.skierY + 8, 10 - airHeight * 0.1, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = skierAlpha;
+      }
+
+      ctx.translate(g.skierX, g.skierY - airHeight);
+
+      if (g.airborne && g.flipping) {
+        // Flip rotation
+        ctx.rotate(g.flipAngle);
+      } else {
+        ctx.rotate(g.skierAngle);
+      }
 
       // Boost glow effect
       if (isBoosting) {
@@ -537,6 +680,18 @@ export default function SkiFreeApp() {
       ctx.textBaseline = 'middle';
       ctx.fillText('⛷️', 0, 0);
       ctx.restore();
+
+      // ── Airborne HUD text
+      if (g.airborne) {
+        ctx.save();
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = g.flipping ? '#FFD700' : '#4A90D9';
+        ctx.globalAlpha = 0.9;
+        const label = g.flipping ? '🔄 FLIP!' : (g.flipCount > 0 ? `✓ ${g.flipCount} FLIP${g.flipCount > 1 ? 'S' : ''}` : '↑ JUMP!');
+        ctx.fillText(label, g.skierX, g.skierY - airHeight - 24);
+        ctx.restore();
+      }
     }
 
     // ── Yeti
@@ -572,13 +727,13 @@ export default function SkiFreeApp() {
     }
 
     rafRef.current = requestAnimationFrame(gameLoop);
-  }, [spawnObstacle, spawnFlag, unlockAchievement, emitSpray]);
+  }, [spawnObstacle, spawnFlag, spawnJump, unlockAchievement, emitSpray]);
 
   // ── Key handlers ────────────────────────────────────────────────────────
 
   useEffect(() => {
     const handleDown = (e: KeyboardEvent) => {
-      if (['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D', 'f', 'F'].includes(e.key)) {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', ' ', 'a', 'A', 'd', 'D', 'f', 'F'].includes(e.key)) {
         e.preventDefault();
         keysRef.current.add(e.key);
       }
@@ -646,7 +801,7 @@ export default function SkiFreeApp() {
           <button className={styles.button} onClick={startGame} autoFocus>
             START
           </button>
-          <span className={styles.controls}>Arrow Keys / A,D to move</span>
+          <span className={styles.controls}>Arrow Keys / A,D to move · Space to flip on jumps</span>
         </div>
       )}
 
@@ -660,7 +815,7 @@ export default function SkiFreeApp() {
           <button className={styles.button} onClick={startGame} autoFocus>
             PLAY AGAIN
           </button>
-          <span className={styles.controls}>Arrow Keys / A,D to move</span>
+          <span className={styles.controls}>Arrow Keys / A,D to move · Space to flip on jumps</span>
         </div>
       )}
     </div>

@@ -178,6 +178,8 @@ export function getCampaignEventMessages(
       return getNewBriefArrivedMessages(context, morale);
     case 'AWARD_WON':
       return getAwardWonMessages(context, morale);
+    case 'LEVEL_UP':
+      return getLevelUpMessages(context, morale);
     default:
       return [];
   }
@@ -715,4 +717,41 @@ function getAwardWonMessages(ctx: ChatEventContext, morale: MoraleLevel): Messag
   }
 
   return messages;
+}
+
+// ─── LEVEL_UP ──────────────────────────────────────────────────────────────────
+
+function getLevelUpMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
+  const tier = ctx.tierName ?? 'a new level';
+
+  const pmText = {
+    high: `We just hit ${tier}! 🎉 This team is UNSTOPPABLE. Drinks on me tonight.`,
+    medium: `Agency just leveled up to ${tier}. Nice work, everyone. We earned this.`,
+    low: `We made it to ${tier}. Progress is progress. Let's keep building.`,
+  };
+
+  const suitText = {
+    high: `${tier}! New clients, bigger budgets, more prestige. This is what we've been working toward. 🚀`,
+    medium: `${tier} — that opens some doors. I've already got a few prospects in mind.`,
+    low: `${tier}. Good. We needed some good news around here.`,
+  };
+
+  const copywriterText = {
+    high: `${tier}?! I need to update my portfolio bio IMMEDIATELY. This is big. ✨`,
+    medium: `${tier}. Not bad. Someone should update the website copy. *looks in mirror*`,
+    low: `Cool. ${tier}. I'll add it to the list of things I tell people at parties.`,
+  };
+
+  const techText = {
+    high: `${tier}! I'm going to build a dashboard to track our growth trajectory 📈`,
+    medium: `Nice milestone. ${tier} unlocks some interesting possibilities.`,
+    low: `${tier}. Steady progress. That's how it works.`,
+  };
+
+  return [
+    { channel: 'general', authorId: 'pm', text: pmText[morale] },
+    { channel: 'general', authorId: 'suit', text: suitText[morale] },
+    { channel: 'general', authorId: 'copywriter', text: copywriterText[morale] },
+    { channel: 'general', authorId: 'technologist', text: techText[morale] },
+  ];
 }

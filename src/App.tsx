@@ -17,7 +17,6 @@ import { Desktop } from './components/Desktop';
 import { WindowManager } from './components/WindowManager';
 import { Taskbar } from './components/Taskbar';
 import { NotificationContainer } from './components/Notifications';
-import LevelUpModal from './components/LevelUp/LevelUpModal';
 import EndingSequence, { loadLegacy } from './components/Ending/EndingSequence';
 import HRWatcher from './components/HRWatcher/HRWatcher';
 import CheatIndicator from './components/CheatIndicator/CheatIndicator';
@@ -73,7 +72,7 @@ function MobileBlock() {
 
 function AppContent() {
   const { addNotification } = useWindowContext();
-  const { state: repState, hideLevelUp } = useReputationContext();
+  const { state: repState, clearLevelUp } = useReputationContext();
   const { campaigns } = useCampaignContext();
   const { addEmail } = useEmailContext();
   const { triggerCampaignEvent, morale, addMessage } = useChatContext();
@@ -120,6 +119,49 @@ function AppContent() {
   useEffect(() => {
     if (morale === 'high') unlockAchievement('morale-max');
   }, [morale, unlockAchievement]);
+
+  // Level-up: fire notification, email, and chat messages (replaces LevelUpModal)
+  useEffect(() => {
+    const tier = repState.lastLevelUp;
+    if (!tier) return;
+
+    // OS notification
+    addNotification(
+      '🎉 Agency Level Up!',
+      `You've reached ${tier.name}!`
+    );
+
+    // Summary email with tier info and unlocks
+    addEmail({
+      id: `level-up-${tier.id}-${Date.now()}`,
+      type: 'reputation_bonus',
+      from: {
+        name: 'Agency System',
+        email: 'system@agency.internal',
+        avatar: '🏆',
+      },
+      subject: `Agency Level Up: ${tier.name}`,
+      body: `Congratulations!\n\nYour agency has reached a new reputation tier:\n\n${tier.name}\n"${tier.description}"\n\nUnlocked:\n${tier.unlocks.map(u => `  ✓ ${u}`).join('\n')}\n\nKeep up the great work!`,
+      timestamp: new Date(),
+      isRead: false,
+      isStarred: false,
+      isDeleted: false,
+      reputationBonus: {
+        eventType: 'level_up',
+        reputationChange: 0,
+      },
+    });
+
+    // Team celebrates in chat
+    triggerCampaignEvent('LEVEL_UP', {
+      clientName: 'Agency',
+      tierName: tier.name,
+      tierDescription: tier.description,
+    });
+
+    // Clear so it doesn't re-fire
+    clearLevelUp();
+  }, [repState.lastLevelUp, addNotification, addEmail, triggerCampaignEvent, clearLevelUp]);
 
   // Show welcome notification once the player has a name (NG+-aware)
   // First playthrough: deliver Brewed Awakenings brief after a short delay (replaces generic welcome)
@@ -368,13 +410,6 @@ function AppContent() {
           <WindowManager />
           <Taskbar />
       <NotificationContainer />
-      {repState.showLevelUp && repState.levelUpTier && (
-        <LevelUpModal
-          tier={repState.levelUpTier}
-          reputation={repState.currentReputation}
-          onClose={hideLevelUp}
-        />
-      )}
       <EndingSequence />
       <HRWatcher />
       <CheatIndicator />

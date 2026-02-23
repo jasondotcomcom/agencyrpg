@@ -4,7 +4,7 @@ import { useWindowContext } from '../../../context/WindowContext';
 import { useReputationContext } from '../../../context/ReputationContext';
 import { useEmailContext } from '../../../context/EmailContext';
 import type { CampaignScore } from '../../../types/reputation';
-import { DELIVERABLE_TYPES } from '../../../types/campaign';
+import { DELIVERABLE_TYPES, formatBudget } from '../../../types/campaign';
 import { useAgencyFunds } from '../../../context/AgencyFundsContext';
 import { useChatContext } from '../../../context/ChatContext';
 import CampaignHeader from './CampaignHeader';
@@ -284,6 +284,23 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
       'Campaign Complete! 🎊',
       `"${campaign.campaignName}" scored ${score.total}/100!`
     );
+
+    // Send client feedback email with results summary
+    addEmail({
+      id: `results-${campaignId}-${Date.now()}`,
+      type: 'client_response',
+      from: {
+        name: campaign.clientName,
+        email: `contact@${campaign.clientName.toLowerCase().replace(/\s+/g, '')}.com`,
+        avatar: '📊',
+      },
+      subject: `RE: ${campaign.campaignName}`,
+      body: `Hi team,\n\nJust wanted to follow up on the campaign.\n\nScore: ${score.total}/100 — ${score.tier === 'exceptional' ? 'EXCEPTIONAL' : score.tier === 'great' ? 'GREAT WORK' : score.tier === 'solid' ? 'SOLID' : 'NEEDS IMPROVEMENT'}\n\n"${score.feedback}"\n\n— Campaign Economics —\nAgency Fee: ${formatBudget(campaign.teamFee)}\nProduction Spent: ${formatBudget(campaign.productionSpent)}\n${wasUnderBudget ? `Under budget by ${formatBudget(campaign.productionBudget - campaign.productionSpent)} 👏` : campaign.productionSpent > campaign.productionBudget ? `Over budget by ${formatBudget(campaign.productionSpent - campaign.productionBudget)}` : 'Right on budget'}\n\nThanks for the great work.\n\nBest,\n${campaign.clientName}`,
+      timestamp: new Date(),
+      isRead: false,
+      isStarred: false,
+      isDeleted: false,
+    });
 
     // Fire awards with staggered delays
     const delTypes = campaign.deliverables.map(d => DELIVERABLE_TYPES[d.type]?.label).filter(Boolean);

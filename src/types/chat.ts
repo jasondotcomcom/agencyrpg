@@ -44,7 +44,8 @@ export type ChatCampaignEvent =
   | 'AWARD_WON'
   | 'HR_WARNING'
   | 'TEAM_COMPLAINT'
-  | 'CONDUCT_POSITIVE';
+  | 'CONDUCT_POSITIVE'
+  | 'LEVEL_UP';
 
 export interface ChatEventContext {
   campaignName?: string;
@@ -56,6 +57,8 @@ export interface ChatEventContext {
   conceptTagline?: string;
   deliverableTypes?: string[];
   deliverableDescriptions?: string[];
+  tierName?: string;
+  tierDescription?: string;
 }
 
 // ─── Message Template (used by chatMessages.ts) ──────────────────────────────

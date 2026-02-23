@@ -117,6 +117,8 @@ const WHERE_ARE_THEY: Array<{
 ];
 
 // ─── TeamReactionsPhase ───────────────────────────────────────────────────────
+// Routes team reactions through the real Chat app (same pattern as HostileChatPhase).
+// Desktop stays visible — a subtle vignette signals the cinematic moment.
 
 function TeamReactionsPhase({
   endingType, onComplete,
@@ -124,64 +126,69 @@ function TeamReactionsPhase({
   const messages = endingType === 'forced_resignation'
     ? FORCED_RESIGNATION_REACTIONS
     : endingType === 'hostile' ? HOSTILE_REACTIONS : VOLUNTARY_REACTIONS;
-  const [visibleCount, setVisibleCount] = useState(0);
-  const [done, setDone] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const { addMessage, setActiveChannel, setTypingAuthorId } = useChatContext();
+  const { focusOrOpenWindow } = useWindowContext();
+  const [allDone, setAllDone] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
-    if (visibleCount >= messages.length) {
-      const timer = setTimeout(() => {
-        setDone(true);
-        const t2 = setTimeout(onComplete, 3000);
-        return () => clearTimeout(t2);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
+    // Open / bring the Chat window to front, switch to #general
+    focusOrOpenWindow('chat', 'Chat');
+    setActiveChannel('general');
 
-    const delay = visibleCount === 0 ? 800 : 1800 + Math.random() * 1200;
-    const timer = setTimeout(() => {
-      setVisibleCount(v => v + 1);
-    }, delay);
-    return () => clearTimeout(timer);
-  }, [visibleCount, messages.length, onComplete]);
+    let t = 1200;
+    messages.forEach((msg, i) => {
+      // Show typing indicator for this author
+      const typingStart = t;
+      timersRef.current.push(setTimeout(() => setTypingAuthorId(msg.authorId), typingStart));
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [visibleCount]);
+      // Clear indicator and send the message
+      t += 1200 + Math.random() * 800;
+      const sendAt = t;
+      timersRef.current.push(setTimeout(() => {
+        setTypingAuthorId(null);
+        addMessage({
+          id: `team-react-${Date.now()}-${i}`,
+          channel: 'general',
+          authorId: msg.authorId,
+          text: msg.text,
+          timestamp: Date.now(),
+          reactions: [],
+          isRead: false,
+        });
+      }, sendAt));
+
+      t += 300 + Math.random() * 300;
+    });
+
+    // Reveal "Continue" button after all messages
+    timersRef.current.push(setTimeout(() => {
+      setTypingAuthorId(null);
+      setAllDone(true);
+    }, t + 1000));
+
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+      setTypingAuthorId(null);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleContinue = () => {
+    setTransitioning(true);
+    // Brief fade-to-black, then advance to the ending screen
+    setTimeout(onComplete, 800);
+  };
 
   return (
-    <div className={styles.phaseContainer}>
-      <div className={styles.chatScene}>
-        <div className={styles.chatHeader}>
-          <span className={styles.chatHash}>#</span>
-          <span className={styles.chatChannelName}>general</span>
+    <div className={`${styles.hostileVignette} ${transitioning ? styles.hostileVignetteOut : ''}`}>
+      {allDone && !transitioning && (
+        <div className={styles.hostileContinueOverlay}>
+          <button className={styles.hostileContinueBtn} onClick={handleContinue}>
+            Continue →
+          </button>
         </div>
-        <div className={styles.chatMessages} role="log" aria-live="polite" aria-label="Team reactions">
-          {messages.slice(0, visibleCount).map((msg, i) => {
-            const member = TEAM_MEMBERS[msg.authorId] || { name: msg.authorId, avatar: '👤', role: '' };
-            return (
-              <div key={i} className={`${styles.chatMsg} ${styles.fadeInUp}`} aria-label={`${member.name}: ${msg.text}`}>
-                <span className={styles.chatAvatar} aria-hidden="true">{member.avatar}</span>
-                <div className={styles.chatBubble}>
-                  <span className={styles.chatName}>{member.name}</span>
-                  <span className={styles.chatText}>{msg.text}</span>
-                </div>
-              </div>
-            );
-          })}
-          {!done && visibleCount < messages.length && (
-            <div className={styles.typingIndicator}>
-              <span className={styles.typingDot} />
-              <span className={styles.typingDot} />
-              <span className={styles.typingDot} />
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-        {done && (
-          <div className={styles.fadingOut} />
-        )}
-      </div>
+      )}
     </div>
   );
 }
@@ -676,16 +683,16 @@ export default function EndingSequence(): React.ReactElement | null {
 
   if (!isEnding || !currentPhase) return null;
 
-  // hostile_chat renders without the dark overlay — game UI stays visible
+  // team_reactions and hostile_chat render without the dark overlay — game UI stays visible
+  if (currentPhase === 'team_reactions') {
+    return <TeamReactionsPhase endingType={endingType} onComplete={advancePhase} />;
+  }
   if (currentPhase === 'hostile_chat') {
     return <HostileChatPhase onComplete={advancePhase} />;
   }
 
   return (
     <div className={styles.overlay}>
-      {currentPhase === 'team_reactions' && (
-        <TeamReactionsPhase endingType={endingType} onComplete={advancePhase} />
-      )}
       {currentPhase === 'fade' && (
         <FadePhase onComplete={advancePhase} />
       )}
