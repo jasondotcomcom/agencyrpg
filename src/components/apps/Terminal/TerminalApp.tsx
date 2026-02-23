@@ -1134,24 +1134,24 @@ Human Resources
       addEmail(hrEmail);
       addNotification('📧 HR Email!', '⚠️ Mandatory Meeting RE: Holiday Party Footage');
 
-      // Step 4: Quick team panic in chat
+      // Step 4: Quick team panic in chat — fast, punchy, cause-and-effect
       const hotCoffeeChat = [
-        { authorId: 'pm',           text: '...',                                                                            delay: 1000 },
-        { authorId: 'pm',           text: 'Did someone just access the holiday party folder?',                              delay: 2500 },
-        { authorId: 'art-director', text: 'THE WHAT',                                                                      delay: 4000 },
-        { authorId: 'copywriter',   text: 'oh no oh no oh no',                                                             delay: 5500 },
-        { authorId: 'suit',         text: "HR just sent an email. We're all dead.",                                        delay: 7000 },
-        { authorId: 'technologist', text: 'I have no memory of that photocopier.',                                        delay: 9000 },
+        { authorId: 'pm',           text: '...',                                                                            delay: 500 },
+        { authorId: 'pm',           text: 'Did someone just access the holiday party folder?',                              delay: 1200 },
+        { authorId: 'art-director', text: 'THE WHAT',                                                                      delay: 2000 },
+        { authorId: 'copywriter',   text: 'oh no oh no oh no',                                                             delay: 2800 },
+        { authorId: 'suit',         text: "HR just sent an email. We're all dead.",                                        delay: 3500 },
+        { authorId: 'technologist', text: 'I have no memory of that photocopier.',                                        delay: 4200 },
       ];
 
       // Step 5: Pat joins and escalates to legal
       const patChat = [
-        { authorId: 'hr',           text: 'Hello everyone.',                                                               delay: 12000 },
-        { authorId: 'strategist',   text: 'Oh god.',                                                                      delay: 14000 },
-        { authorId: 'hr',           text: "I'll be joining your team communications going forward. For compliance purposes.", delay: 16000 },
-        { authorId: 'hr',           text: "Also — legal has been notified. You'll want to prepare your defense.",          delay: 19000 },
-        { authorId: 'copywriter',   text: 'DEFENSE?!',                                                                    delay: 21000 },
-        { authorId: 'hr',           text: 'A lawsuit has been filed. Good luck. 📋',                                      delay: 23000 },
+        { authorId: 'hr',           text: 'Hello everyone.',                                                               delay: 5500 },
+        { authorId: 'strategist',   text: 'Oh god.',                                                                      delay: 6500 },
+        { authorId: 'hr',           text: "I'll be joining your team communications going forward. For compliance purposes.", delay: 7500 },
+        { authorId: 'hr',           text: "Also — legal has been notified. You'll want to prepare your defense.",          delay: 8800 },
+        { authorId: 'copywriter',   text: 'DEFENSE?!',                                                                    delay: 9500 },
+        { authorId: 'hr',           text: 'A lawsuit has been filed. Good luck. 📋',                                      delay: 10500 },
       ];
 
       [...hotCoffeeChat, ...patChat].forEach(({ authorId, text, delay }) => {
@@ -1168,15 +1168,15 @@ Human Resources
         }, delay);
       });
 
-      // Step 6: Legal notice + deduct retainer + launch lawsuit game
+      // Step 6: Legal notice + deduct retainer + launch lawsuit game — hits fast
       setTimeout(() => {
         deductFunds(50000, 'Legal retainer fees');
         addNotification('⚖️ Legal Notice', 'A lawsuit has been filed! Prepare your defense.');
-      }, 25000);
+      }, 11000);
 
       setTimeout(() => {
         focusOrOpenWindow('lawsuit', 'Lawsuit Defense');
-      }, 28000);
+      }, 13000);
 
       // Step 7: Add redacted portfolio campaign
       setTimeout(() => {

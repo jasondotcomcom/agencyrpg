@@ -303,21 +303,21 @@ export function ConductProvider({ children }: { children: React.ReactNode }) {
       }
 
       case 6: {
-        // Lawsuit
-        warningSet?.messages.forEach((msg, i) => addChatMsg(msg.authorId, msg.text, 1000 + i * 2500));
+        // Lawsuit — consequences hit fast
+        warningSet?.messages.forEach((msg, i) => addChatMsg(msg.authorId, msg.text, 500 + i * 1200));
         const legalTimer = setTimeout(() => {
           addEmail(getLegalNoticeEmail());
           deductFunds(50000, 'Legal retainer fees');
           addNotification('⚖️ Legal Notice', 'A lawsuit has been filed. Check inbox immediately.');
           timersRef.current.delete(legalTimer);
-        }, 6000);
+        }, 3000);
         timersRef.current.add(legalTimer);
-        // Open lawsuit mini-game after player has time to read
+        // Open lawsuit mini-game shortly after
         const gameTimer = setTimeout(() => {
           dispatch({ type: 'INCREMENT_LAWSUIT_PLAYED' });
           focusOrOpenWindow('lawsuit', 'Lawsuit Defense');
           timersRef.current.delete(gameTimer);
-        }, 15000);
+        }, 5000);
         timersRef.current.add(gameTimer);
         break;
       }

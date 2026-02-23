@@ -57,7 +57,7 @@ interface MissEffect {
 
 // ─── Game Types ─────────────────────────────────────────────────────────────
 
-type PlayerPosition = 'left' | 'right';
+type PlayerPosition = 'left' | 'middle' | 'right';
 
 interface Threat {
   id: number;
@@ -78,7 +78,7 @@ interface GameState {
   misses: number;
   totalSmashed: number;
   threats: Threat[];
-  playerPos: PlayerPosition;  // left = covers lanes 0,1,2  |  right = covers lanes 2,3,4
+  playerPos: PlayerPosition;  // left | middle | right — one step per arrow press
   nextId: number;
   spawnCooldown: number;
   settlementSpawned: boolean;
@@ -101,10 +101,16 @@ function getLaneX(lane: number, w: number): number {
 }
 
 function coveredLanes(pos: PlayerPosition): number[] {
-  // Each position = 2 gavels (one per hand). Player body doesn't block.
-  // Left: gavels cover lanes 0,1 — Right: gavels cover lanes 3,4
-  // Lane 2 (center) is the gap — never covered by either position.
-  return pos === 'left' ? [0, 1] : [3, 4];
+  // Each position = 2 gavels (one per hand), spaced 2 lanes apart.
+  // Player moves one position at a time across 3 stops:
+  //   Left:   gavels on lanes 0, 2
+  //   Middle: gavels on lanes 1, 3
+  //   Right:  gavels on lanes 2, 4
+  switch (pos) {
+    case 'left':   return [0, 2];
+    case 'middle': return [1, 3];
+    case 'right':  return [2, 4];
+  }
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -121,7 +127,7 @@ export default function LawsuitApp(): React.ReactElement {
     misses: 0,
     totalSmashed: 0,
     threats: [],
-    playerPos: 'left',
+    playerPos: 'middle',
     nextId: 0,
     spawnCooldown: 80,
     settlementSpawned: false,
@@ -234,10 +240,12 @@ export default function LawsuitApp(): React.ReactElement {
     const rightPressed = (keys.has('arrowright') || keys.has('d')) && !(prev.has('arrowright') || prev.has('d'));
     prevKeysRef.current = new Set(keys);
 
-    if (leftPressed && game.playerPos !== 'left') {
-      game.playerPos = 'left';
-    } else if (rightPressed && game.playerPos !== 'right') {
-      game.playerPos = 'right';
+    if (leftPressed) {
+      if (game.playerPos === 'right') game.playerPos = 'middle';
+      else if (game.playerPos === 'middle') game.playerPos = 'left';
+    } else if (rightPressed) {
+      if (game.playerPos === 'left') game.playerPos = 'middle';
+      else if (game.playerPos === 'middle') game.playerPos = 'right';
     }
 
     // ── Spawn threats — slow and deliberate start, frantic finish ──
@@ -535,6 +543,7 @@ export default function LawsuitApp(): React.ReactElement {
     }
 
     // ── Draw player character (above the gavel line, between the two gavels) ──
+    ctx.globalAlpha = 1;
     const covLanes = coveredLanes(game.playerPos);
     // Player body sits between the two gavel lanes
     const playerCenterX = (getLaneX(covLanes[0], w) + getLaneX(covLanes[1], w)) / 2;
@@ -579,6 +588,7 @@ export default function LawsuitApp(): React.ReactElement {
       }
 
       ctx.save();
+      ctx.globalAlpha = 1;
       ctx.translate(hx, hammerY);
       ctx.rotate(angle);
       ctx.scale(scale, scale);
@@ -658,7 +668,7 @@ export default function LawsuitApp(): React.ReactElement {
     game.misses = 0;
     game.totalSmashed = 0;
     game.threats = [];
-    game.playerPos = 'left';
+    game.playerPos = 'middle';
     game.nextId = 0;
     game.spawnCooldown = 40; // First threat after ~0.7s — gives player a beat to orient
     game.settlementSpawned = false;
@@ -793,9 +803,7 @@ export default function LawsuitApp(): React.ReactElement {
             Miss {MAX_MISSES} and you lose. Survive {GAME_DURATION} seconds to win.
           </div>
           <div className={styles.controls}>
-            <span className={styles.controlKey}>←</span> Cover lanes 1-2
-            &nbsp;&nbsp;
-            <span className={styles.controlKey}>→</span> Cover lanes 4-5
+            <span className={styles.controlKey}>←</span> / <span className={styles.controlKey}>→</span> Move between 3 positions
           </div>
           <button className={styles.startButton} onClick={startGame}>
             Begin Defense
