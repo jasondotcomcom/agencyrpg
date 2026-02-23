@@ -9,6 +9,7 @@ import { AgencyFundsProvider } from './context/AgencyFundsContext';
 import { PortfolioProvider } from './context/PortfolioContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { EndingProvider } from './context/EndingContext';
+import { ConductProvider } from './context/ConductContext';
 import { CheatProvider } from './context/CheatContext';
 import { AchievementProvider } from './context/AchievementContext';
 import { PlayerProvider, usePlayerContext } from './context/PlayerContext';
@@ -277,7 +278,9 @@ function App() {
                     <AgencyFundsProvider>
                       <PortfolioProvider>
                         <EndingProvider>
-                          <AppContent />
+                          <ConductProvider>
+                            <AppContent />
+                          </ConductProvider>
                         </EndingProvider>
                       </PortfolioProvider>
                     </AgencyFundsProvider>

@@ -15,7 +15,7 @@ export type AcquisitionState =
   | 'hostile_email_sent' // Hostile takeover email is in inbox
   | 'ending';            // Ending sequence is active
 
-export type EndingType = 'voluntary' | 'hostile' | 'credits_only';
+export type EndingType = 'voluntary' | 'hostile' | 'credits_only' | 'forced_resignation';
 
 export type EndingPhase =
   | 'hostile_chat'
@@ -30,6 +30,7 @@ const PHASE_SEQUENCES: Record<EndingType, EndingPhase[]> = {
   voluntary:    ['team_reactions', 'fade', 'where_are_they', 'portfolio', 'credits', 'post_credits'],
   hostile:      ['hostile_chat', 'where_are_they', 'portfolio', 'credits', 'post_credits'],
   credits_only: ['credits', 'post_credits'],
+  forced_resignation: ['team_reactions', 'fade', 'where_are_they', 'credits', 'post_credits'],
 };
 
 interface EndingState {

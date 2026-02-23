@@ -17,6 +17,7 @@ interface AgencyFundsState {
 
 type AgencyFundsAction =
   | { type: 'ADD_PROFIT'; payload: CampaignProfit }
+  | { type: 'DEDUCT_FUNDS'; payload: { amount: number; reason: string } }
   | { type: 'CLEAR_CHANGE' };
 
 const STORAGE_KEY = 'agencyrpg_funds';
@@ -50,6 +51,14 @@ function fundsReducer(state: AgencyFundsState, action: AgencyFundsAction): Agenc
         recentChange: { amount: action.payload.teamFee, timestamp: Date.now() },
       };
     }
+    case 'DEDUCT_FUNDS': {
+      const reduced = Math.max(0, state.totalFunds - action.payload.amount);
+      return {
+        ...state,
+        totalFunds: reduced,
+        recentChange: { amount: -action.payload.amount, timestamp: Date.now() },
+      };
+    }
     case 'CLEAR_CHANGE':
       return { ...state, recentChange: null };
     default:
@@ -60,6 +69,7 @@ function fundsReducer(state: AgencyFundsState, action: AgencyFundsAction): Agenc
 interface AgencyFundsContextType {
   state: AgencyFundsState;
   addProfit: (campaignId: string, campaignName: string, teamFee: number) => void;
+  deductFunds: (amount: number, reason: string) => void;
   clearChange: () => void;
   formatFunds: () => string;
 }
@@ -89,6 +99,10 @@ export function AgencyFundsProvider({ children }: { children: React.ReactNode })
     });
   }, []);
 
+  const deductFunds = useCallback((amount: number, reason: string) => {
+    dispatch({ type: 'DEDUCT_FUNDS', payload: { amount, reason } });
+  }, []);
+
   const clearChange = useCallback(() => {
     dispatch({ type: 'CLEAR_CHANGE' });
   }, []);
@@ -98,7 +112,7 @@ export function AgencyFundsProvider({ children }: { children: React.ReactNode })
   }, [state.totalFunds]);
 
   return (
-    <AgencyFundsContext.Provider value={{ state, addProfit, clearChange, formatFunds: formatFundsValue }}>
+    <AgencyFundsContext.Provider value={{ state, addProfit, deductFunds, clearChange, formatFunds: formatFundsValue }}>
       {children}
     </AgencyFundsContext.Provider>
   );

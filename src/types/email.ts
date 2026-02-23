@@ -1,4 +1,4 @@
-export type EmailType = 'campaign_brief' | 'work_delivery' | 'client_response' | 'team_message' | 'reputation_bonus' | 'acquisition_offer' | 'hostile_takeover';
+export type EmailType = 'campaign_brief' | 'work_delivery' | 'client_response' | 'team_message' | 'reputation_bonus' | 'acquisition_offer' | 'hostile_takeover' | 'hr_warning' | 'legal_notice' | 'family_message' | 'news_article';
 
 export interface CampaignBrief {
   clientName: string;

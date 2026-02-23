@@ -101,6 +101,20 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'hostile-takeover',     name: 'Resistance Was Futile',   icon: '🏢', description: 'Got acquired anyway after rejecting.' },
   { id: 'saw-credits',          name: 'Finished the Story',      icon: '🎬', description: 'Watched the credits.' },
 
+  // ── Conduct & Lawsuit ─────────────────────────────────────────────────────
+  { id: 'cancelled',            name: 'Cancelled',             icon: '🚫', description: 'Got forced to resign for misconduct.' },
+  { id: 'servant-leader',       name: 'Servant Leader',        icon: '🫡', description: 'Received 5 unprompted thank-yous from team.' },
+  { id: 'safe-space',           name: 'Safe Space',            icon: '🛡️', description: 'Completed game with zero HR incidents.' },
+  { id: 'the-good-boss',        name: 'The Good Boss',         icon: '👑', description: 'Max morale for 10 campaigns straight.' },
+  { id: 'everyone-stayed',      name: 'Everyone Stayed',       icon: '🤗', description: 'Completed game with no team member departures.' },
+  { id: 'culture-creator',      name: 'Culture Creator',       icon: '🌱', description: 'Built an agency culture worth bragging about.' },
+  { id: 'objection',            name: 'Objection!',            icon: '⚖️', description: 'Won the lawsuit mini-game.' },
+  { id: 'settled-out-of-court', name: 'Settled Out of Court',  icon: '💰', description: 'Caught the settlement offer in the lawsuit.' },
+  { id: 'legally-battered',     name: 'Legally Battered',      icon: '📄', description: 'Bat away 100 documents in one lawsuit session.' },
+  { id: 'no-comment',           name: 'No Comment',            icon: '🤐', description: 'Won lawsuit while ignoring all chat distractions.' },
+  { id: 'pro-se',               name: 'Pro Se',                icon: '🖊️', description: 'Won lawsuit without missing a single document.' },
+  { id: 'litigation-hell',      name: 'Litigation Hell',       icon: '🔥', description: 'Played the lawsuit game 3 times in one playthrough.' },
+
   // ── Exploration ───────────────────────────────────────────────────────────
   { id: 'opened-every-app',     name: 'Explorer',                icon: '🗺️', description: 'Opened every app on the desktop.' },
   { id: 'checked-portfolio-empty', name: 'Ambitious',            icon: '👀', description: 'Checked portfolio before completing any campaigns.' },

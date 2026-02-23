@@ -20,6 +20,9 @@ import { lazy, Suspense } from 'react';
 import { useSettingsContext } from '../../context/SettingsContext';
 
 const SkiFreeApp = lazy(() => import('../apps/SkiFree/SkiFreeApp'));
+const LawsuitApp = lazy(() => import('../apps/Lawsuit/LawsuitApp'));
+
+import HRTrainingApp from '../apps/HRTraining/HRTrainingApp';
 import styles from './Window.module.css';
 
 interface WindowProps {
@@ -152,6 +155,10 @@ function AppContent({ appId }: { appId: string }) {
       return <MinesweeperApp />;
     case 'skifree':
       return <Suspense fallback={<div style={{ padding: 24, textAlign: 'center' }}>Loading SkiFree...</div>}><SkiFreeApp /></Suspense>;
+    case 'hrtraining':
+      return <HRTrainingApp />;
+    case 'lawsuit':
+      return <Suspense fallback={<div style={{ padding: 24, textAlign: 'center' }}>Loading...</div>}><LawsuitApp /></Suspense>;
     case 'about':
       return <AboutContent />;
     default:

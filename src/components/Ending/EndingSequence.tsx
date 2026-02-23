@@ -6,6 +6,7 @@ import { usePlayerContext } from '../../context/PlayerContext';
 import { useChatContext } from '../../context/ChatContext';
 import { useWindowContext } from '../../context/WindowContext';
 import type { EndingType } from '../../context/EndingContext';
+import { FORCED_RESIGNATION_REACTIONS, FORCED_RESIGNATION_WHERE_ARE_THEY } from '../../data/conductEvents';
 import styles from './EndingSequence.module.css';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -120,7 +121,9 @@ const WHERE_ARE_THEY: Array<{
 function TeamReactionsPhase({
   endingType, onComplete,
 }: { endingType: EndingType | null; onComplete: () => void }) {
-  const messages = endingType === 'hostile' ? HOSTILE_REACTIONS : VOLUNTARY_REACTIONS;
+  const messages = endingType === 'forced_resignation'
+    ? FORCED_RESIGNATION_REACTIONS
+    : endingType === 'hostile' ? HOSTILE_REACTIONS : VOLUNTARY_REACTIONS;
   const [visibleCount, setVisibleCount] = useState(0);
   const [done, setDone] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -198,17 +201,44 @@ function FadePhase({ onComplete }: { onComplete: () => void }) {
 
 function WhereAreTheyNow({ onComplete }: { onComplete: () => void }) {
   const { playerName } = usePlayerContext();
+  const { endingType } = useEndingContext();
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(false);
 
-  const playerCard = {
-    id: 'player',
-    avatar: '👤',
-    name: playerName || 'You',
-    role: 'Founder & Creative Director',
-    text: "Retired to a beach somewhere. The agency lived on in the work — and in one campaign that nobody has fully explained yet.",
-  };
-  const cards = [...WHERE_ARE_THEY, playerCard];
+  const isForcedResignation = endingType === 'forced_resignation';
+
+  const cards = isForcedResignation
+    ? [
+        ...Object.entries(FORCED_RESIGNATION_WHERE_ARE_THEY)
+          .filter(([id]) => id !== 'player')
+          .map(([id]) => {
+            const member = TEAM_MEMBERS[id];
+            return {
+              id,
+              avatar: member?.avatar || (id === 'hr' ? '👔' : '👤'),
+              name: member?.name || (id === 'hr' ? 'Pat' : id),
+              role: member?.role || (id === 'hr' ? 'Head of HR' : ''),
+              text: FORCED_RESIGNATION_WHERE_ARE_THEY[id],
+            };
+          }),
+        {
+          id: 'player',
+          avatar: '👤',
+          name: playerName || 'You',
+          role: 'Former Founder & Creative Director',
+          text: FORCED_RESIGNATION_WHERE_ARE_THEY.player,
+        },
+      ]
+    : [
+        ...WHERE_ARE_THEY,
+        {
+          id: 'player',
+          avatar: '👤',
+          name: playerName || 'You',
+          role: 'Founder & Creative Director',
+          text: "Retired to a beach somewhere. The agency lived on in the work — and in one campaign that nobody has fully explained yet.",
+        },
+      ];
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 100);
@@ -478,26 +508,46 @@ function PostCredits() {
     window.location.reload();
   };
 
+  const isForcedResignation = endingType === 'forced_resignation';
+
   return (
     <div className={styles.phaseContainer}>
       <div className={`${styles.postCredits} ${showContent ? styles.visible : styles.invisible}`}>
-        <div className={styles.corpLogo}>OmniPubDent</div>
-        <div className={styles.corpTagline}>Holdings Groupe</div>
-        <div className={styles.corpDivider} />
-        <div className={styles.corpBody}>
-          We're thrilled to welcome you to the OmniPubDent Holdings Groupe family.
-        </div>
-        <div className={styles.corpBody}>
-          Your unique creative culture will be preserved*
-          as we unlock new operational efficiencies.
-        </div>
-        <div className={styles.corpDivider} />
-        <div className={styles.corpCta}>
-          <div className={styles.corpCtaBox}>
-            <div>Begin Your Integration →</div>
-            <div className={styles.corpCtaUrl}>PostAgencyRPG.com</div>
-          </div>
-        </div>
+        {isForcedResignation ? (
+          <>
+            <div className={styles.corpLogo}>CANCELLED</div>
+            <div className={styles.corpTagline}>a cautionary tale</div>
+            <div className={styles.corpDivider} />
+            <div className={styles.corpBody}>
+              Your agency has been dissolved following your forced resignation.
+            </div>
+            <div className={styles.corpBody}>
+              The team moved on. The industry remembers.<br/>
+              Maybe next time, try being a decent human being.
+            </div>
+            <div className={styles.corpDivider} />
+          </>
+        ) : (
+          <>
+            <div className={styles.corpLogo}>OmniPubDent</div>
+            <div className={styles.corpTagline}>Holdings Groupe</div>
+            <div className={styles.corpDivider} />
+            <div className={styles.corpBody}>
+              We're thrilled to welcome you to the OmniPubDent Holdings Groupe family.
+            </div>
+            <div className={styles.corpBody}>
+              Your unique creative culture will be preserved*
+              as we unlock new operational efficiencies.
+            </div>
+            <div className={styles.corpDivider} />
+            <div className={styles.corpCta}>
+              <div className={styles.corpCtaBox}>
+                <div>Begin Your Integration →</div>
+                <div className={styles.corpCtaUrl}>PostAgencyRPG.com</div>
+              </div>
+            </div>
+          </>
+        )}
         <div className={styles.corpButtons}>
           <button className={styles.corpButton} onClick={handleContinue}>
             Continue Playing
@@ -506,9 +556,11 @@ function PostCredits() {
             New Game+
           </button>
         </div>
-        <div className={styles.corpFinePrint}>
-          *subject to global brand guidelines
-        </div>
+        {!isForcedResignation && (
+          <div className={styles.corpFinePrint}>
+            *subject to global brand guidelines
+          </div>
+        )}
       </div>
     </div>
   );

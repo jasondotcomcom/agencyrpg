@@ -41,7 +41,10 @@ export type ChatCampaignEvent =
   | 'CAMPAIGN_SCORED_WELL'
   | 'CAMPAIGN_SCORED_POORLY'
   | 'NEW_BRIEF_ARRIVED'
-  | 'AWARD_WON';
+  | 'AWARD_WON'
+  | 'HR_WARNING'
+  | 'TEAM_COMPLAINT'
+  | 'CONDUCT_POSITIVE';
 
 export interface ChatEventContext {
   campaignName?: string;

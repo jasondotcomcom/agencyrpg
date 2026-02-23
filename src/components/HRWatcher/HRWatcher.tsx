@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCheatContext } from '../../context/CheatContext';
+import { useConductContext } from '../../context/ConductContext';
 import styles from './HRWatcher.module.css';
 
 const THOUGHT_BUBBLES = [
@@ -17,6 +18,8 @@ const THOUGHT_BUBBLES = [
 
 export default function HRWatcher(): React.ReactElement | null {
   const { cheat } = useCheatContext();
+  const { warningLevel } = useConductContext();
+  const isActive = cheat.hrWatcherActive || warningLevel >= 1;
   const [position, setPosition] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
   const targetRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
   const animIdRef = useRef<number>(0);
@@ -24,7 +27,7 @@ export default function HRWatcher(): React.ReactElement | null {
 
   // Smooth cursor follow
   useEffect(() => {
-    if (!cheat.hrWatcherActive) return;
+    if (!isActive) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       targetRef.current = { x: e.clientX, y: e.clientY };
@@ -45,18 +48,18 @@ export default function HRWatcher(): React.ReactElement | null {
       window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animIdRef.current);
     };
-  }, [cheat.hrWatcherActive]);
+  }, [isActive]);
 
   // Rotate thought bubbles
   useEffect(() => {
-    if (!cheat.hrWatcherActive) return;
+    if (!isActive) return;
     const interval = setInterval(() => {
       setThoughtIndex(i => (i + 1) % THOUGHT_BUBBLES.length);
     }, 3500);
     return () => clearInterval(interval);
-  }, [cheat.hrWatcherActive]);
+  }, [isActive]);
 
-  if (!cheat.hrWatcherActive) return null;
+  if (!isActive) return null;
 
   return (
     <div

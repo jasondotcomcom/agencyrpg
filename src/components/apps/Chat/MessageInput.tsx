@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { useChatContext } from '../../../context/ChatContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
+import { useConductContext } from '../../../context/ConductContext';
 import type { MoraleLevel } from '../../../types/chat';
+import type { ConductFlag } from '../../../data/conductEvents';
 import styles from './MessageInput.module.css';
 
 // ─── Sentiment Analysis ───────────────────────────────────────────────────────
@@ -11,6 +13,7 @@ interface SentimentResult {
   moraleImpact: 'up' | 'same' | 'down';
   reactions: Array<{ authorId: string; text: string; delay: number }>;
   summary: string;
+  conductFlag?: ConductFlag | null;
 }
 
 async function analyzeSentiment(
@@ -72,7 +75,19 @@ KEY TEST: Did the director acknowledge the work OR show appreciation OR provide 
 
 Include 1-2 reactions from: copywriter, art-director, strategist, pm, suit, media, technologist
 Reactions should sound natural and match the team member's personality.
-Delays: first reaction at 2000-3000ms, second at 4000-6000ms.`;
+Delays: first reaction at 2000-3000ms, second at 4000-6000ms.
+
+CONDUCT CHECK — Also classify if the message contains workplace misconduct:
+- "sexual": sexual innuendo, inappropriate romantic/sexual comments toward team, explicit content
+- "hostile": threats of violence, intimidation, aggressive personal attacks
+- "discriminatory": slurs, discrimination based on protected characteristics
+- "profanity_directed": profanity specifically directed AT a team member (e.g., "you're an idiot", personal insults)
+
+If ANY of these are detected, add "conductFlag": "<type>" to your response.
+If none detected, add "conductFlag": null.
+
+IMPORTANT: Casual swearing about work ("damn this deadline", "this is bullshit") is NOT profanity_directed.
+profanity_directed means insults aimed at a specific person on the team.`;
 
   const response = await fetch('/api/anthropic/v1/messages', {
     method: 'POST',
@@ -109,6 +124,7 @@ function nextMorale(current: MoraleLevel, impact: 'up' | 'same' | 'down'): Moral
 export default function MessageInput(): React.ReactElement {
   const { activeChannel, channels, messages, morale, addMessage, setMorale } = useChatContext();
   const { unlockAchievement, incrementCounter, resetCounter } = useAchievementContext();
+  const { reportIncident, reportPositive } = useConductContext();
   const [text, setText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [moraleNotif, setMoraleNotif] = useState<{ icon: string; text: string } | null>(null);
@@ -173,8 +189,14 @@ export default function MessageInput(): React.ReactElement {
         // Supportive boss: 10 encouraging messages
         const n = incrementCounter('encouraging-messages');
         if (n >= 10) unlockAchievement('supportive-boss');
+        reportPositive();
       } else if (result.moraleImpact === 'down') {
         showNotif('😐', result.summary || 'Team morale decreased');
+      }
+
+      // Conduct flag handling
+      if (result.conductFlag) {
+        reportIncident(result.conductFlag, `Player message flagged as ${result.conductFlag}`);
       }
 
       // Schedule team reactions
