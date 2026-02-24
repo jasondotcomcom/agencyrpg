@@ -39,7 +39,7 @@ export default function MobileShell() {
 
   return (
     <div className={styles.phoneFrame}>
-      <MobileStatusBar onTap={handleStatusBarTap} />
+      {!activeAppId && <MobileStatusBar onTap={handleStatusBarTap} />}
       <div className={styles.screenArea}>
         {activeAppId ? (
           <MobileAppContainer key={activeAppId} appId={activeAppId} />

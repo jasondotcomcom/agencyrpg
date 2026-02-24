@@ -172,3 +172,86 @@
 .stat.critical .deadlineHint {
   color: #c75a5a;
 }
+
+/* ─── Mobile: compact header ─────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .header {
+    padding: 12px 16px;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .clientBadge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 1rem;
+  }
+
+  .titleSection {
+    gap: 10px;
+  }
+
+  .campaignName {
+    font-size: 1rem;
+  }
+
+  .metaRow {
+    gap: 8px;
+  }
+
+  .clientName {
+    font-size: 0.75rem;
+  }
+
+  .phaseBadge {
+    font-size: 0.625rem;
+    padding: 2px 8px;
+  }
+
+  .stats {
+    gap: 8px;
+    width: 100%;
+  }
+
+  .stat {
+    min-width: 0;
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 10px;
+  }
+
+  .statHeader {
+    margin-bottom: 4px;
+  }
+
+  .statIcon {
+    font-size: 0.75rem;
+  }
+
+  .statLabel {
+    font-size: 0.5625rem;
+  }
+
+  .statValue {
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+  }
+
+  .statSub {
+    font-size: 0.625rem;
+  }
+
+  .progressBar {
+    height: 4px;
+    margin-bottom: 4px;
+  }
+
+  .spentLabel {
+    font-size: 0.5625rem;
+  }
+
+  .deadlineHint {
+    font-size: 0.5625rem;
+  }
+}

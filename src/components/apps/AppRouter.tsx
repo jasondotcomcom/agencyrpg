@@ -1,4 +1,5 @@
 import React, { lazy, Suspense } from 'react';
+import { isMobile } from '../../utils/deviceDetection';
 import { InboxApp } from './Inbox';
 import { ProjectsApp } from './Projects';
 import { ChatApp } from './Chat';
@@ -110,10 +111,21 @@ function PlaceholderContent({ appId }: { appId: string }) {
         <span style={{...emojiStyle, alignSelf: 'center'}}>📖</span>
         <p style={{...titleStyle, alignSelf: 'center', marginBottom: '16px'}}>Welcome to Agency OS!</p>
         <div style={{ ...subtitleStyle, lineHeight: '2' }}>
-          <p>🖱️ <strong>Double-click</strong> icons to open apps</p>
-          <p>✋ <strong>Drag</strong> title bars to move windows</p>
-          <p>↔️ <strong>Drag corners</strong> to resize</p>
-          <p>🔘 Use the <strong>colorful buttons</strong> to minimize, maximize, or close</p>
+          {isMobile() ? (
+            <>
+              <p>👆 <strong>Tap</strong> app icons to open apps</p>
+              <p>◀️ <strong>Back button</strong> switches between apps</p>
+              <p>🏠 <strong>Home button</strong> returns to home screen</p>
+              <p>⬇️ <strong>Swipe down</strong> from the top for notifications</p>
+            </>
+          ) : (
+            <>
+              <p>🖱️ <strong>Double-click</strong> icons to open apps</p>
+              <p>✋ <strong>Drag</strong> title bars to move windows</p>
+              <p>↔️ <strong>Drag corners</strong> to resize</p>
+              <p>🔘 Use the <strong>colorful buttons</strong> to minimize, maximize, or close</p>
+            </>
+          )}
         </div>
       </div>
     ),

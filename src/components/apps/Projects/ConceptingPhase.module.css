@@ -834,6 +834,11 @@
     align-items: stretch;
   }
 
+  .modalContent {
+    padding: 16px;
+    padding-bottom: 24px; /* extra clearance so last member card is fully reachable */
+  }
+
   .memberCard {
     min-height: 44px;
     padding: 12px;
@@ -854,6 +859,10 @@
     width: 44px;
     height: 44px;
     font-size: 1.5rem;
+  }
+
+  .modalFooter {
+    flex-shrink: 0;
   }
 
   .saveButton {
