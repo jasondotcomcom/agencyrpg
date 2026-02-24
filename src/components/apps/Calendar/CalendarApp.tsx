@@ -9,7 +9,7 @@ import styles from './CalendarApp.module.css';
 const COLS = 5;
 const ROWS = 18;
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-const CELL_SIZE = 28;
+const CELL_SIZE_DEFAULT = 28;
 const TICK_BASE = 800; // ms per drop at level 1
 const TICK_MIN = 100;  // fastest drop speed
 const ROWS_PER_LEVEL = 10;
@@ -227,6 +227,25 @@ export default function CalendarApp() {
   pausedRef.current = isPaused;
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const gameAreaRef = useRef<HTMLDivElement>(null);
+  const [cellSize, setCellSize] = useState(CELL_SIZE_DEFAULT);
+
+  // Dynamically size cells to fit available space
+  useEffect(() => {
+    const measure = () => {
+      const el = gameAreaRef.current;
+      if (!el) return;
+      const availH = el.clientHeight - 24; // padding
+      const availW = el.clientWidth - 24;
+      const cellFromH = Math.floor(availH / ROWS);
+      const cellFromW = Math.floor(availW / COLS);
+      const sz = Math.min(cellFromH, cellFromW, CELL_SIZE_DEFAULT);
+      setCellSize(Math.max(sz, 12)); // floor at 12px
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [phase]);
 
   // ─── Game tick ──────────────────────────────────────────────────────────
 
@@ -627,7 +646,7 @@ export default function CalendarApp() {
       </div>
 
       {/* Game area */}
-      <div className={styles.gameArea}>
+      <div className={styles.gameArea} ref={gameAreaRef}>
         {/* Next piece preview */}
         <div className={styles.nextPreview}>
           <div className={styles.nextLabel}>Next</div>
@@ -650,11 +669,11 @@ export default function CalendarApp() {
         </div>
 
         {/* Board */}
-        <div className={styles.board} style={{ width: COLS * CELL_SIZE, height: ROWS * CELL_SIZE }}>
+        <div className={styles.board} style={{ width: COLS * cellSize, height: ROWS * cellSize }}>
           {/* Day labels */}
           <div className={styles.dayLabels}>
             {DAY_LABELS.map(d => (
-              <div key={d} className={styles.dayLabel} style={{ width: CELL_SIZE }}>{d}</div>
+              <div key={d} className={styles.dayLabel} style={{ width: cellSize }}>{d}</div>
             ))}
           </div>
 
@@ -663,10 +682,10 @@ export default function CalendarApp() {
             <div
               key={r}
               className={`${styles.gridRow} ${clearingRows.includes(r) ? styles.gridRowClearing : ''}`}
-              style={{ top: r * CELL_SIZE, height: CELL_SIZE }}
+              style={{ top: r * cellSize, height: cellSize }}
             >
               {Array.from({ length: COLS }).map((_, c) => (
-                <div key={c} className={styles.gridCell} style={{ width: CELL_SIZE, height: CELL_SIZE }} />
+                <div key={c} className={styles.gridCell} style={{ width: cellSize, height: cellSize }} />
               ))}
             </div>
           ))}
@@ -679,10 +698,10 @@ export default function CalendarApp() {
                   key={`${r}-${c}`}
                   className={styles.block}
                   style={{
-                    left: c * CELL_SIZE,
-                    top: r * CELL_SIZE,
-                    width: CELL_SIZE,
-                    height: CELL_SIZE,
+                    left: c * cellSize,
+                    top: r * cellSize,
+                    width: cellSize,
+                    height: cellSize,
                     background: cell,
                   }}
                 />
@@ -698,10 +717,10 @@ export default function CalendarApp() {
                   key={`ghost-${r}-${c}`}
                   className={styles.ghostBlock}
                   style={{
-                    left: (piece.x + c) * CELL_SIZE,
-                    top: (gy + r) * CELL_SIZE,
-                    width: CELL_SIZE,
-                    height: CELL_SIZE,
+                    left: (piece.x + c) * cellSize,
+                    top: (gy + r) * cellSize,
+                    width: cellSize,
+                    height: cellSize,
                     borderColor: piece.def.color,
                   }}
                 />
@@ -717,10 +736,10 @@ export default function CalendarApp() {
                   key={`piece-${r}-${c}`}
                   className={styles.block}
                   style={{
-                    left: (piece.x + c) * CELL_SIZE,
-                    top: (piece.y + r) * CELL_SIZE,
-                    width: CELL_SIZE,
-                    height: CELL_SIZE,
+                    left: (piece.x + c) * cellSize,
+                    top: (piece.y + r) * cellSize,
+                    width: cellSize,
+                    height: cellSize,
                     background: piece.def.color,
                   }}
                 />
@@ -732,7 +751,7 @@ export default function CalendarApp() {
           {showLabel && piece.y <= 3 && (
             <div
               className={styles.pieceLabel}
-              style={{ left: piece.x * CELL_SIZE, top: (piece.y + piece.shape.length) * CELL_SIZE + 4 }}
+              style={{ left: piece.x * cellSize, top: (piece.y + piece.shape.length) * cellSize + 4 }}
             >
               {piece.label}
             </div>
@@ -740,7 +759,7 @@ export default function CalendarApp() {
 
           {/* Danger zone indicator */}
           {board.slice(0, 4).some(row => row.some(c => c !== null)) && (
-            <div className={styles.dangerZone} />
+            <div className={styles.dangerZone} style={{ height: 4 * cellSize }} />
           )}
         </div>
 
@@ -765,13 +784,13 @@ export default function CalendarApp() {
         )}
       </div>
 
-      {/* Mobile controls */}
-      <div className={styles.mobileControls}>
-        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); move(-1); }}>◀</button>
-        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); rotate(); }}>↻</button>
-        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); softDrop(); }}>▼</button>
-        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); hardDrop(); }}>⏬</button>
-        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); move(1); }}>▶</button>
+      {/* Mobile controls — stopPropagation prevents container swipe handler from double-firing */}
+      <div className={styles.mobileControls} onTouchEnd={(e) => e.stopPropagation()}>
+        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); move(-1); }}>◀</button>
+        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); rotate(); }}>↻</button>
+        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); softDrop(); }}>▼</button>
+        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); hardDrop(); }}>⏬</button>
+        <button className={styles.controlBtn} onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); move(1); }}>▶</button>
       </div>
 
       {/* Overlay messages */}
