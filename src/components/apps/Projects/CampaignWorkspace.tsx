@@ -5,6 +5,7 @@ import { useReputationContext } from '../../../context/ReputationContext';
 import { useEmailContext } from '../../../context/EmailContext';
 import type { CampaignScore } from '../../../types/reputation';
 import { DELIVERABLE_TYPES, formatBudget } from '../../../types/campaign';
+import { getDirectionScoreModifier } from '../../../data/autoDirections';
 import { useAgencyFunds } from '../../../context/AgencyFundsContext';
 import { useChatContext } from '../../../context/ChatContext';
 import CampaignHeader from './CampaignHeader';
@@ -84,21 +85,27 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
 
     // Calculate score through reputation system
     const wasUnderBudget = campaign.productionSpent <= campaign.productionBudget;
+    const directionMod = getDirectionScoreModifier(campaign.autoDirectionQuality ?? null);
     const baseScore = submitToReputation({
       id: campaign.id,
       name: campaign.campaignName,
       clientName: campaign.clientName,
       industry: campaign.brief.industry || campaign.brief.clientName,
       wasUnderBudget,
-      conceptBoldness: 0.5, // Could be calculated from concept selection
+      conceptBoldness: directionMod.conceptBoldness,
     });
+
+    // Apply direction quality penalty (bad = -5, mid = -2, good = 0)
+    const directionScore = directionMod.scorePenalty !== 0
+      ? { ...baseScore, total: Math.max(baseScore.total + directionMod.scorePenalty, 0) }
+      : baseScore;
 
     // Apply tool usage bonus (+2 per unique tool used, max +8)
     const toolsUsedCount = campaign.toolsUsed?.length ?? 0;
     const toolBonus = Math.min(toolsUsedCount * 2, 8);
     const toolScore = toolBonus > 0
-      ? { ...baseScore, total: Math.min(baseScore.total + toolBonus, 100) }
-      : baseScore;
+      ? { ...directionScore, total: Math.min(directionScore.total + toolBonus, 100) }
+      : directionScore;
 
     // Apply morale penalty
     let moralePenalty = 0;
@@ -162,6 +169,11 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
     if (score.total >= 80) unlockAchievement('solid-work');
     if (score.total >= 90) unlockAchievement('agency-quality');
     if (score.total >= 95) unlockAchievement('instant-classic');
+
+    // "I'll Know It When I See It" — scored 80+ with a bad auto-generated direction
+    if (score.total >= 80 && campaign.autoDirectionQuality === 'bad') {
+      unlockAchievement('know-it-when-i-see-it');
+    }
 
     // Streak tracking
     if (score.total >= 80) { incrementCounter('streak-80'); } else { resetCounter('streak-80'); }

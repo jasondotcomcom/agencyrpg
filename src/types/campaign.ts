@@ -133,6 +133,7 @@ export interface Campaign {
   // Concepting phase
   conceptingTeam: AssignedTeam | null;
   strategicDirection: string;
+  autoDirectionQuality?: 'good' | 'mid' | 'bad' | null; // Set when "Surprise Me" is used
   generatedConcepts: CampaignConcept[];
   selectedConceptId: string | null;
   // Execution phase

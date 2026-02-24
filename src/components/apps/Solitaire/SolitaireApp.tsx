@@ -61,14 +61,11 @@ interface BouncingCard {
   y: number;
   vx: number;
   vy: number;
-  trail: { x: number; y: number }[];
+  active: boolean; // still bouncing
 }
 
 function WinAnimation({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cardsRef = useRef<BouncingCard[]>([]);
-  const spawnTimerRef = useRef(0);
-  const foundationOrder = useRef<Card[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -82,22 +79,37 @@ function WinAnimation({ containerRef }: { containerRef: React.RefObject<HTMLDivE
     const H = canvas.height;
     const CARD_W = 50;
     const CARD_H = 70;
-    const GRAVITY = 0.4;
-    const BOUNCE = -0.75;
+    const GRAVITY = 0.5;
+    const BOUNCE = 0.7; // energy retained per bounce (positive — we negate vy manually)
+    const SPAWN_INTERVAL = 12; // frames between each card spawn (~200ms at 60fps)
 
-    // Build card order: cycle through 4 foundation piles, K down to A
-    const cards: Card[] = [];
+    // Build card order: K down to A, cycling through 4 foundation piles
+    const allCards: Card[] = [];
     for (let rank = 13; rank >= 1; rank--) {
       for (const suit of SUITS) {
-        cards.push({ suit, rank, faceUp: true, id: `${suit}-${rank}` });
+        allCards.push({ suit, rank, faceUp: true, id: `${suit}-${rank}` });
       }
     }
-    foundationOrder.current = cards;
 
+    // Foundation pile starting positions (top of screen, spaced across)
+    const pileSpacing = Math.min((CARD_W + 16), (W - 40) / 4);
+    const pilesStartX = W - 4 * pileSpacing - 10;
+    const pilePositions = SUITS.map((_, i) => pilesStartX + i * pileSpacing);
+
+    const activeCards: BouncingCard[] = [];
     let spawnIndex = 0;
+    let frameCount = 0;
     let animId: number;
 
+    // Use two canvases: one for permanent trails, one for active cards
+    // We'll use the main canvas and never clear the trail layer
+    const trailCanvas = document.createElement('canvas');
+    trailCanvas.width = W;
+    trailCanvas.height = H;
+    const trailCtx = trailCanvas.getContext('2d')!;
+
     const drawCard = (ctx: CanvasRenderingContext2D, card: Card, x: number, y: number) => {
+      // Card background
       ctx.fillStyle = '#fff';
       ctx.strokeStyle = '#999';
       ctx.lineWidth = 1;
@@ -106,6 +118,7 @@ function WinAnimation({ containerRef }: { containerRef: React.RefObject<HTMLDivE
       ctx.fill();
       ctx.stroke();
 
+      // Rank and suit
       const color = suitColor(card.suit) === 'red' ? '#e74c3c' : '#2c3e50';
       ctx.fillStyle = color;
       ctx.font = 'bold 14px Quicksand, sans-serif';
@@ -116,55 +129,71 @@ function WinAnimation({ containerRef }: { containerRef: React.RefObject<HTMLDivE
     };
 
     const loop = () => {
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      ctx.clearRect(0, 0, W, H);
+      frameCount++;
 
-      // Spawn new cards every few frames
-      spawnTimerRef.current++;
-      if (spawnTimerRef.current % 4 === 0 && spawnIndex < foundationOrder.current.length) {
-        const card = foundationOrder.current[spawnIndex];
+      // Spawn new cards with staggered delay
+      if (frameCount % SPAWN_INTERVAL === 0 && spawnIndex < allCards.length) {
+        const card = allCards[spawnIndex];
         const pileIndex = SUITS.indexOf(card.suit);
-        const startX = 10 + pileIndex * (CARD_W + 12);
-        cardsRef.current.push({
+        const startX = pilePositions[pileIndex];
+
+        // Random horizontal velocity — spread cards across the screen
+        // Alternate direction: even piles go left, odd go right, with randomness
+        const baseVx = (pileIndex < 2 ? -1 : 1) * (2 + Math.random() * 3);
+        const vx = baseVx + (Math.random() - 0.5) * 2;
+
+        activeCards.push({
           card,
           x: startX,
-          y: 0,
-          vx: (pileIndex - 1.5) * 2.5 + (Math.random() - 0.5) * 2,
-          vy: Math.random() * 2 + 1,
-          trail: [],
+          y: 10, // Start near top (foundation area)
+          vx,
+          vy: 0, // Start with no vertical velocity — gravity pulls them
+          active: true,
         });
         spawnIndex++;
       }
 
-      // Update and draw
-      for (const bc of cardsRef.current) {
-        // Save trail (keep last 8 positions)
-        bc.trail.push({ x: bc.x, y: bc.y });
-        if (bc.trail.length > 8) bc.trail.shift();
+      // Clear main canvas (we composite trail canvas onto it each frame)
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.clearRect(0, 0, W, H);
 
+      // Draw permanent trail layer first
+      ctx.drawImage(trailCanvas, 0, 0);
+
+      // Update and draw active cards
+      for (const bc of activeCards) {
+        if (!bc.active) continue;
+
+        // Stamp current position onto trail canvas BEFORE moving
+        drawCard(trailCtx, bc.card, bc.x, bc.y);
+
+        // Physics
         bc.vy += GRAVITY;
         bc.x += bc.vx;
         bc.y += bc.vy;
 
-        // Bounce off bottom
-        if (bc.y + CARD_H > H) {
+        // Bounce off bottom — each bounce loses energy
+        if (bc.y + CARD_H >= H) {
           bc.y = H - CARD_H;
-          bc.vy *= BOUNCE;
+          bc.vy = -Math.abs(bc.vy) * BOUNCE;
+
+          // If bounce is too small, card is done
+          if (Math.abs(bc.vy) < 1) {
+            bc.active = false;
+            // Stamp final position
+            drawCard(trailCtx, bc.card, bc.x, bc.y);
+            continue;
+          }
         }
 
-        // Wrap horizontally
-        if (bc.x > W) bc.x = -CARD_W;
-        if (bc.x + CARD_W < 0) bc.x = W;
-
-        // Draw trail (ghosted)
-        ctx.globalAlpha = 0.15;
-        for (const t of bc.trail) {
-          drawCard(ctx, bc.card, t.x, t.y);
+        // Card goes off screen horizontally — deactivate
+        if (bc.x > W + CARD_W || bc.x < -CARD_W * 2) {
+          bc.active = false;
+          continue;
         }
-        ctx.globalAlpha = 1;
 
-        // Draw current
+        // Draw the active card on top of trails
         drawCard(ctx, bc.card, bc.x, bc.y);
       }
 

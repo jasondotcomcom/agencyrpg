@@ -136,6 +136,12 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'night-owl',            name: 'Night Owl',               icon: '🦉', description: 'Played between midnight and 4am.' },
   { id: 'early-bird',           name: 'Early Bird',              icon: '🐦', description: 'Played between 5am and 7am.' },
 
+  // ── Creative Direction ────────────────────────────────────────────────────
+  { id: 'delegator',            name: 'Delegator',               icon: '🎲', description: 'Used auto-generate direction 3 times.' },
+  { id: 'know-it-when-i-see-it', name: 'I\'ll Know It When I See It', icon: '🔮', description: 'Scored 80+ with a bad auto-generated direction.' },
+  { id: 'control-freak',        name: 'Control Freak',           icon: '🎛️', description: 'Wrote your own direction for 5 campaigns straight.' },
+  { id: 'chaos-goblin',         name: 'Chaos Goblin',            icon: '👹', description: 'Deliberately submitted a bad auto-generated direction.' },
+
   // ── Meta ──────────────────────────────────────────────────────────────────
   { id: 'achievement-hunter',   name: 'Achievement Hunter',      icon: '🔍', description: 'Checked the achievements tab 10 times.' },
   { id: 'half-achievements',    name: 'Halfway There',           icon: '📈', description: 'Unlocked half of all achievements.' },

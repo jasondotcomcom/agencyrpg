@@ -69,7 +69,7 @@ type CampaignAction =
   | { type: 'CREATE_CAMPAIGN'; payload: { briefId: string; clientName: string; campaignName: string; brief: CampaignBrief; budget: number; deadline: Date } }
   | { type: 'SELECT_CAMPAIGN'; payload: { campaignId: string | null } }
   | { type: 'SET_CONCEPTING_TEAM'; payload: { campaignId: string; memberIds: string[] } }
-  | { type: 'SET_STRATEGIC_DIRECTION'; payload: { campaignId: string; direction: string } }
+  | { type: 'SET_STRATEGIC_DIRECTION'; payload: { campaignId: string; direction: string; autoDirectionQuality?: 'good' | 'mid' | 'bad' | null } }
   | { type: 'START_GENERATING_CONCEPTS'; payload: { campaignId: string } }
   | { type: 'SET_GENERATED_CONCEPTS'; payload: { campaignId: string; concepts: CampaignConcept[] } }
   | { type: 'SELECT_CONCEPT'; payload: { campaignId: string; conceptId: string } }
@@ -159,12 +159,20 @@ function campaignReducer(state: CampaignState, action: CampaignAction): Campaign
     }
 
     case 'SET_STRATEGIC_DIRECTION': {
-      const { campaignId, direction } = action.payload;
+      const { campaignId, direction, autoDirectionQuality } = action.payload;
       return {
         ...state,
         campaigns: state.campaigns.map(campaign =>
           campaign.id === campaignId
-            ? { ...campaign, strategicDirection: direction }
+            ? {
+                ...campaign,
+                strategicDirection: direction,
+                // Only set quality when explicitly provided (auto-generated);
+                // clear it when player types manually (undefined payload)
+                autoDirectionQuality: autoDirectionQuality !== undefined
+                  ? autoDirectionQuality
+                  : campaign.autoDirectionQuality,
+              }
             : campaign
         ),
       };
@@ -577,7 +585,7 @@ interface CampaignContextValue extends CampaignState {
   createCampaign: (briefId: string, clientName: string, campaignName: string, brief: CampaignBrief, budget: number, deadline: Date) => void;
   selectCampaign: (campaignId: string | null) => void;
   setConceptingTeam: (campaignId: string, memberIds: string[]) => void;
-  setStrategicDirection: (campaignId: string, direction: string) => void;
+  setStrategicDirection: (campaignId: string, direction: string, autoDirectionQuality?: 'good' | 'mid' | 'bad' | null) => void;
   generateConcepts: (campaignId: string) => Promise<void>;
   tweakConcept: (campaignId: string, conceptId: string, tweakNote: string) => Promise<void>;
   selectConcept: (campaignId: string, conceptId: string) => void;
@@ -649,8 +657,8 @@ export function CampaignProvider({ children }: CampaignProviderProps): React.Rea
     dispatch({ type: 'SET_CONCEPTING_TEAM', payload: { campaignId, memberIds } });
   }, []);
 
-  const setStrategicDirection = useCallback((campaignId: string, direction: string) => {
-    dispatch({ type: 'SET_STRATEGIC_DIRECTION', payload: { campaignId, direction } });
+  const setStrategicDirection = useCallback((campaignId: string, direction: string, autoDirectionQuality?: 'good' | 'mid' | 'bad' | null) => {
+    dispatch({ type: 'SET_STRATEGIC_DIRECTION', payload: { campaignId, direction, autoDirectionQuality } });
   }, []);
 
   const generateConcepts = useCallback(async (campaignId: string) => {

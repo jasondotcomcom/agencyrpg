@@ -206,6 +206,47 @@
   color: var(--text-light);
 }
 
+/* ─── Surprise Me / Auto-generate direction ──── */
+.directionActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.surpriseMeButton {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, rgba(195, 174, 214, 0.15) 0%, rgba(168, 216, 234, 0.15) 100%);
+  border: 1px solid rgba(195, 174, 214, 0.3);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.surpriseMeButton:hover {
+  background: linear-gradient(135deg, rgba(195, 174, 214, 0.25) 0%, rgba(168, 216, 234, 0.25) 100%);
+  border-color: var(--color-lavender);
+  transform: translateY(-1px);
+}
+
+.surpriseMeButton:active {
+  transform: scale(0.97);
+}
+
+.autoTag {
+  font-size: 0.6875rem;
+  color: var(--text-light);
+  background: rgba(168, 216, 234, 0.15);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
 .budgetPreview {
   background: rgba(168, 230, 207, 0.1);
   border-radius: 14px;
