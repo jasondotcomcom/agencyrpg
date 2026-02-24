@@ -104,12 +104,10 @@ const FOOD_POOL: AmbientChain[] = [
 // ─── #memes ──────────────────────────────────────────────────────────────────
 
 const meme = (top: string, bottom: string): string =>
-  `┌─────────────────────────┐\n│  ${top.padEnd(23)}│\n│                         │\n│  ${bottom.padEnd(23)}│\n└─────────────────────────┘`;
+  JSON.stringify({ meme: true, lines: [top, bottom] });
 
 const wideMeme = (...lines: string[]): string =>
-  '┌─────────────────────────┐\n' +
-  lines.map(l => `│  ${l.padEnd(23)}│`).join('\n') +
-  '\n└─────────────────────────┘';
+  JSON.stringify({ meme: true, lines });
 
 const MEMES_POOL: AmbientChain[] = [
   // Agency life memes

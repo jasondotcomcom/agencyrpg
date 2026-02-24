@@ -113,11 +113,26 @@ export default function MessageList(): React.ReactElement {
                     </div>
                   )}
                   <div className={styles.messageText}>{msg.text}</div>
-                  {msg.imageUrl && (
-                    <div className={styles.messageImage}>
-                      <pre>{msg.imageUrl}</pre>
-                    </div>
-                  )}
+                  {msg.imageUrl && (() => {
+                    let memeData: { meme: boolean; lines: string[] } | null = null;
+                    try { memeData = JSON.parse(msg.imageUrl); } catch { /* not JSON */ }
+                    if (memeData?.meme && memeData.lines) {
+                      return (
+                        <div className={styles.memeCard}>
+                          {memeData.lines.map((line, i) => (
+                            <div key={i} className={line ? styles.memeLine : styles.memeLineSpacer}>
+                              {line}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className={styles.messageImage}>
+                        <img src={msg.imageUrl} alt="Shared image" className={styles.messageImg} />
+                      </div>
+                    );
+                  })()}
                   {msg.reactions.length > 0 && (
                     <div className={styles.reactions}>
                       {msg.reactions.map((r, ri) => (

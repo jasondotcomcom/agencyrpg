@@ -813,6 +813,62 @@
   100% { transform: translateX(0); }
 }
 
+/* ─── Selected Queue Item (tap-to-place) ─────── */
+
+.gameQueueItemSelected {
+  outline: 2px solid var(--color-mint, #2ecc71);
+  outline-offset: -1px;
+  background: rgba(46, 204, 113, 0.08) !important;
+  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.15);
+}
+
+/* ─── Slot target highlight when placing ─────── */
+
+.gameSlotTarget {
+  cursor: pointer;
+  background: rgba(46, 204, 113, 0.06);
+  transition: background 0.1s ease;
+}
+
+.gameSlotTarget:hover {
+  background: rgba(46, 204, 113, 0.12);
+}
+
+/* ─── Selected Banner ────────────────────────── */
+
+.selectedBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.05));
+  border-top: 1px solid rgba(46, 204, 113, 0.2);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-dark, #333);
+  flex-shrink: 0;
+}
+
+.selectedBannerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.selectedBannerCancel {
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  background: white;
+  font-size: 0.625rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--text-secondary, #666);
+}
+
 /* ─── Mobile Responsive ──────────────────────── */
 
 @media (max-width: 767px) {
@@ -894,20 +950,27 @@
     text-overflow: ellipsis;
   }
 
-  /* Queue panel: horizontal below grid */
+  /* Queue panel: full-width below grid with more space */
   .gameQueue {
     width: 100%;
-    max-height: 200px;
+    min-height: 240px;
+    max-height: 50vh;
     border-left: none;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-top: 2px solid rgba(0, 0, 0, 0.08);
     flex-shrink: 0;
+  }
+
+  .gameQueueTitle {
+    font-size: 0.75rem;
+    padding: 10px 12px 6px;
   }
 
   .gameQueueList {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding: 4px 10px;
+    padding: 6px 12px;
+    gap: 8px;
   }
 
   .gameQueueList::-webkit-scrollbar {
@@ -915,22 +978,55 @@
   }
 
   .gameQueueItem {
-    padding: 8px 10px;
-    min-height: 44px;
+    padding: 12px 14px;
+    min-height: 56px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    border-left-width: 4px;
+    border-radius: 8px;
+    touch-action: none;
   }
 
   .gameQueueItemTitle {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .gameQueueItemDur {
+    font-size: 0.6875rem;
+    margin-top: 2px;
+  }
+
+  .gameQueueConstraint {
+    font-size: 0.6875rem;
+    margin-top: 3px;
+  }
+
+  .dependencyLabel {
+    font-size: 0.625rem;
+    margin-top: 3px;
   }
 
   /* Trash zone */
   .gameTrash {
+    min-height: 52px;
+    margin: 8px 12px;
+    padding: 10px;
+    font-size: 0.8125rem;
+    border-radius: 8px;
+  }
+
+  /* Selected banner */
+  .selectedBanner {
+    padding: 10px 14px;
+    font-size: 0.75rem;
     min-height: 44px;
-    margin: 6px 10px;
-    padding: 8px;
+  }
+
+  .selectedBannerCancel {
+    padding: 8px 14px;
+    min-height: 44px;
+    font-size: 0.6875rem;
   }
 
   /* Timer bar */

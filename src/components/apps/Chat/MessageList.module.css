@@ -112,25 +112,43 @@
   word-wrap: break-word;
 }
 
-/* Inline meme images */
+/* Inline images */
 .messageImage {
   margin-top: 6px;
   max-width: 280px;
-  background: #1a1a2e;
   border-radius: 10px;
-  padding: 10px 12px;
   overflow: hidden;
-  border: 1px solid rgba(168, 230, 207, 0.15);
 }
 
-.messageImage pre {
-  margin: 0;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-  font-size: 0.6875rem;
-  line-height: 1.4;
-  color: #e0e0e0;
-  white-space: pre;
-  overflow-x: auto;
+.messageImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+/* Meme card */
+.memeCard {
+  margin-top: 6px;
+  max-width: 280px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
+  border-radius: 12px;
+  padding: 16px 18px;
+  border: 1px solid rgba(168, 230, 207, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.memeLine {
+  font-family: var(--font-body, 'Quicksand', sans-serif);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #f0f0f0;
+  text-align: center;
+}
+
+.memeLineSpacer {
+  height: 8px;
 }
 
 /* Reactions */

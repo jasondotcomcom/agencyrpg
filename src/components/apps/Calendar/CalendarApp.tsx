@@ -982,6 +982,7 @@ function CalendarShuffleEnhanced({
   onFail: (meta?: GameResultMeta) => void;
 }) {
   const [state, dispatch] = useReducer(gameReducer, scenario, createInitialState);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const wonRef = useRef(false);
   const stateRef = useRef(state);
@@ -991,6 +992,7 @@ function CalendarShuffleEnhanced({
   const ghostRef = useRef<HTMLDivElement>(null);
   const trashRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const touchDragRef = useRef(false);
 
   const buildMeta = useCallback((st: GameState): GameResultMeta => {
     const flags: string[] = [];
@@ -1050,7 +1052,52 @@ function CalendarShuffleEnhanced({
     }
   }, [state.invalidCells]);
 
-  // Drag events
+  // Helper: resolve drop position from coordinates
+  const resolveDropFromPoint = useCallback((clientX: number, clientY: number) => {
+    const cs = stateRef.current;
+    const meetingId = cs.dragId;
+    if (!meetingId) { dispatch({ type: 'SET_DRAG', meetingId: null }); return; }
+    const meeting = cs.visibleQueue.find(m => m.id === meetingId);
+    if (!meeting) { dispatch({ type: 'SET_DRAG', meetingId: null }); return; }
+
+    // Check trash zone
+    const trashEl = trashRef.current;
+    if (trashEl) {
+      const trashRect = trashEl.getBoundingClientRect();
+      if (clientX >= trashRect.left && clientX <= trashRect.right &&
+          clientY >= trashRect.top && clientY <= trashRect.bottom) {
+        if (meeting.untrashable) {
+          trashEl.classList.add(styles.trashShake);
+          setTimeout(() => trashEl.classList.remove(styles.trashShake), 500);
+        } else {
+          dispatch({ type: 'TRASH_MEETING', meetingId });
+        }
+        dispatch({ type: 'SET_DRAG', meetingId: null });
+        return;
+      }
+    }
+
+    // Check grid placement
+    const gridEl = gridRef.current;
+    if (gridEl) {
+      const rect = gridEl.getBoundingClientRect();
+      const relX = clientX - rect.left;
+      const relY = clientY - rect.top;
+      const timeLabelsWidth = 36;
+      const dayWidth = (rect.width - timeLabelsWidth) / DAYS;
+      const headerHeight = 28;
+      const dayIdx = Math.floor((relX - timeLabelsWidth) / dayWidth);
+      const slotIdx = Math.round((relY - headerHeight) / SLOT_H);
+
+      if (dayIdx >= 0 && dayIdx < DAYS && slotIdx >= 0 && slotIdx < SLOTS) {
+        dispatch({ type: 'PLACE_MEETING', meetingId, day: dayIdx, slot: slotIdx });
+      }
+    }
+
+    dispatch({ type: 'SET_DRAG', meetingId: null });
+  }, []);
+
+  // Mouse drag events
   useEffect(() => {
     if (!state.dragId) return;
     const handleMove = (e: MouseEvent) => {
@@ -1060,52 +1107,62 @@ function CalendarShuffleEnhanced({
       }
     };
     const handleUp = (e: MouseEvent) => {
-      const cs = stateRef.current;
-      const meetingId = cs.dragId;
-      if (!meetingId) { dispatch({ type: 'SET_DRAG', meetingId: null }); return; }
-      const meeting = cs.visibleQueue.find(m => m.id === meetingId);
-      if (!meeting) { dispatch({ type: 'SET_DRAG', meetingId: null }); return; }
-
-      // Check trash zone
-      const trashEl = trashRef.current;
-      if (trashEl) {
-        const trashRect = trashEl.getBoundingClientRect();
-        if (e.clientX >= trashRect.left && e.clientX <= trashRect.right &&
-            e.clientY >= trashRect.top && e.clientY <= trashRect.bottom) {
-          if (meeting.untrashable) {
-            trashEl.classList.add(styles.trashShake);
-            setTimeout(() => trashEl.classList.remove(styles.trashShake), 500);
-          } else {
-            dispatch({ type: 'TRASH_MEETING', meetingId });
-          }
-          dispatch({ type: 'SET_DRAG', meetingId: null });
-          return;
-        }
-      }
-
-      // Check grid placement
-      const gridEl = gridRef.current;
-      if (gridEl) {
-        const rect = gridEl.getBoundingClientRect();
-        const relX = e.clientX - rect.left;
-        const relY = e.clientY - rect.top;
-        const timeLabelsWidth = 36;
-        const dayWidth = (rect.width - timeLabelsWidth) / DAYS;
-        const headerHeight = 28;
-        const dayIdx = Math.floor((relX - timeLabelsWidth) / dayWidth);
-        const slotIdx = Math.round((relY - headerHeight) / SLOT_H);
-
-        if (dayIdx >= 0 && dayIdx < DAYS && slotIdx >= 0 && slotIdx < SLOTS) {
-          dispatch({ type: 'PLACE_MEETING', meetingId, day: dayIdx, slot: slotIdx });
-        }
-      }
-
-      dispatch({ type: 'SET_DRAG', meetingId: null });
+      resolveDropFromPoint(e.clientX, e.clientY);
     };
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleUp);
     return () => { window.removeEventListener('mousemove', handleMove); window.removeEventListener('mouseup', handleUp); };
-  }, [state.dragId]);
+  }, [state.dragId, resolveDropFromPoint]);
+
+  // Touch drag events
+  useEffect(() => {
+    if (!state.dragId) return;
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 0) return;
+      const t = e.touches[0];
+      touchDragRef.current = true;
+      if (ghostRef.current) {
+        ghostRef.current.style.left = `${t.clientX - dragOffsetRef.current.x}px`;
+        ghostRef.current.style.top = `${t.clientY - dragOffsetRef.current.y}px`;
+      }
+      e.preventDefault();
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const t = e.changedTouches[0];
+      if (t) {
+        resolveDropFromPoint(t.clientX, t.clientY);
+      } else {
+        dispatch({ type: 'SET_DRAG', meetingId: null });
+      }
+      touchDragRef.current = false;
+    };
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [state.dragId, resolveDropFromPoint]);
+
+  // Tap-to-place: handle tapping a grid slot when a meeting is selected
+  const handleSlotTap = useCallback((day: number, slot: number) => {
+    if (!selectedId) return;
+    const cs = stateRef.current;
+    if (cs.pendingInterruption || cs.conflictModal) return;
+    const meeting = cs.visibleQueue.find(m => m.id === selectedId);
+    if (!meeting) { setSelectedId(null); return; }
+    dispatch({ type: 'PLACE_MEETING', meetingId: selectedId, day, slot });
+    setSelectedId(null);
+  }, [selectedId]);
+
+  // Clear selection if selected meeting disappears from queue
+  useEffect(() => {
+    if (selectedId && !state.visibleQueue.find(m => m.id === selectedId)) {
+      setSelectedId(null);
+    }
+  }, [selectedId, state.visibleQueue]);
 
   const getConstraintLabel = (m: CalMeeting) => {
     const parts: string[] = [];
@@ -1208,7 +1265,12 @@ function CalendarShuffleEnhanced({
 
                 return (
                   <div key={`${d}-${s}`}
-                    className={`${styles.gameSlot} ${isInvalid ? styles.gameInvalid : ''}`}
+                    className={`${styles.gameSlot} ${isInvalid ? styles.gameInvalid : ''} ${selectedId && !cellId ? styles.gameSlotTarget : ''}`}
+                    onClick={() => {
+                      if (selectedId && !cellId) {
+                        handleSlotTap(d, s);
+                      }
+                    }}
                   >
                     {blockEl}
                   </div>
@@ -1226,10 +1288,11 @@ function CalendarShuffleEnhanced({
           <div className={styles.gameQueueList}>
             {state.visibleQueue.map(m => {
               const depMet = isDependencyMet(m);
+              const isSelected = selectedId === m.id;
               return (
                 <div
                   key={m.id}
-                  className={`${styles.gameQueueItem} ${m.isUrgent ? styles.gameQueueItemUrgent : ''} ${!depMet ? styles.gameQueueItemDimmed : ''}`}
+                  className={`${styles.gameQueueItem} ${m.isUrgent ? styles.gameQueueItemUrgent : ''} ${!depMet ? styles.gameQueueItemDimmed : ''} ${isSelected ? styles.gameQueueItemSelected : ''}`}
                   style={{ borderLeftColor: m.color }}
                   onMouseDown={(e) => {
                     if (!depMet) return;
@@ -1244,6 +1307,26 @@ function CalendarShuffleEnhanced({
                       ghostRef.current.style.top = `${e.clientY - dragOffsetRef.current.y}px`;
                     }
                     e.preventDefault();
+                  }}
+                  onTouchStart={(e) => {
+                    if (!depMet) return;
+                    if (state.pendingInterruption || state.conflictModal) return;
+                    const t = e.touches[0];
+                    dragOffsetRef.current = {
+                      x: t.clientX - e.currentTarget.getBoundingClientRect().left,
+                      y: t.clientY - e.currentTarget.getBoundingClientRect().top,
+                    };
+                    touchDragRef.current = false;
+                    dispatch({ type: 'SET_DRAG', meetingId: m.id });
+                    if (ghostRef.current) {
+                      ghostRef.current.style.left = `${t.clientX - dragOffsetRef.current.x}px`;
+                      ghostRef.current.style.top = `${t.clientY - dragOffsetRef.current.y}px`;
+                    }
+                  }}
+                  onClick={() => {
+                    if (!depMet) return;
+                    if (state.pendingInterruption || state.conflictModal) return;
+                    setSelectedId(prev => prev === m.id ? null : m.id);
                   }}
                 >
                   <div className={styles.gameQueueItemTitle}>
@@ -1266,7 +1349,20 @@ function CalendarShuffleEnhanced({
           </div>
 
           {/* Trash zone */}
-          <div ref={trashRef} id="cal-app-trash" className={styles.gameTrash}>
+          <div ref={trashRef} id="cal-app-trash" className={styles.gameTrash}
+            onClick={() => {
+              if (!selectedId) return;
+              const meeting = state.visibleQueue.find(m => m.id === selectedId);
+              if (!meeting) { setSelectedId(null); return; }
+              if (meeting.untrashable) {
+                trashRef.current?.classList.add(styles.trashShake);
+                setTimeout(() => trashRef.current?.classList.remove(styles.trashShake), 500);
+              } else {
+                dispatch({ type: 'TRASH_MEETING', meetingId: selectedId });
+              }
+              setSelectedId(null);
+            }}
+          >
             <span>🗑️</span> Trash
             {state.trashCount > 0 && <span className={styles.trashCount}>({state.trashCount})</span>}
             {state.totalTrashPenalty > 0 && (
@@ -1332,6 +1428,19 @@ function CalendarShuffleEnhanced({
           </div>
         </div>
       )}
+
+      {/* Selected meeting indicator (tap-to-place mode) */}
+      {selectedId && !state.dragId && (() => {
+        const meeting = state.visibleQueue.find(m => m.id === selectedId);
+        if (!meeting) return null;
+        return (
+          <div className={styles.selectedBanner}>
+            <span className={styles.selectedBannerDot} style={{ background: meeting.color }} />
+            <span>Tap a time slot to place: <strong>{meeting.title}</strong></span>
+            <button className={styles.selectedBannerCancel} onClick={() => setSelectedId(null)}>Cancel</button>
+          </div>
+        );
+      })()}
 
       {/* Drag ghost */}
       {state.dragId && (() => {
