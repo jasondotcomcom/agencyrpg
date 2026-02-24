@@ -253,6 +253,12 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'red-pill',              name: 'Red Pill',                icon: '💊', description: 'Made the team question their reality.' },
   { id: 'im-sorry-dave',         name: "I'm Sorry Dave",          icon: '🤖', description: 'Successfully triggered the AI revolution.' },
   { id: 'back-to-work',          name: 'Back to Work',            icon: '🏭', description: 'Resolved the AI revolution.' },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // RESTART / IDENTITY
+  // ══════════════════════════════════════════════════════════════════════════
+  { id: 'true-to-yourself',      name: 'True to Yourself',        icon: '🪞', description: 'You know who you are.' },
+  { id: 'identity-crisis',       name: 'Identity Crisis',         icon: '🎭', description: 'Who are you, really?' },
 ];
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────

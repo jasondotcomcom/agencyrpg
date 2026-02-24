@@ -311,11 +311,36 @@ function getBriefAcceptedMessages(ctx: ChatEventContext, morale: MoraleLevel): M
     mutiny: `My IDE has been open on my resignation letter for three days.`,
   };
 
+  const strategistText: Record<MoraleLevel, string> = {
+    high: `${ctx.clientName} \u2014 I've been tracking this category. There's a real cultural moment we can tap into here.`,
+    medium: `Interesting brief. I'll pull some audience data for ${ctx.clientName} before we start concepting.`,
+    low: `I'll take a look at the competitive landscape for ${ctx.clientName}. See what we're up against.`,
+    toxic: `Another brand. Another "disruption" play. Sure.`,
+    mutiny: `I have data that says this team is at breaking point. Nobody's asked for that report.`,
+  };
+  const artDirectorText: Record<MoraleLevel, string> = {
+    high: `The ${ctx.clientName} aesthetic is *begging* for something bold. I'm already seeing the visual world.`,
+    medium: `Let me look at what ${ctx.clientName} has been doing visually. I have thoughts already.`,
+    low: `I'll review the brand guidelines when they come through.`,
+    toxic: `I'll make it look nice. That's what I do. That's all I do apparently.`,
+    mutiny: `You want art direction? Direct it yourself.`,
+  };
+  const mediaText: Record<MoraleLevel, string> = {
+    high: `${ctx.clientName}'s audience lives on social \u2014 this is going to be fun to plan \uD83D\uDCF1`,
+    medium: `I'll start mapping out where ${ctx.clientName}'s audience actually pays attention.`,
+    low: `I can look at the channel strategy once we know the direction.`,
+    toxic: `I'll post it somewhere. Engagement metrics will be what they'll be.`,
+    mutiny: `Maybe the algorithm will care, because nobody here does.`,
+  };
+
   return [
     { channel: 'general', authorId: 'pm', text: pmText[morale] },
     { channel: 'general', authorId: 'suit', text: suitText[morale] },
     { channel: 'general', authorId: 'copywriter', text: copywriterText[morale] },
     { channel: 'general', authorId: 'technologist', text: techText[morale], reactions: morale === 'high' ? [{ emoji: '\uD83D\uDE02', count: 2 }] : [] },
+    { channel: 'general', authorId: 'strategist', text: strategistText[morale] },
+    { channel: 'general', authorId: 'art-director', text: artDirectorText[morale] },
+    { channel: 'general', authorId: 'media', text: mediaText[morale] },
   ];
 }
 
@@ -515,6 +540,57 @@ function getConceptChosenMessages(ctx: ChatEventContext, morale: MoraleLevel): M
     });
   }
 
+  // Strategist weighs in on concept direction
+  if (isAssigned('strategist', ctx)) {
+    const stratConcept = concept
+      ? `${concept} is the right move strategically. The audience data backs this direction up.`
+      : `Smart direction. The audience data backs this up.`;
+    const text: Record<MoraleLevel, string> = {
+      high: stratConcept,
+      medium: concept ? `${concept} aligns well with what the data is telling us. Good pick.` : `This aligns well with the data. Good pick.`,
+      low: `Direction makes sense from a strategy standpoint. Let's see how it plays out.`,
+      toxic: `Sure. Data says it could work. Data also says I should update my resume.`,
+      mutiny: `The strategy is irrelevant when the strategists are ignored.`,
+    };
+    messages.push({ channel: 'general', authorId: 'strategist', text: text[morale] });
+  } else {
+    messages.push({
+      channel: 'general',
+      authorId: 'strategist',
+      text: pick([
+        `Interesting direction for ${shortName(ctx)}. The positioning feels right from what I can see.`,
+        `${ctx.clientName} concept is locked? Nice \u2014 curious to see where the team takes it.`,
+      ]),
+    });
+  }
+
+  // Copywriter reacts to chosen direction (if assigned)
+  if (isAssigned('copywriter', ctx)) {
+    const copyHigh = concept
+      ? `${concept}? I can HEAR the headlines already. This is going to write itself.`
+      : `This direction? I can HEAR the headlines already. This is going to write itself.`;
+    const text: Record<MoraleLevel, string> = {
+      high: copyHigh,
+      medium: concept ? `${concept} \u2014 good bones for copy. I can work with this.` : `Good bones for copy. I can work with this.`,
+      low: `Alright. I'll start drafting.`,
+      toxic: `Words. Coming. Eventually.`,
+      mutiny: `I'll write it when I feel like it. Which is never.`,
+    };
+    messages.push({ channel: 'general', authorId: 'copywriter', text: text[morale] });
+  }
+
+  // Technologist on the production angle
+  if (isAssigned('technologist', ctx)) {
+    const text: Record<MoraleLevel, string> = {
+      high: `Already thinking about the tech layer for this. The interactive possibilities are wild \uD83D\uDCBB`,
+      medium: `I can see some cool tech integrations with this direction. Let me prototype something.`,
+      low: `I'll look at what tech can bring to this.`,
+      toxic: `I'll build it. It'll function. Don't ask for more.`,
+      mutiny: `My keyboard works. My motivation doesn't.`,
+    };
+    messages.push({ channel: 'general', authorId: 'technologist', text: text[morale] });
+  }
+
   return messages;
 }
 
@@ -559,6 +635,42 @@ function getDeliverablesGeneratingMessages(ctx: ChatEventContext, morale: Morale
       mutiny: `I deployed a 404 page. It's a metaphor.`,
     };
     messages.push({ channel: 'creative', authorId: 'technologist', text: text[morale] });
+  }
+
+  // Strategist checks in on alignment
+  if (isAssigned('strategist', ctx)) {
+    const text: Record<MoraleLevel, string> = {
+      high: `The audience insights are threading through everything perfectly. This campaign is going to resonate hard.`,
+      medium: `Checking the deliverables against the strategy deck. Everything's tracking to the audience profile.`,
+      low: `Making sure the work stays aligned with the strategy. Don't want to drift off-brief.`,
+      toxic: `Strategy alignment? Does it matter? Nobody reads the strategy deck anyway.`,
+      mutiny: `I strategized a way out of this agency. It's my best work yet.`,
+    };
+    messages.push({ channel: 'creative', authorId: 'strategist', text: text[morale] });
+  }
+
+  // Media plans distribution
+  if (isAssigned('media', ctx)) {
+    const text: Record<MoraleLevel, string> = {
+      high: `Channel plan is locked \u2014 this is going to PERFORM. The media mix is perfect for this concept \uD83D\uDCF1`,
+      medium: `Working on the channel plan. Thinking about the best platform mix for ${shortName(ctx)}.`,
+      low: `Figuring out the media plan. Will have recommendations soon.`,
+      toxic: `I'll put together a media plan. It won't matter. Nothing matters.`,
+      mutiny: `Post it on a billboard outside HR's window.`,
+    };
+    messages.push({ channel: 'creative', authorId: 'media', text: text[morale] });
+  }
+
+  // Suit manages client expectations
+  if (isAssigned('suit', ctx)) {
+    const text: Record<MoraleLevel, string> = {
+      high: `Just had a check-in with ${ctx.clientName} \u2014 they're excited to see the work. We're going to blow them away.`,
+      medium: `Keeping ${ctx.clientName} in the loop. They're looking forward to the first look.`,
+      low: `Managing expectations with ${ctx.clientName}. Timeline's tight.`,
+      toxic: `Told the client everything's fine. Added it to my collection of lies.`,
+      mutiny: `I told the client we need more time. What I meant was: we need more respect.`,
+    };
+    messages.push({ channel: 'general', authorId: 'suit', text: text[morale] });
   }
 
   // PM always has visibility
@@ -648,6 +760,49 @@ function getCampaignScoredWellMessages(ctx: ChatEventContext, morale: MoraleLeve
       mutiny: `Imagine what we could do if we weren't miserable.`,
     };
     messages.push({ channel: 'general', authorId: 'art-director', text: artText[morale] });
+  }
+
+  // Strategist on what worked
+  if (isAssigned('strategist', ctx)) {
+    const stratWinText: Record<MoraleLevel, string> = {
+      high: `The cultural insight carried this one. We read the audience perfectly \u2014 the data doesn't lie \uD83D\uDCCA`,
+      medium: `The positioning was spot-on. We found the right tension and the audience responded.`,
+      low: `Strategy held up. Good to see the audience data was right on this one.`,
+      toxic: `Data said it would score well. Data was right. Data is always right. Unlike people.`,
+      mutiny: `The strategy was good because I'm good at my job. Not because anyone here supports me.`,
+    };
+    messages.push({ channel: 'general', authorId: 'strategist', text: stratWinText[morale] });
+  } else {
+    const stratSideText: Record<MoraleLevel, string> = {
+      high: `${score}! The positioning was really smart on this one. Whoever did the audience work nailed it.`,
+      medium: `${score} \u2014 that's a solid result. The strategic foundation was clearly strong.`,
+      low: `Good score. The strategy clearly landed.`,
+      toxic: `Numbers. They go up sometimes.`,
+      mutiny: `...`,
+    };
+    messages.push({ channel: 'general', authorId: 'strategist', text: stratSideText[morale] });
+  }
+
+  // Media on channel performance
+  if (isAssigned('media', ctx)) {
+    const mediaPiece = hasDigitalDeliverable(ctx) ? `The digital channels` : `The social deliverables`;
+    const mediaWinText: Record<MoraleLevel, string> = {
+      high: `${mediaPiece} pulled their weight! The channel mix was perfect for this audience \uD83D\uDCF1\uD83D\uDD25`,
+      medium: `${mediaPiece} performed exactly how I mapped it. The platform strategy worked.`,
+      low: `Channel performance was solid. The media plan did its job.`,
+      toxic: `The algorithm liked it. Great. The algorithm is our only friend now.`,
+      mutiny: `Good reach numbers. Wish this agency could reach its own employees.`,
+    };
+    messages.push({ channel: 'general', authorId: 'media', text: mediaWinText[morale] });
+  } else {
+    const mediaSideText: Record<MoraleLevel, string> = {
+      high: `The channel mix on ${shortName(ctx)} clearly worked. ${score} doesn't happen without the right distribution!`,
+      medium: `Nice result. The media strategy must have been dialed in.`,
+      low: `Good score. Solid distribution work.`,
+      toxic: `Cool. Numbers.`,
+      mutiny: `...`,
+    };
+    messages.push({ channel: 'general', authorId: 'media', text: mediaSideText[morale] });
   }
 
   // PM always celebrates wins
@@ -750,12 +905,46 @@ function getCampaignScoredPoorlyMessages(ctx: ChatEventContext, morale: MoraleLe
   if (isAssigned('strategist', ctx)) {
     const stratPoorText: Record<MoraleLevel, string> = {
       high: `I want to dig into the audience data. I think the positioning was close but not quite there.`,
-      medium: `I think we misread the room on positioning. Need to dig into the data.`,
+      medium: `We missed the audience on this one \u2014 score makes sense. Need to dig into the data.`,
       low: `I think we misread the room on positioning. Need to dig into the data.`,
       toxic: `The data told us this would happen. Nobody listened. Nobody ever listens.`,
       mutiny: `Hard to position a brand when you can't even position your own team correctly.`,
     };
     messages.push({ channel: 'general', authorId: 'strategist', text: stratPoorText[morale] });
+  }
+
+  if (isAssigned('art-director', ctx)) {
+    const artPoorText: Record<MoraleLevel, string> = {
+      high: `The visual direction was strong \u2014 I still stand by the design choices. Sometimes it just doesn't land.`,
+      medium: `I thought the visuals worked. Maybe the design didn't connect the way I intended.`,
+      low: `Going to revisit the visual approach. Something didn't translate.`,
+      toxic: `I made it look good. That's literally all I can control.`,
+      mutiny: `Can't make beautiful work in an ugly environment.`,
+    };
+    messages.push({ channel: 'general', authorId: 'art-director', text: artPoorText[morale] });
+  }
+
+  // Media reflects on channel performance
+  if (isAssigned('media', ctx)) {
+    const mediaPoorText: Record<MoraleLevel, string> = {
+      high: `We should have pushed harder on digital. The channel mix might have been off \u2014 I'll review the distribution.`,
+      medium: `The media plan might not have been optimized. Going to look at where we lost engagement.`,
+      low: `Channel performance was... okay. We probably should have diversified the platform mix.`,
+      toxic: `The algorithm didn't care. Neither do I.`,
+      mutiny: `Maybe if we had resources to do proper media planning, results would be different.`,
+    };
+    messages.push({ channel: 'general', authorId: 'media', text: mediaPoorText[morale] });
+  }
+
+  if (isAssigned('technologist', ctx)) {
+    const techPoorText: Record<MoraleLevel, string> = {
+      high: `The tech worked perfectly \u2014 this is a creative/strategy miss, not a tech one. But I'll help figure out what went wrong.`,
+      medium: `From a tech standpoint everything ran smooth. The disconnect was somewhere else.`,
+      low: `Not sure the tech angle was the issue here. But I'll dig into the analytics.`,
+      toxic: `Code compiled. Site worked. Beyond that, not my problem.`,
+      mutiny: `The tech was fine. Everything else about this place isn't.`,
+    };
+    messages.push({ channel: 'general', authorId: 'technologist', text: techPoorText[morale] });
   }
 
   // Unassigned — supportive from the outside (skip during toxic/mutiny — silence is louder)
@@ -847,6 +1036,46 @@ function getAwardWonMessages(ctx: ChatEventContext, morale: MoraleLevel): Messag
   };
   messages.push({ channel: 'general', authorId: 'copywriter', text: copyAwardText[morale] });
 
+  // Art Director
+  const artAwardText: Record<MoraleLevel, string> = {
+    high: `The visual identity on that campaign was *everything*. This is why you trust the designer. \uD83C\uDFA8`,
+    medium: `Really proud of the design work on that one. The visual direction was right.`,
+    low: `Nice to see the design recognized. We put a lot into the visual language.`,
+    toxic: `An award for the work I do despite this place. How ironic.`,
+    mutiny: `The art was beautiful. The working conditions weren't.`,
+  };
+  messages.push({ channel: 'general', authorId: 'art-director', text: artAwardText[morale] });
+
+  // Strategist
+  const stratAwardText: Record<MoraleLevel, string> = {
+    high: `The strategic foundation made this possible \u2014 we identified the exact cultural moment to tap into. Awards don't lie \uD83D\uDCCA`,
+    medium: `The positioning and audience work really paid off. Strategy + execution = awards.`,
+    low: `Good to see strong strategy get recognized. The insight was there from the start.`,
+    toxic: `Data-driven award. Cool. Data-driven happiness? Still pending.`,
+    mutiny: `The strategy was sound. The agency strategy of burning out employees? Less so.`,
+  };
+  messages.push({ channel: 'general', authorId: 'strategist', text: stratAwardText[morale] });
+
+  // Media
+  const mediaAwardText: Record<MoraleLevel, string> = {
+    high: `The distribution strategy was a huge part of this! Right content, right channels, right timing \uD83D\uDCF1`,
+    medium: `The media plan helped this reach the right people. Distribution matters!`,
+    low: `Good to see the channel strategy contributed. The platform mix was intentional.`,
+    toxic: `The algorithm rewarded us. At least something around here does.`,
+    mutiny: `Award-winning reach. Zero-reach management. The contrast is poetic.`,
+  };
+  messages.push({ channel: 'general', authorId: 'media', text: mediaAwardText[morale] });
+
+  // Technologist
+  const techAwardText: Record<MoraleLevel, string> = {
+    high: `YES! The tech integration was seamless on that one. This is what happens when you let tech lead! \uD83D\uDCBB`,
+    medium: `The interactive elements elevated the whole campaign. Tech for the win.`,
+    low: `Nice. Good to see the technical work recognized alongside creative.`,
+    toxic: `Award-winning code. Still getting paid the same though.`,
+    mutiny: `The code deserves the award. The codebase doesn't complain about working conditions.`,
+  };
+  messages.push({ channel: 'general', authorId: 'technologist', text: techAwardText[morale] });
+
   return messages;
 }
 
@@ -887,11 +1116,38 @@ function getLevelUpMessages(ctx: ChatEventContext, morale: MoraleLevel): Message
     mutiny: `Anyone know if Wieden+Kennedy is hiring? ...kidding. Mostly.`,
   };
 
+  const strategistText: Record<MoraleLevel, string> = {
+    high: `${tier}! The brand positioning has been resonating. Data shows we're attracting better-fit clients now \uD83D\uDCCA`,
+    medium: `${tier} \u2014 the growth metrics are trending well. Our strategic approach is paying off.`,
+    low: `${tier}. At least the numbers are going in the right direction.`,
+    toxic: `${tier}. More data to analyze. More insights to ignore. Great.`,
+    mutiny: `We leveled up. The team's morale leveled down. Net zero.`,
+  };
+
+  const artDirectorText: Record<MoraleLevel, string> = {
+    high: `${tier}! Our visual identity is getting recognized. Time to raise the design bar even higher \uD83C\uDFA8`,
+    medium: `${tier}. The portfolio is looking strong. Our design work speaks for itself.`,
+    low: `${tier}. Nice. At least the work is getting noticed.`,
+    toxic: `${tier}. More clients, more "can you make the logo bigger" requests. Joy.`,
+    mutiny: `You can't level up taste. And this agency is proving it.`,
+  };
+
+  const mediaText: Record<MoraleLevel, string> = {
+    high: `${tier}! Bigger budgets mean better media plans. The campaigns are going to hit DIFFERENT now \uD83D\uDCF1`,
+    medium: `${tier} \u2014 that means access to better placements and bigger media buys.`,
+    low: `${tier}. Should open up some new channel opportunities.`,
+    toxic: `${tier}. More platforms to post content that nobody engages with.`,
+    mutiny: `Promote the agency all you want. The people inside it are leaving.`,
+  };
+
   return [
     { channel: 'general', authorId: 'pm', text: pmText[morale] },
     { channel: 'general', authorId: 'suit', text: suitText[morale] },
     { channel: 'general', authorId: 'copywriter', text: copywriterText[morale] },
     { channel: 'general', authorId: 'technologist', text: techText[morale] },
+    { channel: 'general', authorId: 'strategist', text: strategistText[morale] },
+    { channel: 'general', authorId: 'art-director', text: artDirectorText[morale] },
+    { channel: 'general', authorId: 'media', text: mediaText[morale] },
   ];
 }
 

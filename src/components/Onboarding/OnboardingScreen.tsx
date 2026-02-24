@@ -18,6 +18,22 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps):
     const trimmed = playerName.trim();
     if (trimmed.length < 2) return;
     unlockAchievement('founded-agency');
+
+    // Track name history across restarts (key survives reset — no agencyrpg- prefix)
+    const NAME_HISTORY_KEY = 'arpg-name-history';
+    try {
+      const history: string[] = JSON.parse(localStorage.getItem(NAME_HISTORY_KEY) || '[]');
+      history.push(trimmed);
+      localStorage.setItem(NAME_HISTORY_KEY, JSON.stringify(history));
+
+      if (history.length >= 3) {
+        const allSame = history.every(n => n.toLowerCase() === history[0].toLowerCase());
+        const allDifferent = new Set(history.map(n => n.toLowerCase())).size === history.length;
+        if (allSame) unlockAchievement('true-to-yourself');
+        if (allDifferent) unlockAchievement('identity-crisis');
+      }
+    } catch { /* localStorage unavailable — non-fatal */ }
+
     onComplete(trimmed);
   };
 
