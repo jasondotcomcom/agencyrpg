@@ -1,0 +1,45 @@
+.fullscreenGame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: var(--color-surface, #fafafa);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.closeBtn {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top, 8px));
+  left: 8px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.closeBtn:active {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.gameCanvas {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 8px;
+}

@@ -32,6 +32,7 @@ interface MobileCampaignCardFlowProps {
   onSubmit: () => void;
   canSubmit: boolean;
   isSubmitting: boolean;
+  onBack: () => void;
 }
 
 export default function MobileCampaignCardFlow({
@@ -39,6 +40,7 @@ export default function MobileCampaignCardFlow({
   onSubmit,
   canSubmit,
   isSubmitting,
+  onBack,
 }: MobileCampaignCardFlowProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -102,6 +104,14 @@ export default function MobileCampaignCardFlow({
 
   return (
     <div className={styles.cardFlow} ref={containerRef}>
+      <div className={styles.inlineHeader}>
+        <button className={styles.inlineBack} onClick={onBack} type="button" aria-label="Back to campaigns">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <span className={styles.inlineTitle}>{campaign.campaignName}</span>
+      </div>
       <ProgressDots
         activeIndex={activeIndex}
         maxAccessible={maxAccessible}

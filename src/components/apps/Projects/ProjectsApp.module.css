@@ -35,21 +35,9 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Hide — MobileCampaignCardFlow has its own inline back header */
   .mobileBackButton {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 10px 12px;
-    border: none;
-    background: rgba(254, 249, 243, 0.8);
-    border-bottom: 1px solid rgba(168, 230, 207, 0.2);
-    font-family: inherit;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--color-mint-dark, #3d8b6e);
-    cursor: pointer;
-    flex-shrink: 0;
-    min-height: 44px;
+    display: none;
   }
 
   .mobileBackButton svg {

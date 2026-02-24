@@ -64,6 +64,7 @@ export default function CampaignSidebar({ campaigns, selectedId, onSelect }: Cam
                   <div className={styles.cardInfo}>
                     <h3 className={styles.campaignName}>{campaign.campaignName}</h3>
                     <p className={styles.clientName}>{campaign.clientName}</p>
+                    <span className={styles.phaseBadge}>{campaign.phase}</span>
                   </div>
                 </div>
 

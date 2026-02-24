@@ -15,6 +15,17 @@
   box-sizing: border-box;
 }
 
+/* Fullscreen mode: fill parent instead of fixed size */
+.containerFullscreen {
+  composes: container;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  width: 100%;
+  padding: 16px;
+}
+
 /* ─── Ready Screen ──────────────────────────────── */
 .readyScreen {
   display: flex;

@@ -14,6 +14,7 @@ interface MicroGamesProps {
   progress: { current: number; total: number } | null;
   isComplete: boolean;
   onSeeResults?: () => void;
+  fullscreen?: boolean;
 }
 
 // ─── Weighted Game Picker (2-category lookback, weight-aware) ────────────────
@@ -65,10 +66,11 @@ function pickNextGame(
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function MicroGames({
-  phase, members, progress, isComplete, onSeeResults,
+  phase, members, progress, isComplete, onSeeResults, fullscreen,
 }: MicroGamesProps): React.ReactElement {
   const { settings } = useSettingsContext();
   const { extendedTimers, skipMiniGames } = settings.accessibility;
+  const containerClass = fullscreen ? styles.containerFullscreen : styles.container;
   const { unlockAchievement, incrementCounter, resetCounter, getCounter } = useAchievementContext();
 
   const [gamePhase, setGamePhase] = useState<GamePhase>('ready');
@@ -506,7 +508,7 @@ export default function MicroGames({
     if (isComplete) {
       // Reuse the complete screen without a score remark
       return (
-        <div className={styles.container}>
+        <div className={containerClass}>
           <div className={styles.completeScreen}>
             <div className={styles.completeEmoji}>🎉</div>
             <div className={styles.completeTitle}>
@@ -522,7 +524,7 @@ export default function MicroGames({
       );
     }
     return (
-      <div className={styles.container}>
+      <div className={containerClass}>
         <div className={styles.readyScreen}>
           <div className={styles.readySubtext}>Team is working on it...</div>
           {progress && (
@@ -545,7 +547,7 @@ export default function MicroGames({
       'Nice work helping out, boss.';
 
     return (
-      <div className={styles.container}>
+      <div className={containerClass}>
         <div className={styles.completeScreen}>
           <div className={styles.completeEmoji}>🎉</div>
           <div className={styles.completeTitle}>
@@ -568,7 +570,7 @@ export default function MicroGames({
 
   if (gamePhase === 'result' && lastResult) {
     return (
-      <div className={styles.container}>
+      <div className={containerClass}>
         <div className={styles.resultScreen}>
           <div className={`${styles.resultIcon} ${lastResult.won ? styles.win : styles.lose}`}>
             {lastResult.won ? '✅' : '❌'}
@@ -601,7 +603,7 @@ export default function MicroGames({
 
   if (gamePhase === 'ready' && currentGame) {
     return (
-      <div className={styles.container}>
+      <div className={containerClass}>
         <div className={styles.readyScreen}>
           <div className={styles.readySubtext}>Get ready...</div>
           <div className={styles.readyInstruction}>{currentGame.instruction}</div>
@@ -629,7 +631,7 @@ export default function MicroGames({
 
   if (gamePhase === 'playing' && currentGame && gameMember) {
     return (
-      <div className={styles.container}>
+      <div className={containerClass}>
         <div className={styles.gameArea}>
           <div className={styles.timerBar}>
             <div
@@ -662,5 +664,5 @@ export default function MicroGames({
     );
   }
 
-  return <div className={styles.container} />;
+  return <div className={containerClass} />;
 }

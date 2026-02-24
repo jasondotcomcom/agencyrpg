@@ -9,6 +9,8 @@ import { getRandomDirection, getRandomDirectionExcluding } from '../../../../dat
 import type { DirectionQuality } from '../../../../data/autoDirections';
 import { getTeamMembers } from '../../../../data/team';
 import MicroGames from '../../../MicroGames/MicroGames';
+import FullscreenGameWrapper from '../../../MicroGames/FullscreenGameWrapper';
+import { useDeviceMode } from '../../../../utils/deviceDetection';
 import styles from './DirectionCard.module.css';
 
 interface DirectionCardProps {
@@ -27,6 +29,7 @@ export default function DirectionCard({ campaign }: DirectionCardProps) {
     campaign.autoDirectionQuality ?? null
   );
   const [isPlaying, setIsPlaying] = useState(false);
+  const deviceMode = useDeviceMode();
 
   const selectedTeamIds = campaign.conceptingTeam?.memberIds || [];
   const conceptingCost = calculateTeamCost(selectedTeamIds.length);
@@ -81,18 +84,31 @@ export default function DirectionCard({ campaign }: DirectionCardProps) {
     return (
       <div className={styles.card}>
         {isPlaying ? (
-          <>
-            <MicroGames
-              phase="concepting"
-              members={members}
-              progress={{ current: 0, total: 3 }}
-              isComplete={false}
-              onSeeResults={() => {}}
-            />
-            <button className={styles.stopBtn} onClick={() => setIsPlaying(false)}>
-              Stop Playing
-            </button>
-          </>
+          deviceMode === 'phone' ? (
+            <FullscreenGameWrapper onClose={() => setIsPlaying(false)}>
+              <MicroGames
+                phase="concepting"
+                members={members}
+                progress={{ current: 0, total: 3 }}
+                isComplete={false}
+                onSeeResults={() => {}}
+                fullscreen
+              />
+            </FullscreenGameWrapper>
+          ) : (
+            <>
+              <MicroGames
+                phase="concepting"
+                members={members}
+                progress={{ current: 0, total: 3 }}
+                isComplete={false}
+                onSeeResults={() => {}}
+              />
+              <button className={styles.stopBtn} onClick={() => setIsPlaying(false)}>
+                Stop Playing
+              </button>
+            </>
+          )
         ) : (
           <div className={styles.waitScreen}>
             <div className={styles.waitIcon}>⏳</div>

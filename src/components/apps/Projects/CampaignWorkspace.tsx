@@ -43,7 +43,7 @@ interface CampaignWorkspaceProps {
 }
 
 export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps): React.ReactElement {
-  const { getCampaign, canSubmitCampaign, submitCampaign, completeCampaign, campaigns } = useCampaignContext();
+  const { getCampaign, canSubmitCampaign, submitCampaign, completeCampaign, campaigns, selectCampaign } = useCampaignContext();
   const { addNotification } = useWindowContext();
   const { submitCampaign: submitToReputation, processPendingEvents, addReputation, subtractReputation, state: repState } = useReputationContext();
   const { addEmail } = useEmailContext();
@@ -403,6 +403,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
           onSubmit={handleSubmit}
           canSubmit={canSubmit}
           isSubmitting={isSubmitting}
+          onBack={() => selectCampaign(null)}
         />
         {showResults && campaignScore && (
           <CampaignResults

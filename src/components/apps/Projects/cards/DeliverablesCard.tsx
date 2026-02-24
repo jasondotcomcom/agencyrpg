@@ -4,6 +4,8 @@ import { DELIVERABLE_TYPES, PLATFORMS } from '../../../../types/campaign';
 import { useCampaignContext } from '../../../../context/CampaignContext';
 import { getTeamMembers } from '../../../../data/team';
 import MicroGames from '../../../MicroGames/MicroGames';
+import FullscreenGameWrapper from '../../../MicroGames/FullscreenGameWrapper';
+import { useDeviceMode } from '../../../../utils/deviceDetection';
 import styles from './DeliverablesCard.module.css';
 
 interface DeliverablesCardProps {
@@ -13,6 +15,7 @@ interface DeliverablesCardProps {
 export default function DeliverablesCard({ campaign }: DeliverablesCardProps) {
   const { generatingProgress, retryDeliverableGeneration } = useCampaignContext();
   const [isPlaying, setIsPlaying] = useState(false);
+  const deviceMode = useDeviceMode();
 
   const memberIdsKey = campaign.conceptingTeam?.memberIds.join(',') ?? '';
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,18 +65,31 @@ export default function DeliverablesCard({ campaign }: DeliverablesCardProps) {
       )}
 
       {isPlaying && (
-        <>
-          <MicroGames
-            phase="generating"
-            members={members}
-            progress={progress}
-            isComplete={isComplete}
-            onSeeResults={() => {}}
-          />
-          <button className={styles.stopBtn} onClick={() => setIsPlaying(false)}>
-            Stop Playing
-          </button>
-        </>
+        deviceMode === 'phone' ? (
+          <FullscreenGameWrapper onClose={() => setIsPlaying(false)}>
+            <MicroGames
+              phase="generating"
+              members={members}
+              progress={progress}
+              isComplete={isComplete}
+              onSeeResults={() => {}}
+              fullscreen
+            />
+          </FullscreenGameWrapper>
+        ) : (
+          <>
+            <MicroGames
+              phase="generating"
+              members={members}
+              progress={progress}
+              isComplete={isComplete}
+              onSeeResults={() => {}}
+            />
+            <button className={styles.stopBtn} onClick={() => setIsPlaying(false)}>
+              Stop Playing
+            </button>
+          </>
+        )
       )}
 
       <div className={styles.deliverableList}>
