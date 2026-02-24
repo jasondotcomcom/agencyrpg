@@ -9,9 +9,9 @@
   inset: 0;
   display: flex;
   flex-direction: column;
-  background: #000;
+  background: #fef9f3;
   font-family: inherit;
-  color: #fff;
+  color: #1a1a2e;
   overflow: hidden;
   -webkit-user-select: none;
   user-select: none;
@@ -29,12 +29,13 @@
   height: 44px;
   padding: 0 16px;
   padding-top: env(safe-area-inset-top, 0px);
-  background: rgba(15, 15, 30, 0.92);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(26, 26, 46, 0.85);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -52,7 +53,7 @@
   flex: 1;
   text-align: center;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(26, 26, 46, 0.5);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -86,7 +87,11 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 20px 12px;
   align-content: start;
-  background: linear-gradient(170deg, #0f0f2e 0%, #1a1040 35%, #251548 65%, #1a0f35 100%);
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(168, 230, 207, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(168, 216, 234, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255, 183, 178, 0.2) 0%, transparent 60%),
+    linear-gradient(135deg, #fef9f3 0%, #fff4e6 50%, #fef0f5 100%);
 }
 
 .homeScreen::-webkit-scrollbar {
@@ -110,7 +115,7 @@
 }
 
 .appIcon:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline: 2px solid rgba(102, 126, 234, 0.6);
   outline-offset: 2px;
   border-radius: 16px;
 }
@@ -125,14 +130,15 @@
   width: 60px;
   height: 60px;
   border-radius: 14px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .appIconImage svg {
@@ -147,13 +153,13 @@
 
 .appIconLabel {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(26, 26, 46, 0.8);
   text-align: center;
   max-width: 68px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
 }
 
 /* --- Badge --------------------------------------------------------------- */
@@ -188,10 +194,10 @@
   height: 72px;
   padding: 0 24px;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: rgba(30, 30, 50, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
 }
 
@@ -221,14 +227,15 @@
   width: 50px;
   height: 50px;
   border-radius: 12px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .dockIconImage svg {
@@ -259,7 +266,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(26, 26, 46, 0.6);
   transition: opacity 0.15s ease;
 }
 
@@ -267,7 +274,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(26, 26, 46, 0.6);
   opacity: 0;
 }
 
@@ -501,16 +508,17 @@
   width: 100%;
   max-width: 440px;
   max-height: 75vh;
-  background: rgba(30, 30, 55, 0.97);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
   border-radius: 16px 16px 0 0;
-  color: #fff;
+  color: #1a1a2e;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: slideUp 0.3s ease-out;
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes slideUp {
@@ -523,7 +531,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
 }
 
@@ -540,7 +548,7 @@
   justify-content: center;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(26, 26, 46, 0.4);
   font-size: 24px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -566,7 +574,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(26, 26, 46, 0.45);
   padding: 8px 20px 4px;
 }
 
@@ -589,7 +597,7 @@
 .sessionModalRowLabel {
   font-size: 15px;
   font-weight: 500;
-  color: #fff;
+  color: #1a1a2e;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -597,17 +605,17 @@
 
 .sessionModalRowValue {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(26, 26, 46, 0.5);
 }
 
 .sessionModalJump {
   flex-shrink: 0;
   padding: 6px 14px;
   margin-left: 12px;
-  background: rgba(102, 126, 234, 0.2);
-  border: 1px solid rgba(102, 126, 234, 0.35);
+  background: rgba(102, 126, 234, 0.12);
+  border: 1px solid rgba(102, 126, 234, 0.25);
   border-radius: 8px;
-  color: #a8c4ff;
+  color: #667eea;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -624,12 +632,13 @@
 .quickActionMenu {
   position: fixed;
   z-index: 500;
-  background: rgba(40, 40, 65, 0.97);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
   border-radius: 14px;
   padding: 4px 0;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   animation: quickActionIn 0.15s ease-out;
   overflow: hidden;
 }
@@ -653,7 +662,7 @@
   height: 44px;
   background: none;
   border: none;
-  color: #fff;
+  color: #1a1a2e;
   font-size: 15px;
   font-weight: 400;
   text-align: left;
@@ -662,11 +671,11 @@
 }
 
 .quickActionItem:active {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .quickActionItem + .quickActionItem {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* --- Reduced Motion ----------------------------------------------------- */
