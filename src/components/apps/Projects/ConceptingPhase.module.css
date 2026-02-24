@@ -863,11 +863,21 @@
 
   .modalFooter {
     flex-shrink: 0;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    background: rgba(254, 249, 243, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
   }
 
   .saveButton {
     min-height: 44px;
     padding: 12px 20px;
+    flex: 1;
+  }
+
+  .selectedCount {
+    font-size: 0.75rem;
   }
 
   .generateButton {

@@ -9,6 +9,14 @@
   flex-wrap: wrap;
 }
 
+.titleRow {
+  display: contents;
+}
+
+.statsToggle {
+  display: none;
+}
+
 .titleSection {
   display: flex;
   align-items: center;
@@ -177,8 +185,41 @@
 @media (max-width: 767px) {
   .header {
     padding: 12px 16px;
-    gap: 12px;
+    gap: 0;
     flex-direction: column;
+  }
+
+  .titleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .statsToggle {
+    display: block;
+    font-size: 0.625rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+    padding: 8px;
+    flex-shrink: 0;
+  }
+
+  .statsToggle.expanded {
+    transform: rotate(180deg);
+  }
+
+  .stats {
+    display: none;
+    gap: 8px;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .stats.statsVisible {
+    display: flex;
   }
 
   .clientBadge {
@@ -207,11 +248,6 @@
   .phaseBadge {
     font-size: 0.625rem;
     padding: 2px 8px;
-  }
-
-  .stats {
-    gap: 8px;
-    width: 100%;
   }
 
   .stat {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Campaign } from '../../../types/campaign';
 import { formatBudget } from '../../../types/campaign';
 import styles from './CampaignHeader.module.css';
@@ -43,25 +43,29 @@ export default function CampaignHeader({ campaign }: CampaignHeaderProps): React
   };
 
   const currentPhase = phaseLabels[campaign.phase] || phaseLabels.concepting;
+  const [statsExpanded, setStatsExpanded] = useState(false);
 
   return (
     <div className={styles.header}>
-      <div className={styles.titleSection}>
-        <div className={styles.clientBadge}>
-          {campaign.clientName.charAt(0)}
-        </div>
-        <div className={styles.titleInfo}>
-          <h1 className={styles.campaignName}>{campaign.campaignName}</h1>
-          <div className={styles.metaRow}>
-            <span className={styles.clientName}>{campaign.clientName}</span>
-            <span className={styles.phaseBadge}>
-              {currentPhase.icon} {currentPhase.label}
-            </span>
+      <div className={styles.titleRow} onClick={() => setStatsExpanded(prev => !prev)}>
+        <div className={styles.titleSection}>
+          <div className={styles.clientBadge}>
+            {campaign.clientName.charAt(0)}
+          </div>
+          <div className={styles.titleInfo}>
+            <h1 className={styles.campaignName}>{campaign.campaignName}</h1>
+            <div className={styles.metaRow}>
+              <span className={styles.clientName}>{campaign.clientName}</span>
+              <span className={styles.phaseBadge}>
+                {currentPhase.icon} {currentPhase.label}
+              </span>
+            </div>
           </div>
         </div>
+        <span className={`${styles.statsToggle} ${statsExpanded ? styles.expanded : ''}`}>▼</span>
       </div>
 
-      <div className={styles.stats}>
+      <div className={`${styles.stats} ${statsExpanded ? styles.statsVisible : ''}`}>
         <div className={`${styles.stat} ${styles[getBudgetStatus()]}`}>
           <div className={styles.statHeader}>
             <span className={styles.statIcon}>💰</span>
