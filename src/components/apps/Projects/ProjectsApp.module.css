@@ -30,7 +30,9 @@
   .projectsApp.mobileWorkspaceActive .mainContent {
     display: flex;
     flex: 1;
-    overflow: hidden;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .mobileBackButton {

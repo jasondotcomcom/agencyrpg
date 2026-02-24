@@ -220,6 +220,9 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
   }
 
   /* Mobile back button shown in detail view */

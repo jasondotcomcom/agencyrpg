@@ -359,9 +359,12 @@
 
 .appContent {
   flex: 1;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain; /* prevent pull-to-refresh interference */
+  /* Ensure nested flex items resolve height properly */
+  min-height: 0;
 }
 
 /* --- Dark theme overrides ------------------------------------------------ */

@@ -251,8 +251,17 @@
 
 /* ─── Mobile overrides ───────────────────────────────────────────────────── */
 @media (max-width: 767px) {
+  .workspace {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+
   .content {
     padding: 16px;
+    padding-bottom: 120px;
+    overflow: visible; /* let .workspace handle scrolling */
+    flex: none; /* don't constrain height — let content flow naturally */
   }
 
   .footer {
