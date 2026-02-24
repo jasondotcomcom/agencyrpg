@@ -74,7 +74,9 @@ export default function EmailDetail({ email }: EmailDetailProps) {
     }
   }, [email, reputationApplied, addReputation, subtractReputation]);
 
-  const avatarClass = email.type === 'campaign_brief'
+  const avatarClass = email.isSeasonal
+    ? styles.seasonal
+    : email.type === 'campaign_brief'
     ? styles.brief
     : email.type === 'team_message'
     ? styles.team
@@ -121,6 +123,7 @@ export default function EmailDetail({ email }: EmailDetailProps) {
       campaignName: email.subject.replace(' - Campaign Brief', '').replace('Campaign Brief', email.campaignBrief.clientName),
       clientName: email.campaignBrief.clientName,
       assignedTeamIds: [],
+      isSeasonal: email.isSeasonal,
     });
 
     // Fontaine brief — sketchy client accepted, team is uncomfortable
@@ -231,9 +234,14 @@ export default function EmailDetail({ email }: EmailDetailProps) {
         </div>
 
         <div className={styles.badges}>
+          {email.isSeasonal && (
+            <span className={`${styles.badge} ${styles.seasonal}`}>📅 Limited-Time Seasonal Brief</span>
+          )}
           {email.type === 'campaign_brief' && (
             <>
-              <span className={`${styles.badge} ${styles.brief}`}>📋 Campaign Brief</span>
+              {!email.isSeasonal && (
+                <span className={`${styles.badge} ${styles.brief}`}>📋 Campaign Brief</span>
+              )}
               {email.campaignBrief && (
                 <span className={`${styles.badge} ${styles.budget}`}>
                   💰 {formatBudget(email.campaignBrief.budget)}

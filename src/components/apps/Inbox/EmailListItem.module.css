@@ -126,6 +126,31 @@
   color: #8a7a9e;
 }
 
+/* ─── Seasonal brief highlight ──────────────────────────────────────────── */
+.emailItem.seasonalRow {
+  background: linear-gradient(135deg, rgba(255, 234, 167, 0.15) 0%, rgba(253, 220, 109, 0.08) 100%);
+  border: 1px solid rgba(253, 220, 109, 0.35);
+}
+
+.emailItem.seasonalRow:hover {
+  background: linear-gradient(135deg, rgba(255, 234, 167, 0.25) 0%, rgba(253, 220, 109, 0.15) 100%);
+  border-color: #d4a017;
+}
+
+.emailItem.seasonalRow.unread {
+  border-left: 3px solid #d4a017;
+}
+
+.avatar.seasonal {
+  background: linear-gradient(135deg, var(--color-butter-light) 0%, var(--color-butter) 100%);
+}
+
+.badge.seasonal {
+  background: linear-gradient(135deg, rgba(255, 234, 167, 0.5) 0%, rgba(253, 220, 109, 0.3) 100%);
+  color: #b8860b;
+  font-weight: 700;
+}
+
 .actions {
   display: flex;
   flex-direction: column;
@@ -186,6 +211,15 @@
 
   .emailItem.unread:hover {
     background: white;
+  }
+
+  .emailItem.seasonalRow:hover {
+    background: linear-gradient(135deg, rgba(255, 234, 167, 0.15) 0%, rgba(253, 220, 109, 0.08) 100%);
+    border-color: rgba(253, 220, 109, 0.35);
+  }
+
+  .emailItem.seasonalRow:active {
+    background: linear-gradient(135deg, rgba(255, 234, 167, 0.25) 0%, rgba(253, 220, 109, 0.15) 100%);
   }
 
   /* Always show star on mobile (no hover) */

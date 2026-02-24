@@ -42,7 +42,9 @@ export default function EmailListItem({ email }: EmailListItemProps) {
   const { selectedEmailId, selectEmail, toggleStar } = useEmailContext();
   const isSelected = selectedEmailId === email.id;
 
-  const avatarClass = email.type === 'campaign_brief'
+  const avatarClass = email.isSeasonal
+    ? styles.seasonal
+    : email.type === 'campaign_brief'
     ? styles.brief
     : email.type === 'team_message'
     ? styles.team
@@ -50,7 +52,7 @@ export default function EmailListItem({ email }: EmailListItemProps) {
 
   return (
     <div
-      className={`${styles.emailItem} ${isSelected ? styles.selected : ''} ${!email.isRead ? styles.unread : ''}`}
+      className={`${styles.emailItem} ${isSelected ? styles.selected : ''} ${!email.isRead ? styles.unread : ''} ${email.isSeasonal ? styles.seasonalRow : ''}`}
       onClick={() => selectEmail(email.id)}
     >
       <div className={`${styles.avatar} ${avatarClass}`}>
@@ -67,7 +69,10 @@ export default function EmailListItem({ email }: EmailListItemProps) {
         <div className={styles.preview}>{getPreview(email)}</div>
 
         <div className={styles.badges}>
-          {email.type === 'campaign_brief' && (
+          {email.isSeasonal && (
+            <span className={`${styles.badge} ${styles.seasonal}`}>📅 Seasonal</span>
+          )}
+          {email.type === 'campaign_brief' && !email.isSeasonal && (
             <span className={`${styles.badge} ${styles.brief}`}>📋 Brief</span>
           )}
           {email.type === 'team_message' && (

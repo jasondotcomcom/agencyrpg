@@ -282,6 +282,13 @@ export function getCampaignEventMessages(
 // No team assigned yet — everyone reacts as general awareness
 
 function getBriefAcceptedMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
+  if (ctx.isSeasonal) {
+    return [
+      { channel: 'general', authorId: 'pm', text: `Seasonal brief locked in — ${ctx.clientName}. Let's make the most of the timing! ⏰` },
+      { channel: 'general', authorId: 'copywriter', text: `Love a brief with a built-in cultural moment. ${ctx.clientName} — I've already got ideas.` },
+      { channel: 'general', authorId: 'strategist', text: `Good timing on ${ctx.clientName}. The seasonal angle gives us a natural hook for earned media.` },
+    ];
+  }
   const pmText: Record<MoraleLevel, string> = {
     high: `New brief just dropped for ${ctx.clientName}! Let\u2019s gooo \uD83D\uDE80`,
     medium: `New brief just dropped \u2014 ${shortName(ctx)}. Assigning a team now.`,
@@ -991,6 +998,12 @@ function getCampaignScoredPoorlyMessages(ctx: ChatEventContext, morale: MoraleLe
 // No team assigned yet — pure awareness
 
 function getNewBriefArrivedMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
+  if (ctx.isSeasonal) {
+    return [
+      { channel: 'general', authorId: 'suit', text: `Seasonal brief just came in from ${ctx.clientName}. Limited window on this one — worth a look. 📅` },
+      { channel: 'general', authorId: 'pm', text: `Ooh, timely! ${ctx.clientName} is tied to what's happening right now. Could be a fun one if we move fast.` },
+    ];
+  }
   const suitText: Record<MoraleLevel, string> = {
     high: `New client just reached out — ${ctx.clientName}. Check the inbox, this one looks like a fun challenge! 📧`,
     medium: `New brief just came in from ${ctx.clientName}. Worth a look when you get a moment.`,

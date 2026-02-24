@@ -154,6 +154,16 @@
   background: linear-gradient(135deg, var(--color-butter-light) 0%, var(--color-butter) 100%);
 }
 
+.avatar.seasonal {
+  background: linear-gradient(135deg, var(--color-butter-light) 0%, var(--color-butter) 100%);
+}
+
+.badge.seasonal {
+  background: linear-gradient(135deg, rgba(255, 234, 167, 0.5) 0%, rgba(253, 220, 109, 0.3) 100%);
+  color: #b8860b;
+  font-weight: 700;
+}
+
 .content {
   flex: 1;
   overflow-y: auto;

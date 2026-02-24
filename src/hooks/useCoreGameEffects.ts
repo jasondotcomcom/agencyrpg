@@ -10,6 +10,7 @@ import { useConductContext } from '../context/ConductContext';
 import { useAIRevolutionContext } from '../context/AIRevolutionContext';
 import { loadLegacy } from '../components/Ending/EndingSequence';
 import { LOCKED_BRIEFS, LAWSUIT_BRIEF } from '../data/lockedBriefs';
+import { SEASONAL_BRIEFS, isSeasonalBriefActive } from '../data/seasonalBriefs';
 import { MANIFESTO_MESSAGES } from '../data/aiRevolutionDialogue';
 import { NG_PLUS_LOCKED_BRIEFS, buildBrewedAwakeningsNgPlus } from '../data/ngPlusBriefs';
 import type { LegacyPrestigeFlags } from '../components/Ending/EndingSequence';
@@ -246,6 +247,44 @@ export function useCoreGameEffects(): void {
 
     return () => timers.forEach(clearTimeout);
   }, [playerName, campaigns, addNotification, addEmail, triggerCampaignEvent, addMessage]);
+
+  // ─── Seasonal brief delivery (date-gated) ─────────────────────────────────
+  useEffect(() => {
+    if (!playerName) return;
+
+    const deliveredKey = 'agencyrpg_seasonal_briefs_delivered';
+    let delivered: string[] = [];
+    try { delivered = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]'); } catch { /* */ }
+
+    const now = new Date();
+    const toDeliver = SEASONAL_BRIEFS.filter(
+      entry => isSeasonalBriefActive(entry, now) && !delivered.includes(entry.briefId)
+    );
+
+    if (toDeliver.length === 0) return;
+
+    const timers = toDeliver.map((entry, i) => {
+      const delay = 3000 + Math.random() * 3000 + i * 3000;
+      return setTimeout(() => {
+        addEmail(entry.buildEmail());
+        addNotification(
+          '📅 Seasonal Brief!',
+          `${entry.clientName} has a limited-time campaign. Check your inbox!`,
+        );
+        triggerCampaignEvent('NEW_BRIEF_ARRIVED', { clientName: entry.clientName, isSeasonal: true });
+
+        try {
+          const current: string[] = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]');
+          if (!current.includes(entry.briefId)) {
+            current.push(entry.briefId);
+            localStorage.setItem(deliveredKey, JSON.stringify(current));
+          }
+        } catch { /* non-fatal */ }
+      }, delay);
+    });
+
+    return () => timers.forEach(clearTimeout);
+  }, [playerName, addEmail, addNotification, triggerCampaignEvent]);
 
   // Unlock new briefs as campaigns complete (also recovers missed unlocks on reload)
   useEffect(() => {

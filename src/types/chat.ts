@@ -69,6 +69,7 @@ export interface ChatEventContext {
   tierName?: string;
   tierDescription?: string;
   isSketchyClient?: boolean;
+  isSeasonal?: boolean;
 }
 
 // ─── Message Template (used by chatMessages.ts) ──────────────────────────────
