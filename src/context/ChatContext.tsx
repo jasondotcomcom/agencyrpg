@@ -211,6 +211,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 reactions: msg.reactions ?? [],
                 isRead: false,
                 ...(msg.imageUrl ? { imageUrl: msg.imageUrl } : {}),
+                ...(msg.tableData ? { tableData: msg.tableData } : {}),
               },
             });
           }, msgDelay);
@@ -269,6 +270,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               reactions: template.reactions || [],
               isRead: false,
               ...(template.imageUrl ? { imageUrl: template.imageUrl } : {}),
+              ...(template.tableData ? { tableData: template.tableData } : {}),
             },
           });
           timersRef.current.delete(timer);

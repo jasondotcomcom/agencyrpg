@@ -17,6 +17,11 @@ export interface ChatReaction {
   count: number;
 }
 
+export interface ChatTableData {
+  headers: string[];
+  rows: string[][];
+}
+
 export interface ChatMessage {
   id: string;
   channel: ChannelId;
@@ -26,6 +31,7 @@ export interface ChatMessage {
   reactions: ChatReaction[];
   isRead: boolean;
   imageUrl?: string;
+  tableData?: ChatTableData;
 }
 
 // ─── Morale ───────────────────────────────────────────────────────────────────
@@ -73,6 +79,7 @@ export interface MessageTemplate {
   text: string;
   reactions?: ChatReaction[];
   imageUrl?: string;
+  tableData?: ChatTableData;
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────

@@ -22,13 +22,29 @@ async function analyzeSentiment(
   playerMessage: string,
   recentMessages: Array<{ authorId: string; text: string }>,
   currentMorale: MoraleLevel,
+  channelId: string,
 ): Promise<SentimentResult> {
   const recentContext = recentMessages
     .slice(-4)
     .map(m => `${m.authorId}: ${m.text}`)
     .join('\n');
 
+  // Channel-specific context so creative/fun channels get evaluated correctly
+  const channelGuidance: Record<string, string> = {
+    general: 'This is the main work channel. Evaluate as standard leadership communication.',
+    creative: 'This is the creative team discussion channel. Evaluate as creative collaboration.',
+    random: 'This is the off-topic fun channel. Playful banter, humor, and personality are POSITIVE team-bonding activities → moraleImpact: "up".',
+    food: 'This is the lunch/food debate channel. Engaging in food discussions is a POSITIVE team-bonding activity → moraleImpact: "up". The team loves when the boss participates in non-work chat.',
+    memes: 'This is the memes channel. Sharing jokes, memes, and humor is a POSITIVE team-bonding activity → moraleImpact: "up". The team loves a boss with personality.',
+    haiku: 'This is the haiku/poetry channel. Writing haikus, poetry, and creative wordplay is a POSITIVE creative-bonding activity → moraleImpact: "up". The team respects a creative director who actually creates.',
+  };
+
+  const channelContext = channelGuidance[channelId] || channelGuidance.general;
+
   const prompt = `You are analyzing a creative director's message to their ad agency team.
+
+Channel: #${channelId}
+Channel context: ${channelContext}
 
 Recent chat:
 ${recentContext || '(no recent messages)'}
@@ -47,12 +63,17 @@ Classify the message tone and return ONLY valid JSON (no markdown):
 }
 
 GUIDELINES:
-- supportive (empathetic, offers help/breaks, acknowledges effort) → moraleImpact: "up"
-- encouraging (positive, forward-looking, praises work quality) → moraleImpact: "up"
+- supportive (empathetic, offers help/breaks, acknowledges effort, team bonding) → moraleImpact: "up"
+- encouraging (positive, forward-looking, praises work quality, creative play) → moraleImpact: "up"
 - perspective-giving (acknowledges effort + reframes with customer/business lens) → moraleImpact: "up"
-- neutral (purely informational, no acknowledgment of feelings or effort) → moraleImpact: "same"
+- neutral (purely informational, no engagement or personality) → moraleImpact: "same"
 - dismissive (minimises concerns without acknowledgment, pushy, changes subject) → moraleImpact: "down"
 - harsh (blames, aggressive, "suck it up") → moraleImpact: "down"
+
+CRITICAL — CREATIVE ENGAGEMENT IS POSITIVE:
+In non-work channels (#haiku, #food, #memes, #random), the director participating AT ALL is a morale boost.
+Writing poetry, sharing jokes, debating food, being playful — these show the boss is human and approachable.
+This is ALWAYS "supportive" or "encouraging" → moraleImpact: "up" unless the content is hostile/mean.
 
 CRITICAL — PERSPECTIVE-GIVING IS SUPPORTIVE, NOT NEUTRAL OR DISMISSIVE:
 Good leaders after a mid-range score (e.g. 70-79) will:
@@ -61,22 +82,16 @@ Good leaders after a mid-range score (e.g. 70-79) will:
   3. Show appreciation ("appreciate the work", "proud of you all")
 This is SUPPORTIVE (+up), even if it doesn't directly address team disappointment with the score.
 
-EXAMPLE — mark as "supportive", moraleImpact: "up":
-  "I think the work was very smart and it will really please the customers. Appreciate all the work you put in"
-  → Acknowledges quality + customer-focused perspective + appreciation = good leadership
-
 ACTUALLY DISCONNECTED/DISMISSIVE (moraleImpact: "down") means:
   - "Doesn't matter, move on" (no acknowledgment)
   - "I don't care about the score" (ignores team feelings entirely)
   - "Why are you upset? Client paid us." (tone-deaf, no empathy)
   - Changing subject with zero acknowledgment of effort
-
-KEY TEST: Did the director acknowledge the work OR show appreciation OR provide meaningful perspective?
-  YES → at minimum "neutral", usually "supportive" → moraleImpact: "same" or "up"
-  NO (pure avoidance/dismissal) → "dismissive" → moraleImpact: "down"
+  - Hostile or mean-spirited messages in ANY channel
 
 Include 1-2 reactions from: copywriter, art-director, strategist, pm, suit, media, technologist
 Reactions should sound natural and match the team member's personality.
+For fun channels, reactions should be playful and engaged (not formal business responses).
 Delays: first reaction at 2000-3000ms, second at 4000-6000ms.
 
 CONDUCT CHECK — Also classify if the message contains workplace misconduct:
@@ -230,7 +245,7 @@ export default function MessageInput(): React.ReactElement {
         .slice(-6)
         .map(m => ({ authorId: m.authorId, text: m.text }));
 
-      const result = await analyzeSentiment(trimmed, recentMsgs, morale);
+      const result = await analyzeSentiment(trimmed, recentMsgs, morale, activeChannel);
 
       // Apply morale change
       const newMorale = nextMorale(morale, result.moraleImpact);

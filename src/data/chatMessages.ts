@@ -772,6 +772,26 @@ function getCampaignScoredWellMessages(ctx: ChatEventContext, morale: MoraleLeve
       mutiny: `The strategy was good because I'm good at my job. Not because anyone here supports me.`,
     };
     messages.push({ channel: 'general', authorId: 'strategist', text: stratWinText[morale] });
+    // Strategist shares a data table when morale is decent
+    if (morale === 'high' || morale === 'medium') {
+      const strategyScore = Math.min(100, score + Math.floor(Math.random() * 8) - 3);
+      const creativeScore = Math.min(100, score + Math.floor(Math.random() * 10) - 4);
+      const mediaScore = Math.min(100, score + Math.floor(Math.random() * 12) - 6);
+      messages.push({
+        channel: 'general',
+        authorId: 'strategist',
+        text: `Here's the performance breakdown for ${shortName(ctx)}:`,
+        tableData: {
+          headers: ['Metric', 'Score', 'Benchmark'],
+          rows: [
+            ['Strategy Fit', `${strategyScore}`, '75'],
+            ['Creative Impact', `${creativeScore}`, '70'],
+            ['Media Efficiency', `${mediaScore}`, '72'],
+            ['Overall', `${score}`, '72'],
+          ],
+        },
+      });
+    }
   } else {
     const stratSideText: Record<MoraleLevel, string> = {
       high: `${score}! The positioning was really smart on this one. Whoever did the audience work nailed it.`,

@@ -1,4 +1,4 @@
-import type { ChannelId, ChatReaction } from '../types/chat';
+import type { ChannelId, ChatReaction, ChatTableData } from '../types/chat';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -6,6 +6,7 @@ export interface AmbientMessage {
   authorId: string;
   text: string;
   imageUrl?: string;
+  tableData?: ChatTableData;
   delayMs?: number;
   reactions?: ChatReaction[];
 }

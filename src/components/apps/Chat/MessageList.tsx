@@ -118,6 +118,28 @@ export default function MessageList(): React.ReactElement {
                       <pre>{msg.imageUrl}</pre>
                     </div>
                   )}
+                  {msg.tableData && (
+                    <div className={styles.messageTable}>
+                      <table>
+                        <thead>
+                          <tr>
+                            {msg.tableData.headers.map((h, hi) => (
+                              <th key={hi}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {msg.tableData.rows.map((row, ri) => (
+                            <tr key={ri}>
+                              {row.map((cell, ci) => (
+                                <td key={ci}>{cell}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                   {msg.reactions.length > 0 && (
                     <div className={styles.reactions}>
                       {msg.reactions.map((r, ri) => (
