@@ -11,7 +11,7 @@ import QuickSessionModal from './QuickSessionModal';
 import styles from './Mobile.module.css';
 
 export default function MobileShell() {
-  const { activeAppId, dockVisible } = useMobileContext();
+  const { activeAppId } = useMobileContext();
   const [sessionModalOpen, setSessionModalOpen] = useState(false);
 
   const isOnHomeScreen = activeAppId === null;
@@ -47,7 +47,7 @@ export default function MobileShell() {
           <MobileHomeScreen />
         )}
       </div>
-      {dockVisible && <MobileDock />}
+      <MobileDock />
       <MobileToast />
       <MobileNotificationDrawer />
 

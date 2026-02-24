@@ -46,13 +46,17 @@ function mobileReducer(state: MobileState, action: MobileAction): MobileState {
     }
 
     case 'GO_BACK': {
+      if (state.navStack.length === 0) {
+        // Nothing to go back to — go home
+        return { ...state, activeAppId: null, navStack: [] };
+      }
       const navStack = [...state.navStack];
       const previous = navStack.pop() ?? null;
-      return {
-        ...state,
-        activeAppId: previous,
-        navStack,
-      };
+      // If previous is null or same as current (stale), go home
+      if (!previous || previous === state.activeAppId) {
+        return { ...state, activeAppId: null, navStack: [] };
+      }
+      return { ...state, activeAppId: previous, navStack };
     }
 
     case 'GO_HOME': {
