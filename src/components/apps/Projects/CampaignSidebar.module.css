@@ -198,11 +198,6 @@
     overflow-y: auto;
   }
 
-  /* Hide sidebar when workspace is shown (controlled by parent class) */
-  :global(.mobileWorkspaceActive) .sidebar {
-    display: none;
-  }
-
   .campaignCard {
     min-height: 44px;
   }

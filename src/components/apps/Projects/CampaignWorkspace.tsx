@@ -394,7 +394,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
   // Get selected concept name for display
   const selectedConcept = campaign.generatedConcepts.find(c => c.id === campaign.selectedConceptId);
 
-  // Mobile: show step-based card flows instead of desktop layout
+  // Mobile: show step-based card flows for concepting/selecting
   if (isMobile()) {
     if (isConcepting) {
       return (
@@ -412,18 +412,34 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
     }
   }
 
+  const mobile = isMobile();
+  const phaseLabel = isGenerating ? 'Generating' : isReviewing ? 'Review Meeting' : isExecuting ? 'Ready to Submit' : isSubmitted ? 'Awaiting Results' : isCompleted ? 'Complete' : '';
+  const phaseIcon = isGenerating ? '⚡' : isReviewing ? '🔍' : isExecuting ? '🚀' : isSubmitted ? '⏳' : isCompleted ? '🎊' : '📋';
+
   return (
     <div className={styles.workspace}>
-      <CampaignHeader campaign={campaign} />
+      {mobile ? (
+        <div className={styles.mobilePhaseHeader}>
+          <span className={styles.mobilePhaseIcon}>{phaseIcon}</span>
+          <div className={styles.mobilePhaseInfo}>
+            <div className={styles.mobilePhaseName}>{campaign.campaignName}</div>
+            <div className={styles.mobilePhaseLabel}>{phaseLabel}</div>
+          </div>
+        </div>
+      ) : (
+        <CampaignHeader campaign={campaign} />
+      )}
 
       <div className={styles.content}>
-        {/* Brief is always available for reference */}
-        <BriefSection
-          brief={campaign.brief}
-          strategicDirection={campaign.strategicDirection || undefined}
-          teamMemberIds={campaign.conceptingTeam?.memberIds}
-          selectedConcept={selectedConcept}
-        />
+        {/* Brief is always available for reference (desktop only — too bulky on mobile) */}
+        {!mobile && (
+          <BriefSection
+            brief={campaign.brief}
+            strategicDirection={campaign.strategicDirection || undefined}
+            teamMemberIds={campaign.conceptingTeam?.memberIds}
+            selectedConcept={selectedConcept}
+          />
+        )}
 
         {/* Phase: Concepting - Assemble team and generate concepts */}
         {isConcepting && <ConceptingPhase campaign={campaign} />}

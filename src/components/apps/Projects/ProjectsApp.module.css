@@ -4,6 +4,10 @@
   background: linear-gradient(135deg, var(--color-cream) 0%, #fff 100%);
 }
 
+.sidebarWrap {
+  display: contents;
+}
+
 .mainContent {
   flex: 1;
   overflow: hidden;
@@ -20,6 +24,16 @@
 @media (max-width: 767px) {
   .projectsApp {
     flex-direction: column;
+  }
+
+  .sidebarWrap {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .projectsApp.mobileWorkspaceActive .sidebarWrap {
+    display: none;
   }
 
   .mainContent {
