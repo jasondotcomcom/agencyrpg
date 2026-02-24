@@ -135,12 +135,150 @@
 }
 
 @media (max-width: 767px) {
+  .reviewMeeting {
+    min-height: 0;
+  }
+
+  .progressBar {
+    padding: 10px 16px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .progressLabel {
+    font-size: 0.75rem;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .slideArea {
+    padding: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .slideHeader {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .slideDescription {
+    margin-bottom: 12px;
+  }
+
   .splitView {
     flex-direction: column;
+    gap: 14px;
   }
+
   .splitImage {
     flex: none;
-    max-height: 250px;
+    max-height: 200px;
+  }
+
+  .contentPreview {
+    padding: 16px;
+    max-height: none;
+    font-size: 0.875rem;
+  }
+
+  .videoScript {
+    padding: 16px;
+    max-height: none;
+    font-size: 0.75rem;
+  }
+
+  .scriptSummary {
+    padding: 14px 16px;
+  }
+
+  .scriptToggleBtn {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 0.8125rem;
+  }
+
+  .navigation {
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    gap: 8px;
+    flex-shrink: 0;
+    background: rgba(254, 249, 243, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .navButton {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 0.75rem;
+  }
+
+  .actionButtons {
+    gap: 6px;
+  }
+
+  .approveButton,
+  .flagButton {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 0.8125rem;
+  }
+
+  .feedbackSection {
+    padding: 0 16px 12px;
+  }
+
+  .feedbackInput {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  .feedbackSubmit {
+    min-height: 44px;
+    padding: 12px 20px;
+    font-size: 0.8125rem;
+  }
+
+  .keyboardHint {
+    display: none;
+  }
+
+  /* Summary view mobile */
+  .summaryView {
+    padding: 20px 16px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .summaryTitle {
+    font-size: 1.125rem;
+  }
+
+  .summaryItem {
+    min-height: 44px;
+  }
+
+  .summaryActions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .revisionButton,
+  .submitButton {
+    width: 100%;
+    min-height: 48px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .budgetSummary {
+    padding: 16px;
   }
 }
 

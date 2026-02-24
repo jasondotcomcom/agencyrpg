@@ -22,6 +22,7 @@ import { checkForAwards } from '../../../data/awards';
 import { useEndingContext } from '../../../context/EndingContext';
 import CampaignToolsPanel from './CampaignToolsPanel';
 import MobileCampaignFlow from './MobileCampaignFlow';
+import MobileConceptPicker from './MobileConceptPicker';
 import { useCheatContext } from '../../../context/CheatContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
 import { isMobile } from '../../../utils/deviceDetection';
@@ -393,20 +394,22 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
   // Get selected concept name for display
   const selectedConcept = campaign.generatedConcepts.find(c => c.id === campaign.selectedConceptId);
 
-  // Mobile concepting: show the step-based card flow instead of desktop layout
-  if (isConcepting && isMobile()) {
-    return (
-      <div className={styles.workspace}>
-        <MobileCampaignFlow campaign={campaign} />
-        {showResults && campaignScore && (
-          <CampaignResults
-            campaign={campaign}
-            score={campaignScore}
-            onClose={handleResultsClose}
-          />
-        )}
-      </div>
-    );
+  // Mobile: show step-based card flows instead of desktop layout
+  if (isMobile()) {
+    if (isConcepting) {
+      return (
+        <div className={styles.workspace}>
+          <MobileCampaignFlow campaign={campaign} />
+        </div>
+      );
+    }
+    if (isSelecting) {
+      return (
+        <div className={styles.workspace}>
+          <MobileConceptPicker campaign={campaign} />
+        </div>
+      );
+    }
   }
 
   return (

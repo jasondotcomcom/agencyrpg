@@ -219,11 +219,14 @@
   .container {
     padding: 6px;
     touch-action: manipulation;
+    display: flex;
+    flex-direction: column;
   }
 
   .topRow {
     gap: 4px;
     margin-bottom: 8px;
+    flex-shrink: 0;
   }
 
   .cardSlot {
@@ -235,11 +238,33 @@
   .card {
     width: 48px;
     height: 68px;
+    /* Invisible touch expansion — tap area is larger than visual card */
+    position: relative;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    z-index: 0;
+  }
+
+  .card:active {
+    transform: scale(1.05);
+    z-index: 10;
   }
 
   .cardBack {
     width: 48px;
     height: 68px;
+    position: relative;
+  }
+
+  .cardBack::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    z-index: 0;
   }
 
   .emptySlot {
@@ -279,5 +304,18 @@
 
   .foundationHint {
     font-size: 1.125rem;
+  }
+
+  .newGameBtnSmall {
+    min-height: 44px;
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .newGameBtn {
+    min-height: 48px;
+    padding: 12px 28px;
+    font-size: 1.0625rem;
   }
 }
