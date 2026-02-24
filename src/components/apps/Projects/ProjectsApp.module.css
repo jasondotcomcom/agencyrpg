@@ -4,6 +4,12 @@
   background: linear-gradient(135deg, var(--color-cream) 0%, #fff 100%);
 }
 
+.sidebarWrap {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
 .mainContent {
   flex: 1;
   overflow: hidden;
@@ -22,25 +28,29 @@
     flex-direction: column;
   }
 
+  .sidebarWrap {
+    flex: 1;
+    overflow-y: auto;
+  }
+
   .mainContent {
     display: none;
   }
 
-  /* When a campaign is selected, hide sidebar, show workspace full-screen */
-  .projectsApp.mobileWorkspaceActive .mainContent {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Hide — MobileCampaignCardFlow has its own inline back header */
-  .mobileBackButton {
+  /* When a campaign is selected, HIDE sidebar, show workspace full-screen */
+  .mobileWorkspaceActive .sidebarWrap {
     display: none;
   }
 
-  .mobileBackButton svg {
-    flex-shrink: 0;
+  .mobileWorkspaceActive .mainContent {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* MobileCampaignCardFlow has its own inline back header */
+  .mobileBackButton {
+    display: none;
   }
 }

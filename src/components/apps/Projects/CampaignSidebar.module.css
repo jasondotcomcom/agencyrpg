@@ -203,10 +203,7 @@
     overflow-y: auto;
   }
 
-  /* Hide sidebar when workspace is shown (controlled by parent class) */
-  :global(.mobileWorkspaceActive) .sidebar {
-    display: none;
-  }
+  /* Sidebar hide is handled by ProjectsApp.module.css via proper module class */
 
   /* Hide expanded header */
   .header {

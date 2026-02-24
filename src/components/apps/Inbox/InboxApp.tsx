@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { useEmailContext } from '../../../context/EmailContext';
+import { useMobileContext } from '../../../context/MobileContext';
+import { useDeviceMode } from '../../../utils/deviceDetection';
 import EmailListItem from './EmailListItem';
 import EmailDetail from './EmailDetail';
 import type { EmailFilter } from '../../../types/email';
@@ -24,8 +27,20 @@ export default function InboxApp() {
     selectEmail,
   } = useEmailContext();
 
+  const { setDockVisible } = useMobileContext();
+  const deviceMode = useDeviceMode();
   const filteredEmails = getFilteredEmails();
   const selectedEmail = getSelectedEmail();
+
+  // Hide dock on mobile when viewing email detail to maximize space
+  useEffect(() => {
+    if (deviceMode === 'phone') {
+      setDockVisible(!selectedEmail);
+    }
+    return () => {
+      if (deviceMode === 'phone') setDockVisible(true);
+    };
+  }, [selectedEmail, deviceMode, setDockVisible]);
 
   /** On mobile, go back to list view by clearing selection */
   const handleMobileBack = () => {

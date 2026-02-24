@@ -16,11 +16,13 @@ export default function ProjectsApp(): React.ReactElement {
 
   return (
     <div className={`${styles.projectsApp} ${selectedCampaignId ? styles.mobileWorkspaceActive : ''}`}>
-      <CampaignSidebar
-        campaigns={activeCampaigns}
-        selectedId={selectedCampaignId}
-        onSelect={selectCampaign}
-      />
+      <div className={styles.sidebarWrap}>
+        <CampaignSidebar
+          campaigns={activeCampaigns}
+          selectedId={selectedCampaignId}
+          onSelect={selectCampaign}
+        />
+      </div>
       <div className={styles.mainContent}>
         {selectedCampaignId ? (
           <>

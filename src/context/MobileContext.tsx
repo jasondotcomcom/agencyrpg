@@ -9,12 +9,14 @@ interface MobileState {
   activeAppId: string | null;   // Currently open app, null = home screen
   navStack: string[];            // Back navigation history (array of appIds)
   notifDrawerOpen: boolean;      // Notification drawer state
+  dockVisible: boolean;          // Whether the dock is visible (apps can hide it)
 }
 
 const initialState: MobileState = {
   activeAppId: null,
   navStack: [],
   notifDrawerOpen: false,
+  dockVisible: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -25,7 +27,8 @@ type MobileAction =
   | { type: 'OPEN_APP'; payload: { appId: string } }
   | { type: 'GO_BACK' }
   | { type: 'GO_HOME' }
-  | { type: 'TOGGLE_NOTIF_DRAWER' };
+  | { type: 'TOGGLE_NOTIF_DRAWER' }
+  | { type: 'SET_DOCK_VISIBLE'; payload: boolean };
 
 function mobileReducer(state: MobileState, action: MobileAction): MobileState {
   switch (action.type) {
@@ -67,6 +70,13 @@ function mobileReducer(state: MobileState, action: MobileAction): MobileState {
       };
     }
 
+    case 'SET_DOCK_VISIBLE': {
+      return {
+        ...state,
+        dockVisible: action.payload,
+      };
+    }
+
     default:
       return state;
   }
@@ -81,6 +91,7 @@ interface MobileContextValue extends MobileState {
   goBack: () => void;
   goHome: () => void;
   toggleNotifDrawer: () => void;
+  setDockVisible: (visible: boolean) => void;
 }
 
 const MobileContext = createContext<MobileContextValue | null>(null);
@@ -133,6 +144,10 @@ export function MobileProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'TOGGLE_NOTIF_DRAWER' });
   }, []);
 
+  const setDockVisible = useCallback((visible: boolean) => {
+    dispatch({ type: 'SET_DOCK_VISIBLE', payload: visible });
+  }, []);
+
   // ---- Value ---------------------------------------------------------------
 
   const value: MobileContextValue = {
@@ -141,6 +156,7 @@ export function MobileProvider({ children }: { children: React.ReactNode }) {
     goBack,
     goHome,
     toggleNotifDrawer,
+    setDockVisible,
   };
 
   return (
