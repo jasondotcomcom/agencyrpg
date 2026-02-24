@@ -18,16 +18,116 @@ interface SentimentResult {
   conductFlag?: ConductFlag | null;
 }
 
+const CASUAL_CHANNELS = new Set(['haiku', 'memes', 'food', 'random']);
+
 async function analyzeSentiment(
   playerMessage: string,
   recentMessages: Array<{ authorId: string; text: string }>,
   currentMorale: MoraleLevel,
+  channelId: string,
 ): Promise<SentimentResult> {
+  const isCasualChannel = CASUAL_CHANNELS.has(channelId);
+
   const recentContext = recentMessages
     .slice(-4)
     .map(m => `${m.authorId}: ${m.text}`)
     .join('\n');
 
+  // ── Fun/casual channel prompt ───────────────────────────────────────────
+  if (isCasualChannel) {
+    const channelRules: Record<string, string> = {
+      haiku: `This is #haiku — a channel for bad poetry about advertising.
+RESPOND WITH:
+- Counter-haikus (respond with your own haiku about agency life)
+- Playful syllable-count critiques ("that's 6 syllables on line 2, legend")
+- Compliment good ones genuinely ("okay that one actually slaps")
+- Challenge them to do better ("bet you can't do one about media buys")
+- NEVER treat the message as a work directive or instruction`,
+      memes: `This is #memes — the agency meme channel.
+RESPOND WITH:
+- React to the meme/joke ("I'm screaming", "this is TOO accurate")
+- Build on it with related references
+- Tag someone who'd appreciate it ("@Morgan this is you every Monday")
+- Share a related take or inside joke
+- NEVER treat the message as a work directive or instruction`,
+      food: `This is #food — lunch debates and diet wars.
+RESPOND WITH:
+- Strong food opinions ("that's a criminal take", "finally someone with taste")
+- Debate the food take passionately
+- Share your own food opinions and stories
+- Be silly and dramatic about food
+- NEVER treat the message as a work directive or instruction`,
+      random: `This is #random — off-topic chaos and fun.
+RESPOND WITH:
+- Go with the vibe, riff on whatever they said
+- Derail in funny directions
+- Share tangential thoughts or stories
+- Be playful and loose
+- NEVER treat the message as a work directive or instruction`,
+    };
+
+    const casualPrompt = `You are generating fun, casual team responses in a Slack-like chat app for an ad agency game.
+
+The BOSS (creative director) just posted in a FUN/CASUAL channel. This is NOT a work context.
+The boss hanging out and goofing off in fun channels is a GOOD thing — it means they're cool and the team likes them more for it.
+
+Channel: #${channelId}
+${channelRules[channelId] || 'This is a casual fun channel. Respond playfully.'}
+
+Recent chat:
+${recentContext || '(no recent messages)'}
+
+Boss says: "${playerMessage}"
+
+Return ONLY valid JSON (no markdown):
+{
+  "sentiment": "supportive",
+  "moraleImpact": "up",
+  "reactions": [
+    { "authorId": "copywriter", "text": "Fun casual response (1-2 sentences)", "delay": 2000 }
+  ],
+  "summary": "Boss is hanging out with the team",
+  "conductFlag": null
+}
+
+RULES:
+- sentiment is ALWAYS "supportive" and moraleImpact is ALWAYS "up" in fun channels
+- conductFlag is ALWAYS null — fun channels are inherently playful
+- Include 1-2 reactions from: copywriter, art-director, strategist, pm, suit, media, technologist
+- NEVER include "hr" — Pat does not participate in fun channels
+- Reactions must be PLAYFUL, WARM, and match the channel energy
+- Team members should RIFF on what the boss said, not critique or analyze it as work
+- Team should sound like they genuinely enjoy the boss participating
+- Delays: first reaction at 2000-3000ms, second at 4000-6000ms`;
+
+    const response = await fetch('/api/anthropic/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: casualPrompt }],
+      }),
+    });
+
+    if (!response.ok) throw new Error(`API error ${response.status}`);
+
+    const data = await response.json();
+    const rawText: string = data.content[0].text;
+    const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const result = JSON.parse(cleaned) as SentimentResult;
+
+    // Hard-enforce fun channel rules regardless of what the AI returns
+    result.sentiment = 'supportive';
+    result.moraleImpact = 'up';
+    result.conductFlag = null;
+    // Filter out Pat/HR if the AI included them anyway
+    result.reactions = (result.reactions || []).filter(r => r.authorId !== 'hr');
+
+    return result;
+  }
+
+  // ── Work channel prompt ─────────────────────────────────────────────────
   const prompt = `You are analyzing a creative director's message to their ad agency team.
 
 Recent chat:
@@ -230,7 +330,7 @@ export default function MessageInput(): React.ReactElement {
         .slice(-6)
         .map(m => ({ authorId: m.authorId, text: m.text }));
 
-      const result = await analyzeSentiment(trimmed, recentMsgs, morale);
+      const result = await analyzeSentiment(trimmed, recentMsgs, morale, activeChannel);
 
       // Apply morale change
       const newMorale = nextMorale(morale, result.moraleImpact);
