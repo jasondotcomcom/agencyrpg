@@ -430,8 +430,14 @@
 
 /* ─── Mobile overrides ───────────────────────────────────────────────────── */
 @media (max-width: 767px) {
+  .emailDetail {
+    flex: 1;
+    min-height: 0;
+  }
+
   .header {
     padding: 14px 16px;
+    flex-shrink: 0;
   }
 
   .headerTop {
@@ -469,6 +475,7 @@
 
   .content {
     padding: 16px;
+    -webkit-overflow-scrolling: touch;
   }
 
   .briefDetails {
