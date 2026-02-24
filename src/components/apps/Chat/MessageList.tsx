@@ -5,6 +5,42 @@ import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
 import { getTeamMember } from '../../../data/team';
 import styles from './MessageList.module.css';
 
+const MEME_GRADIENTS = [
+  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+  'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+  'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
+  'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
+];
+
+function MemeCard({ data }: { data: string }): React.ReactElement {
+  try {
+    const meme = JSON.parse(data);
+    if (meme.lines && Array.isArray(meme.lines)) {
+      const bg = MEME_GRADIENTS[(meme.bg ?? 0) % MEME_GRADIENTS.length];
+      return (
+        <div className={styles.memeCard} style={{ background: bg }}>
+          {meme.lines.map((line: string, i: number) => (
+            line === ''
+              ? <div key={i} className={styles.memeSpacer} />
+              : <div key={i} className={styles.memeLine}>{line}</div>
+          ))}
+        </div>
+      );
+    }
+  } catch {
+    // Not valid JSON — fall through to legacy rendering
+  }
+  return (
+    <div className={styles.messageImage}>
+      <pre>{data}</pre>
+    </div>
+  );
+}
+
 function formatTime(timestamp: number): string {
   const now = Date.now();
   const diffMs = now - timestamp;
@@ -113,11 +149,7 @@ export default function MessageList(): React.ReactElement {
                     </div>
                   )}
                   <div className={styles.messageText}>{msg.text}</div>
-                  {msg.imageUrl && (
-                    <div className={styles.messageImage}>
-                      <pre>{msg.imageUrl}</pre>
-                    </div>
-                  )}
+                  {msg.imageUrl && <MemeCard data={msg.imageUrl} />}
                   {msg.reactions.length > 0 && (
                     <div className={styles.reactions}>
                       {msg.reactions.map((r, ri) => (

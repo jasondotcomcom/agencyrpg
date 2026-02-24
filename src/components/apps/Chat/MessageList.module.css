@@ -112,7 +112,39 @@
   word-wrap: break-word;
 }
 
-/* Inline meme images */
+/* Meme cards — styled visual memes */
+.memeCard {
+  margin-top: 6px;
+  max-width: 280px;
+  min-height: 120px;
+  border-radius: 14px;
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+
+.memeLine {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  line-height: 1.35;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.memeSpacer {
+  height: 8px;
+}
+
+/* Legacy fallback for non-JSON imageUrl */
 .messageImage {
   margin-top: 6px;
   max-width: 280px;

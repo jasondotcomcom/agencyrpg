@@ -141,7 +141,7 @@ export function getInitialMessages(): ChatMessage[] {
       timestamp: now - 3200000,
       reactions: [{ emoji: '\uD83D\uDE02', count: 4 }],
       isRead: true,
-      imageUrl: '\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502  \u270B Reading the brief  \u2502\n\u2502                         \u2502\n\u2502  \uD83D\uDC49 Vibing the brief   \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518',
+      imageUrl: JSON.stringify({ lines: ['✋ Reading the brief', '', '👉 Vibing the brief'], bg: 0 }),
     },
     {
       id: 'seed-15',
@@ -151,7 +151,7 @@ export function getInitialMessages(): ChatMessage[] {
       timestamp: now - 3000000,
       reactions: [],
       isRead: true,
-      imageUrl: '\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502   Morgan: \u201Cthis blue    \u2502\n\u2502   is NOT that blue\u201D    \u2502\n\u2502                         \u2502\n\u2502   Client: \u201Cthey look    \u2502\n\u2502   the same to me\u201D      \u2502\n\u2502                         \u2502\n\u2502   Morgan: \uD83D\uDE10\uD83D\uDE10\uD83D\uDE10         \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518',
+      imageUrl: JSON.stringify({ lines: ['Morgan: \u201Cthis blue', 'is NOT that blue\u201D', '', 'Client: \u201Cthey look', 'the same to me\u201D', '', 'Morgan: 😐😐😐'], bg: 5 }),
     },
     {
       id: 'seed-16',
