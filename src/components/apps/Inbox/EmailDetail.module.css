@@ -433,6 +433,8 @@
   .emailDetail {
     flex: 1;
     min-height: 0;
+    height: auto; /* override base height:100% so flex:1 controls sizing within detailPane */
+    overflow: hidden; /* contain children — only .content should scroll */
   }
 
   .header {
