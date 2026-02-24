@@ -365,6 +365,8 @@
   overscroll-behavior: contain; /* prevent pull-to-refresh interference */
   /* Ensure nested flex items resolve height properly */
   min-height: 0;
+  /* Explicit background prevents dark-themed apps (Terminal) from bleeding through */
+  background: #fff;
 }
 
 /* --- Dark theme overrides ------------------------------------------------ */
@@ -372,6 +374,10 @@
 [data-theme="dark"] .appContainer {
   background: #1a1a2e;
   color: #e0e0e0;
+}
+
+[data-theme="dark"] .appContent {
+  background: #1a1a2e;
 }
 
 [data-theme="dark"] .appHeader {
