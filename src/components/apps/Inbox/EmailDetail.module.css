@@ -497,9 +497,20 @@
     padding: 12px 14px;
   }
 
+  .content {
+    padding-bottom: 120px; /* clearance so content isn't hidden behind sticky footer */
+  }
+
   .footer {
+    position: sticky;
+    bottom: 0;
     padding: 14px 16px;
     padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    background: rgba(254, 249, 243, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+    z-index: 5;
   }
 
   .primaryButton,
@@ -507,5 +518,6 @@
     min-height: 44px;
     padding: 12px 20px;
     font-size: 0.8125rem;
+    flex: 1;
   }
 }
