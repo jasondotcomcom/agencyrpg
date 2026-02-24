@@ -209,3 +209,21 @@
   transform: translateX(-50%) translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 183, 178, 0.5);
 }
+
+/* ─── Mobile: full-height message list ───────────────────────────────────── */
+@media (max-width: 767px) {
+  .messageList {
+    padding: 12px 0;
+  }
+
+  .messageRow {
+    padding: 6px 12px;
+  }
+
+  .newMessagesButton {
+    bottom: 12px;
+    min-height: 44px;
+    padding: 10px 20px;
+    font-size: 0.8125rem;
+  }
+}

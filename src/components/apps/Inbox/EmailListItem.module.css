@@ -161,3 +161,22 @@
 .actionButton.starred {
   color: #ffc107;
 }
+
+/* ─── Mobile overrides ───────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .emailItem {
+    padding: 12px;
+    gap: 10px;
+    min-height: 44px;
+  }
+
+  /* Always show star on mobile (no hover) */
+  .actions {
+    opacity: 1;
+  }
+
+  .actionButton {
+    width: 44px;
+    height: 44px;
+  }
+}

@@ -784,3 +784,96 @@
   background: rgba(0, 0, 0, 0.04);
   color: var(--text-secondary);
 }
+
+/* ─── Mobile overrides ───────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .conceptingPhase {
+    padding: 16px;
+  }
+
+  .header {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .headerIcon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 1.375rem;
+  }
+
+  .title {
+    font-size: 1.0625rem;
+  }
+
+  .section {
+    padding: 14px;
+  }
+
+  /* Full-screen modal on mobile */
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    border-radius: 0;
+    animation: mobileSlideUp 0.3s ease;
+  }
+
+  @keyframes mobileSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .modalOverlay {
+    align-items: stretch;
+  }
+
+  .memberCard {
+    min-height: 44px;
+    padding: 12px;
+  }
+
+  .cardAvatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .checkMark {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .closeButton {
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+  }
+
+  .saveButton {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+
+  .generateButton {
+    min-height: 44px;
+  }
+
+  .directionInput {
+    font-size: 16px; /* prevents iOS zoom */
+  }
+
+  .assembleButton {
+    min-height: 44px;
+  }
+
+  .editTeamButton {
+    min-height: 44px;
+  }
+}

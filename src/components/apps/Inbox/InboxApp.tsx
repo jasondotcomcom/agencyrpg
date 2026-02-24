@@ -21,23 +21,29 @@ export default function InboxApp() {
     setSearch,
     getFilteredEmails,
     getSelectedEmail,
+    selectEmail,
   } = useEmailContext();
 
   const filteredEmails = getFilteredEmails();
   const selectedEmail = getSelectedEmail();
 
+  /** On mobile, go back to list view by clearing selection */
+  const handleMobileBack = () => {
+    selectEmail(null);
+  };
+
   return (
-    <div className={styles.inboxApp}>
+    <div className={`${styles.inboxApp} ${selectedEmail ? styles.mobileDetailActive : ''}`}>
       {/* Sidebar with email list */}
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <button className={styles.composeButton} disabled title="Coming soon">
-            <span className={styles.composeIcon}>✏️</span>
+            <span className={styles.composeIcon}>&#x270F;&#xFE0F;</span>
             Compose
           </button>
 
           <div className={styles.searchBar}>
-            <span className={styles.searchIcon}>🔍</span>
+            <span className={styles.searchIcon}>&#x1F50D;</span>
             <input
               type="text"
               className={styles.searchInput}
@@ -63,7 +69,7 @@ export default function InboxApp() {
         <div className={styles.emailList}>
           {filteredEmails.length === 0 ? (
             <div className={styles.emptyList}>
-              <span className={styles.emptyIcon}>📭</span>
+              <span className={styles.emptyIcon}>&#x1F4ED;</span>
               <p className={styles.emptyText}>No emails here!</p>
             </div>
           ) : (
@@ -77,10 +83,28 @@ export default function InboxApp() {
       {/* Detail pane */}
       <div className={styles.detailPane}>
         {selectedEmail ? (
-          <EmailDetail email={selectedEmail} />
+          <>
+            <button
+              className={styles.mobileBackButton}
+              onClick={handleMobileBack}
+              aria-label="Back to inbox"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M12.5 15L7.5 10L12.5 5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>Inbox</span>
+            </button>
+            <EmailDetail email={selectedEmail} />
+          </>
         ) : (
           <div className={styles.noSelection}>
-            <span className={styles.noSelectionIcon}>📬</span>
+            <span className={styles.noSelectionIcon}>&#x1F4EC;</span>
             <p className={styles.noSelectionText}>Select an email</p>
             <p className={styles.noSelectionHint}>
               Choose an email from the list to read it here

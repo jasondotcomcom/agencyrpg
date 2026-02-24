@@ -13,6 +13,7 @@ import { AWARD_DEFS } from '../../../data/awards';
 import { teamMembers } from '../../../data/team';
 import { formatBudget } from '../../../types/campaign';
 import { storeHtmlPreview } from '../../../utils/htmlPreviewStore';
+import MobileCommandBar from './MobileCommandBar';
 import styles from './TerminalApp.module.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1925,6 +1926,15 @@ Human Resources
           </div>
         )}
       </div>
+
+      <MobileCommandBar
+        inputValue={inputValue}
+        onSelectCommand={(cmd) => {
+          setInputValue(cmd);
+          inputRef.current?.focus();
+        }}
+        toolNames={tools.map(t => t.name)}
+      />
 
       <form className={styles.inputRow} onSubmit={handleSubmit}>
         <span className={styles.prompt}>agency@os:~$</span>

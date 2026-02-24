@@ -3,7 +3,7 @@ import type { DesktopIcon as DesktopIconType } from '../../types';
 import styles from './DesktopIcon.module.css';
 
 // Cute illustrated icons with personality
-const icons: Record<string, React.ReactElement> = {
+export const icons: Record<string, React.ReactElement> = {
   inbox: (
     <svg viewBox="0 0 48 48" fill="none">
       {/* Mailbox body */}

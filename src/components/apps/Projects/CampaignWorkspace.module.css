@@ -248,3 +248,29 @@
 .submitButton:disabled {
   cursor: not-allowed;
 }
+
+/* ─── Mobile overrides ───────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .content {
+    padding: 16px;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .submitButton {
+    width: 100%;
+    min-height: 44px;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .conceptBanner {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+}
