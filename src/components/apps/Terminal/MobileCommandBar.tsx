@@ -1,43 +1,46 @@
 import React, { useMemo } from 'react';
+import { hapticTap } from '../../../utils/haptics';
 import styles from './MobileCommandBar.module.css';
-
-const DEFAULT_COMMANDS = ['help', 'status', 'brief', 'list', 'build'];
 
 const ALL_COMMANDS = [
   'help', 'status', 'brief', 'team', 'list',
   'build', 'run', 'delete', 'clear',
 ];
 
+const AUTO_EXECUTE = new Set(['help', 'status', 'clear', 'brief', 'team', 'list']);
+
+const CATEGORIES = [
+  { label: 'Quick', commands: ['help', 'status', 'clear'] },
+  { label: 'Campaign', commands: ['brief', 'team', 'list'] },
+  { label: 'Tools', commands: ['build', 'run', 'delete'] },
+];
+
 interface MobileCommandBarProps {
   inputValue: string;
   onSelectCommand: (command: string) => void;
+  onExecuteCommand: (command: string) => void;
   toolNames: string[];
 }
 
 export default function MobileCommandBar({
   inputValue,
   onSelectCommand,
+  onExecuteCommand,
   toolNames,
 }: MobileCommandBarProps): React.ReactElement {
+  const trimmed = inputValue.trim().toLowerCase();
+
   const suggestions = useMemo(() => {
-    const trimmed = inputValue.trim().toLowerCase();
+    if (!trimmed) return null; // Use categories instead
 
-    // Empty input: show defaults
-    if (!trimmed) {
-      return DEFAULT_COMMANDS;
-    }
-
-    // Filter matching commands and tool names
     const matches: string[] = [];
 
-    // Match built-in commands
     for (const cmd of ALL_COMMANDS) {
       if (cmd.startsWith(trimmed) && cmd !== trimmed) {
         matches.push(cmd);
       }
     }
 
-    // If input starts with "run " or "delete ", suggest matching tool names
     if (trimmed.startsWith('run ') || trimmed.startsWith('delete ')) {
       const prefix = trimmed.split(' ')[0] + ' ';
       const partial = trimmed.slice(prefix.length);
@@ -47,7 +50,6 @@ export default function MobileCommandBar({
         }
       }
     } else {
-      // Also suggest tool names if partial matches
       for (const name of toolNames) {
         if (name.toLowerCase().startsWith(trimmed)) {
           matches.push(`run ${name}`);
@@ -56,9 +58,44 @@ export default function MobileCommandBar({
     }
 
     return matches.slice(0, 8);
-  }, [inputValue, toolNames]);
+  }, [trimmed, toolNames]);
 
-  if (suggestions.length === 0) return <></>;
+  const handleTap = (cmd: string) => {
+    hapticTap();
+    if (AUTO_EXECUTE.has(cmd)) {
+      onExecuteCommand(cmd);
+    } else {
+      onSelectCommand(cmd);
+    }
+  };
+
+  // When input is empty, show categorized pills
+  if (!trimmed) {
+    return (
+      <div className={styles.commandBar}>
+        <div className={styles.commandScroll}>
+          {CATEGORIES.map(cat => (
+            <React.Fragment key={cat.label}>
+              <span className={styles.categoryLabel}>{cat.label}</span>
+              {cat.commands.map(cmd => (
+                <button
+                  key={cmd}
+                  className={styles.commandPill}
+                  onClick={() => handleTap(cmd)}
+                  type="button"
+                >
+                  {cmd}
+                </button>
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // When typing, show filtered suggestions
+  if (!suggestions || suggestions.length === 0) return <></>;
 
   return (
     <div className={styles.commandBar}>
@@ -67,7 +104,7 @@ export default function MobileCommandBar({
           <button
             key={cmd}
             className={styles.commandPill}
-            onClick={() => onSelectCommand(cmd)}
+            onClick={() => handleTap(cmd)}
             type="button"
           >
             {cmd}

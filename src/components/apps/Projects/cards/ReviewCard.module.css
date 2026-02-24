@@ -1,0 +1,378 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted, #999);
+}
+
+.emptyIcon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* ── Slide dots ── */
+
+.slideDots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.slideDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease;
+  min-width: 10px;
+  min-height: 10px;
+}
+
+.slideDotActive {
+  border-color: var(--text-dark, #333);
+  background: var(--text-dark, #333);
+}
+
+.slideDotApproved {
+  border-color: var(--color-mint, #2ecc71);
+  background: var(--color-mint, #2ecc71);
+}
+
+.slideDotFlagged {
+  border-color: #e74c3c;
+  background: #e74c3c;
+}
+
+.slideCount {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--text-muted, #999);
+  margin-left: auto;
+}
+
+/* ── Slide area ── */
+
+.slideArea {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  touch-action: pan-y;
+}
+
+.slideBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.typeBadge,
+.platformBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-secondary, #666);
+}
+
+.statusBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-muted, #999);
+  margin-left: auto;
+}
+
+.statusBadge.approved {
+  color: var(--color-mint, #2ecc71);
+  background: rgba(46, 204, 113, 0.1);
+}
+
+.statusBadge.flagged {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.slideDescription {
+  font-size: 0.8125rem;
+  color: var(--text-dark, #333);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.slideImage {
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.slideImage img {
+  width: 100%;
+  display: block;
+}
+
+/* ── Script toggle ── */
+
+.scriptArea {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scriptToggle {
+  display: flex;
+  gap: 4px;
+}
+
+.scriptToggle button {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 6px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  background: white;
+  color: var(--text-secondary, #666);
+  cursor: pointer;
+}
+
+.scriptActive {
+  background: var(--text-dark, #333) !important;
+  color: white !important;
+  border-color: var(--text-dark, #333) !important;
+}
+
+.scriptContent {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-dark, #333);
+  white-space: pre-wrap;
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Content sections ── */
+
+.contentSections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.contentHeader {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-dark, #333);
+  margin: 0 0 2px;
+}
+
+.contentBody {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-dark, #333);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* ── Actions ── */
+
+.slideActions {
+  display: flex;
+  gap: 8px;
+}
+
+.flagBtn,
+.approveBtn {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 800;
+  font-family: inherit;
+  padding: 12px;
+  min-height: 48px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.flagBtn {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+.flagBtn:active {
+  transform: scale(0.97);
+}
+
+.flagBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.approveBtn {
+  background: var(--color-mint, #2ecc71);
+  color: white;
+}
+
+.approveBtn:active {
+  transform: scale(0.97);
+}
+
+.approveBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.feedbackInput {
+  font-size: 1rem;
+  font-family: inherit;
+  padding: 10px;
+  border: 2px solid #e74c3c;
+  border-radius: 8px;
+  resize: none;
+  background: white;
+}
+
+.feedbackInput:focus {
+  outline: none;
+}
+
+/* ── Slide navigation ── */
+
+.slideNav {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.slideNavBtn {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 8px 16px;
+  min-height: 40px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: white;
+  color: var(--text-secondary, #666);
+  cursor: pointer;
+}
+
+.slideNavBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ── Summary view ── */
+
+.summaryTitle {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text-dark, #333);
+  margin: 0;
+}
+
+.summarySubtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666);
+  margin: 0;
+}
+
+.summaryList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  min-height: 44px;
+  background: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: var(--text-dark, #333);
+  cursor: pointer;
+  text-align: left;
+}
+
+.summaryRow:active {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.summaryApproved {
+  color: var(--color-mint, #2ecc71);
+  font-weight: 800;
+}
+
+.summaryFlagged {
+  color: #e74c3c;
+  font-weight: 800;
+}
+
+.budgetSummary {
+  background: white;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.budgetRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666);
+  padding: 3px 0;
+}
+
+.budgetTotal {
+  font-weight: 800;
+  color: var(--text-dark, #333);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+.reviseBtn {
+  font-size: 0.875rem;
+  font-weight: 800;
+  font-family: inherit;
+  padding: 12px;
+  min-height: 48px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  cursor: pointer;
+}
+
+.reviseBtn:active {
+  transform: scale(0.97);
+}

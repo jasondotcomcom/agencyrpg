@@ -1,0 +1,191 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: var(--text-dark, #333);
+  margin: 0;
+}
+
+/* ── Concept banner ── */
+
+.conceptBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.bannerIcon {
+  font-size: 1.5rem;
+}
+
+.bannerLabel {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted, #999);
+  display: block;
+}
+
+.bannerValue {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--text-dark, #333);
+}
+
+/* ── Deliverables summary ── */
+
+.deliverablesSummary {
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.summaryLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted, #999);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.delRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: var(--text-dark, #333);
+  padding: 4px 0;
+}
+
+/* ── Budget ── */
+
+.budgetSummary {
+  background: white;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.budgetRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666);
+  padding: 3px 0;
+}
+
+.budgetTotal {
+  font-weight: 800;
+  color: var(--text-dark, #333);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--text-muted, #999);
+  text-align: center;
+  margin: 0;
+}
+
+.submitBtn {
+  font-size: 1rem;
+  font-weight: 900;
+  font-family: inherit;
+  padding: 16px;
+  min-height: 56px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text-muted, #999);
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+}
+
+.submitBtn.active {
+  background: linear-gradient(135deg, var(--color-mint, #2ecc71), #27ae60);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+}
+
+.submitBtn.active:active {
+  transform: scale(0.97);
+}
+
+/* ── State screens (submitted / completed) ── */
+
+.stateScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 16px;
+  gap: 8px;
+}
+
+.stateIcon {
+  font-size: 2.5rem;
+}
+
+.stateTitle {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: var(--text-dark, #333);
+  margin: 0;
+}
+
+.stateText {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #666);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.scoreCircle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-mint, #2ecc71), #27ae60);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.scoreValue {
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.scoreLabel {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.feedback {
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--text-secondary, #666);
+  margin: 0;
+  line-height: 1.5;
+}

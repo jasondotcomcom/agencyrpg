@@ -1,0 +1,43 @@
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  background: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.backBtn,
+.nextBtn {
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 10px 20px;
+  min-height: 44px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.backBtn {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-secondary, #666);
+}
+
+.backBtn:active {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.nextBtn {
+  background: var(--color-mint, #2ecc71);
+  color: white;
+}
+
+.nextBtn:active {
+  background: #27ae60;
+  transform: scale(0.97);
+}

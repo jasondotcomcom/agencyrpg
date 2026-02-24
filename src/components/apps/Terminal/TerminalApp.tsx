@@ -1933,6 +1933,10 @@ Human Resources
           setInputValue(cmd);
           inputRef.current?.focus();
         }}
+        onExecuteCommand={(cmd) => {
+          setInputValue('');
+          handleCommand(cmd);
+        }}
         toolNames={tools.map(t => t.name)}
       />
 

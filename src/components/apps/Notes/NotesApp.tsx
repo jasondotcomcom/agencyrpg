@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAchievementContext, ACHIEVEMENT_DEFS } from '../../../context/AchievementContext';
 import { loadLegacy } from '../../Ending/EndingSequence';
+import { useDeviceMode } from '../../../utils/deviceDetection';
+import AchievementBadgeGrid from './AchievementBadgeGrid';
 import styles from './NotesApp.module.css';
 
 type Tab = 'achievements' | 'notes' | 'legacy';
@@ -49,6 +51,7 @@ export default function NotesApp(): React.ReactElement {
     if (tab === 'achievements') checkAchievementMilestones();
   };
 
+  const deviceMode = useDeviceMode();
   const unlockedCount = unlockedAchievements.length;
   const totalCount = ACHIEVEMENT_DEFS.length;
   const lockedDefs = ACHIEVEMENT_DEFS.filter(a => !unlockedAchievements.includes(a.id));
@@ -102,58 +105,65 @@ export default function NotesApp(): React.ReactElement {
             </div>
           </div>
 
-          <div className={styles.achievementsScroll}>
-            {/* Discovered section */}
-            {unlockedDefs.length > 0 && (
-              <>
-                <div className={styles.sectionLabel}>DISCOVERED ({unlockedDefs.length})</div>
-                <div className={styles.achievementsGrid}>
-                  {unlockedDefs.map(achievement => (
-                    <div
-                      key={achievement.id}
-                      className={`${styles.achievementCard} ${styles.unlocked}`}
-                      aria-label={`${achievement.name}: ${achievement.description}`}
-                    >
-                      <span className={styles.achievementIcon}>{achievement.icon}</span>
-                      <div className={styles.achievementInfo}>
-                        <p className={styles.achievementName}>{achievement.name}</p>
-                        <p className={styles.achievementDesc}>{achievement.description}</p>
+          {deviceMode === 'phone' ? (
+            <AchievementBadgeGrid
+              achievements={ACHIEVEMENT_DEFS}
+              unlockedIds={unlockedAchievements}
+            />
+          ) : (
+            <div className={styles.achievementsScroll}>
+              {/* Discovered section */}
+              {unlockedDefs.length > 0 && (
+                <>
+                  <div className={styles.sectionLabel}>DISCOVERED ({unlockedDefs.length})</div>
+                  <div className={styles.achievementsGrid}>
+                    {unlockedDefs.map(achievement => (
+                      <div
+                        key={achievement.id}
+                        className={`${styles.achievementCard} ${styles.unlocked}`}
+                        aria-label={`${achievement.name}: ${achievement.description}`}
+                      >
+                        <span className={styles.achievementIcon}>{achievement.icon}</span>
+                        <div className={styles.achievementInfo}>
+                          <p className={styles.achievementName}>{achievement.name}</p>
+                          <p className={styles.achievementDesc}>{achievement.description}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+                    ))}
+                  </div>
+                </>
+              )}
 
-            {/* Undiscovered section */}
-            {lockedDefs.length > 0 && (
-              <>
-                <div className={styles.sectionLabel}>
-                  UNDISCOVERED ({lockedDefs.length})
-                </div>
-                <div className={styles.lockedGrid}>
-                  {lockedDefs.map(achievement => (
-                    <div
-                      key={achievement.id}
-                      className={styles.lockedBadge}
-                      aria-label="Locked achievement"
-                      title="???"
-                    >
-                      🔒
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+              {/* Undiscovered section */}
+              {lockedDefs.length > 0 && (
+                <>
+                  <div className={styles.sectionLabel}>
+                    UNDISCOVERED ({lockedDefs.length})
+                  </div>
+                  <div className={styles.lockedGrid}>
+                    {lockedDefs.map(achievement => (
+                      <div
+                        key={achievement.id}
+                        className={styles.lockedBadge}
+                        aria-label="Locked achievement"
+                        title="???"
+                      >
+                        🔒
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
-            {unlockedDefs.length === 0 && (
-              <div className={styles.emptyState}>
-                <span className={styles.emptyIcon}>🔒</span>
-                <p className={styles.emptyText}>No achievements discovered yet.</p>
-                <p className={styles.emptyHint}>Play the game — they unlock on their own.</p>
-              </div>
-            )}
-          </div>
+              {unlockedDefs.length === 0 && (
+                <div className={styles.emptyState}>
+                  <span className={styles.emptyIcon}>🔒</span>
+                  <p className={styles.emptyText}>No achievements discovered yet.</p>
+                  <p className={styles.emptyHint}>Play the game — they unlock on their own.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

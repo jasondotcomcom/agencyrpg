@@ -46,4 +46,21 @@
     background: rgba(168, 230, 207, 0.2);
     border-color: rgba(168, 230, 207, 0.4);
   }
+
+  .categoryLabel {
+    display: flex;
+    align-items: center;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-left: 4px;
+  }
+
+  .categoryLabel:first-child {
+    padding-left: 0;
+  }
 }

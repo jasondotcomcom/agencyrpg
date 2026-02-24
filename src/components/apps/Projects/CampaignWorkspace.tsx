@@ -23,6 +23,8 @@ import { useEndingContext } from '../../../context/EndingContext';
 import CampaignToolsPanel from './CampaignToolsPanel';
 import { useCheatContext } from '../../../context/CheatContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
+import { useDeviceMode } from '../../../utils/deviceDetection';
+import MobileCampaignCardFlow from './MobileCampaignCardFlow';
 import styles from './CampaignWorkspace.module.css';
 
 // ─── Nightmare Mode Feedback Pool ─────────────────────────────────────────────
@@ -51,6 +53,7 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
   const { checkForEnding, checkForHostileTakeover } = useEndingContext();
   const { cheat, consumeOneTimeBonus } = useCheatContext();
   const { unlockAchievement, incrementCounter, resetCounter, getCounter } = useAchievementContext();
+  const deviceMode = useDeviceMode();
   const campaign = getCampaign(campaignId);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -390,6 +393,27 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
 
   // Get selected concept name for display
   const selectedConcept = campaign.generatedConcepts.find(c => c.id === campaign.selectedConceptId);
+
+  // Mobile card-flow — completely separate render path
+  if (deviceMode === 'phone') {
+    return (
+      <div className={styles.workspace}>
+        <MobileCampaignCardFlow
+          campaign={campaign}
+          onSubmit={handleSubmit}
+          canSubmit={canSubmit}
+          isSubmitting={isSubmitting}
+        />
+        {showResults && campaignScore && (
+          <CampaignResults
+            campaign={campaign}
+            score={campaignScore}
+            onClose={handleResultsClose}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.workspace}>

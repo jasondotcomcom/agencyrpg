@@ -1,0 +1,94 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 12px;
+}
+
+.badge {
+  aspect-ratio: 1;
+  perspective: 600px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s ease;
+  transform-style: preserve-3d;
+}
+
+.inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.front,
+.back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.front.unlocked {
+  background: linear-gradient(135deg, #fff9e6, #ffd700);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.25);
+}
+
+.front.locked {
+  background: rgba(0, 0, 0, 0.04);
+  opacity: 0.5;
+}
+
+.icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.back {
+  transform: rotateY(180deg);
+  flex-direction: column;
+  padding: 6px;
+  text-align: center;
+  gap: 2px;
+}
+
+.backUnlocked {
+  background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 100%);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.backLocked {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.backName {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  color: var(--text-dark, #333);
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.backDesc {
+  font-size: 0.5rem;
+  color: var(--text-secondary, #666);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

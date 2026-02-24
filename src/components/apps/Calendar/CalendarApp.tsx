@@ -35,10 +35,10 @@ const PIECE_DEFS: PieceDef[] = [
   { shape: [[0,1,1],[1,1,0]], color: '#f9e79f', label: 'Workshop' },
   // Z-piece: Brainstorm
   { shape: [[1,1,0],[0,1,1]], color: '#ffb7b2', label: 'Brainstorm' },
-  // L-piece: Client Call
-  { shape: [[1,0],[1,0],[1,1]], color: '#b5ead7', label: 'Client Call' },
-  // J-piece: Team Standup
-  { shape: [[0,1],[0,1],[1,1]], color: '#e2b6cf', label: 'Team Standup' },
+  // L-piece: Client Call (foot right)
+  { shape: [[0,0,1],[1,1,1]], color: '#b5ead7', label: 'Client Call' },
+  // J-piece: Team Standup (foot left)
+  { shape: [[1,0,0],[1,1,1]], color: '#e2b6cf', label: 'Team Standup' },
   // Single block: Quick Sync
   { shape: [[1]], color: '#dcedc1', label: 'Quick Sync' },
   // Horizontal 2-block: 1:1

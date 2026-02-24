@@ -1,0 +1,195 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text-dark, #333);
+  margin: 0;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666);
+  margin: 0;
+}
+
+.textarea {
+  font-size: 1rem; /* 16px prevents iOS zoom */
+  font-family: inherit;
+  padding: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: white;
+  color: var(--text-dark, #333);
+  resize: none;
+  line-height: 1.5;
+  transition: border-color 0.15s ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-mint, #2ecc71);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.surpriseBtn {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 8px 16px;
+  min-height: 44px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
+  color: var(--text-dark, #333);
+  cursor: pointer;
+}
+
+.surpriseBtn:active {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.autoTag {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--text-muted, #999);
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.budget {
+  background: white;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.budgetRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666);
+  padding: 3px 0;
+}
+
+.budgetTotal {
+  font-weight: 800;
+  color: var(--text-dark, #333);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+.generateBtn {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  font-family: inherit;
+  padding: 14px;
+  min-height: 48px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text-muted, #999);
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+}
+
+.generateBtn.active {
+  background: linear-gradient(135deg, var(--color-mint, #2ecc71), #27ae60);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+}
+
+.generateBtn.active:active {
+  transform: scale(0.97);
+}
+
+.generateHint {
+  font-size: 0.6875rem;
+  color: var(--text-muted, #999);
+  text-align: center;
+  margin: 0;
+}
+
+.revolutionBanner {
+  padding: 16px;
+  text-align: center;
+  color: #c084fc;
+  background: rgba(168, 100, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(168, 100, 255, 0.2);
+  font-weight: 700;
+}
+
+/* ── Wait / Generating screen ── */
+
+.waitScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.waitIcon {
+  font-size: 2rem;
+}
+
+.waitTitle {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--text-dark, #333);
+}
+
+.waitSub {
+  font-size: 0.75rem;
+  color: var(--text-muted, #999);
+}
+
+.playCta {
+  font-size: 0.875rem;
+  font-weight: 800;
+  font-family: inherit;
+  padding: 12px 24px;
+  min-height: 48px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #a8e6cf, #2ecc71);
+  color: white;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.playCta:active {
+  transform: scale(0.97);
+}
+
+.waitAlt {
+  font-size: 0.6875rem;
+  color: var(--text-muted, #999);
+}
+
+.stopBtn {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 10px;
+  min-height: 44px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
+  color: var(--text-secondary, #666);
+  cursor: pointer;
+}

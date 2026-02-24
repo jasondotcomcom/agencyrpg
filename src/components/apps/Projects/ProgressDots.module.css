@@ -1,0 +1,60 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 16px;
+  flex-shrink: 0;
+  background: white;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dotBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  min-width: 44px;
+  min-height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dotBtn:disabled {
+  cursor: default;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.active .dot {
+  width: 20px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-mint, #2ecc71);
+}
+
+.completed .dot {
+  background: var(--color-mint, #2ecc71);
+}
+
+.locked .dot {
+  opacity: 0.3;
+}
+
+.label {
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-mint, #2ecc71);
+  white-space: nowrap;
+}
