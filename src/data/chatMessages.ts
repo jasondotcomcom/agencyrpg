@@ -102,6 +102,95 @@ export function getInitialMessages(): ChatMessage[] {
       reactions: [{ emoji: '\uD83D\uDE02', count: 1 }],
       isRead: true,
     },
+
+    // #food
+    {
+      id: 'seed-11',
+      channel: 'food',
+      authorId: 'technologist',
+      text: 'Built a caloric density ranker over the weekend. My sad desk salad scored a 2.1.',
+      timestamp: now - 4000000,
+      reactions: [{ emoji: '\uD83E\uDD57', count: 1 }],
+      isRead: true,
+    },
+    {
+      id: 'seed-12',
+      channel: 'food',
+      authorId: 'copywriter',
+      text: 'Cereal is soup. I will not be taking questions.',
+      timestamp: now - 3800000,
+      reactions: [{ emoji: '\uD83D\uDE31', count: 2 }, { emoji: '\uD83D\uDE20', count: 1 }],
+      isRead: true,
+    },
+    {
+      id: 'seed-13',
+      channel: 'food',
+      authorId: 'art-director',
+      text: 'Whoever microwaved fish yesterday \u2014 I know it was you, Sam.',
+      timestamp: now - 3500000,
+      reactions: [{ emoji: '\uD83D\uDCA8', count: 3 }],
+      isRead: true,
+    },
+
+    // #memes
+    {
+      id: 'seed-14',
+      channel: 'memes',
+      authorId: 'media',
+      text: 'This is us every Monday morning:',
+      timestamp: now - 3200000,
+      reactions: [{ emoji: '\uD83D\uDE02', count: 4 }],
+      isRead: true,
+      imageUrl: '\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502  \u270B Reading the brief  \u2502\n\u2502                         \u2502\n\u2502  \uD83D\uDC49 Vibing the brief   \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518',
+    },
+    {
+      id: 'seed-15',
+      channel: 'memes',
+      authorId: 'technologist',
+      text: 'I made one of Morgan explaining color theory to a client',
+      timestamp: now - 3000000,
+      reactions: [],
+      isRead: true,
+      imageUrl: '\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502   Morgan: \u201Cthis blue    \u2502\n\u2502   is NOT that blue\u201D    \u2502\n\u2502                         \u2502\n\u2502   Client: \u201Cthey look    \u2502\n\u2502   the same to me\u201D      \u2502\n\u2502                         \u2502\n\u2502   Morgan: \uD83D\uDE10\uD83D\uDE10\uD83D\uDE10         \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518',
+    },
+    {
+      id: 'seed-16',
+      channel: 'memes',
+      authorId: 'art-director',
+      text: 'Delete that immediately.',
+      timestamp: now - 2900000,
+      reactions: [{ emoji: '\uD83D\uDE02', count: 5 }],
+      isRead: true,
+    },
+
+    // #haiku
+    {
+      id: 'seed-17',
+      channel: 'haiku',
+      authorId: 'copywriter',
+      text: 'The brief said \u201Cedgy\u201D\nI wrote seventeen taglines\nAll got rejected',
+      timestamp: now - 2600000,
+      reactions: [{ emoji: '\uD83D\uDE22', count: 2 }],
+      isRead: true,
+    },
+    {
+      id: 'seed-18',
+      channel: 'haiku',
+      authorId: 'strategist',
+      text: 'Data says it works\nBut does the client feel it?\nThey do not feel it.',
+      timestamp: now - 2400000,
+      reactions: [{ emoji: '\uD83D\uDCCA', count: 1 }],
+      isRead: true,
+    },
+    {
+      id: 'seed-19',
+      channel: 'haiku',
+      authorId: 'pm',
+      text: 'Sprint ends tomorrow\nNothing is on track right now\nThis is my haiku',
+      timestamp: now - 2200000,
+      reactions: [{ emoji: '\uD83D\uDE05', count: 3 }],
+      isRead: true,
+    },
   ];
 }
 

@@ -9,6 +9,7 @@ import type {
   ChatEventContext,
 } from '../types/chat';
 import { getInitialMessages, getCampaignEventMessages } from '../data/chatMessages';
+import { getAmbientPool } from '../data/ambientMessages';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,9 @@ const CHANNELS: Channel[] = [
   { id: 'general', name: 'general', description: 'Main team channel', icon: '#', readOnly: false },
   { id: 'creative', name: 'creative', description: 'Creative team discussions', icon: '\uD83C\uDFA8', readOnly: true },
   { id: 'random', name: 'random', description: 'Off-topic & fun', icon: '\uD83C\uDFB2', readOnly: false },
+  { id: 'food', name: 'food', description: 'Lunch debates & diet wars', icon: '\uD83C\uDF55', readOnly: false },
+  { id: 'memes', name: 'memes', description: 'Agency memes & reactions', icon: '\uD83D\uDDBC\uFE0F', readOnly: false },
+  { id: 'haiku', name: 'haiku', description: 'Bad poetry about advertising', icon: '\uD83C\uDF8B', readOnly: false },
 ];
 
 const initialState: ChatState = {
@@ -27,6 +31,9 @@ const initialState: ChatState = {
     general: 0,
     creative: 0,
     random: 0,
+    food: 0,
+    memes: 0,
+    haiku: 0,
   },
 };
 
@@ -156,6 +163,74 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // Ambient casual channel messages — periodic banter in #food, #memes, #haiku, #random
+  useEffect(() => {
+    const casualChannels: ChannelId[] = ['food', 'memes', 'haiku', 'random'];
+    const usedChains = new Map<string, Set<number>>();
+
+    function pickChannel(): ChannelId {
+      return casualChannels[Math.floor(Math.random() * casualChannels.length)];
+    }
+
+    function scheduleNext() {
+      const delay = 45000 + Math.random() * 45000; // 45-90 seconds
+      const timer = setTimeout(() => {
+        timersRef.current.delete(timer);
+        const channel = pickChannel();
+        const pool = getAmbientPool(channel);
+        if (pool.length === 0) { scheduleNext(); return; }
+
+        // Track used chains per channel
+        if (!usedChains.has(channel)) usedChains.set(channel, new Set());
+        const used = usedChains.get(channel)!;
+
+        // Find unused chain
+        const availableIndices = pool.map((_, i) => i).filter(i => !used.has(i));
+        if (availableIndices.length === 0) {
+          used.clear(); // Reset when all used
+          scheduleNext();
+          return;
+        }
+
+        const chainIdx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+        used.add(chainIdx);
+
+        const chain = pool[chainIdx];
+        chain.messages.forEach((msg, msgIdx) => {
+          const msgDelay = msg.delayMs ?? (msgIdx === 0 ? 0 : 2000 + Math.random() * 2000);
+          const msgTimer = setTimeout(() => {
+            timersRef.current.delete(msgTimer);
+            dispatch({
+              type: 'ADD_MESSAGE',
+              payload: {
+                id: `ambient-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                channel,
+                authorId: msg.authorId,
+                text: msg.text,
+                timestamp: Date.now(),
+                reactions: msg.reactions ?? [],
+                isRead: false,
+                ...(msg.imageUrl ? { imageUrl: msg.imageUrl } : {}),
+              },
+            });
+          }, msgDelay);
+          timersRef.current.add(msgTimer);
+        });
+
+        scheduleNext();
+      }, delay);
+      timersRef.current.add(timer);
+    }
+
+    // Start after a short initial delay
+    const startTimer = setTimeout(scheduleNext, 15000);
+    timersRef.current.add(startTimer);
+
+    return () => {
+      // Cleanup handled by the main timer cleanup effect
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const setActiveChannel = useCallback((channel: ChannelId) => {
     dispatch({ type: 'SET_ACTIVE_CHANNEL', payload: channel });
   }, []);
@@ -193,6 +268,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               timestamp: Date.now(),
               reactions: template.reactions || [],
               isRead: false,
+              ...(template.imageUrl ? { imageUrl: template.imageUrl } : {}),
             },
           });
           timersRef.current.delete(timer);

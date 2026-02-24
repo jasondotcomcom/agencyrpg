@@ -1,6 +1,6 @@
 // ─── Channel Types ────────────────────────────────────────────────────────────
 
-export type ChannelId = 'general' | 'creative' | 'random';
+export type ChannelId = 'general' | 'creative' | 'random' | 'food' | 'memes' | 'haiku';
 
 export interface Channel {
   id: ChannelId;
@@ -25,6 +25,7 @@ export interface ChatMessage {
   timestamp: number;
   reactions: ChatReaction[];
   isRead: boolean;
+  imageUrl?: string;
 }
 
 // ─── Morale ───────────────────────────────────────────────────────────────────
@@ -71,6 +72,7 @@ export interface MessageTemplate {
   authorId: string;
   text: string;
   reactions?: ChatReaction[];
+  imageUrl?: string;
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
