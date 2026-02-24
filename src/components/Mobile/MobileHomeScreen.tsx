@@ -17,6 +17,11 @@ const defaultIcons: DesktopIconType[] = [
   { id: 'icon-calendar', label: 'Calendar', icon: 'calendar', appId: 'calendar' },
   { id: 'icon-settings', label: 'Settings', icon: 'settings', appId: 'settings' },
   { id: 'icon-help', label: 'Help', icon: 'help', appId: 'help' },
+  // Easter egg games + about
+  { id: 'icon-solitaire', label: 'Solitaire', icon: 'tool:🃏', appId: 'solitaire' },
+  { id: 'icon-minesweeper', label: 'Minesweeper', icon: 'tool:💣', appId: 'minesweeper' },
+  { id: 'icon-skifree', label: 'SkiFree', icon: 'tool:⛷️', appId: 'skifree' },
+  { id: 'icon-about', label: 'About', icon: 'tool:ℹ️', appId: 'about' },
 ];
 
 interface QuickActionState {
