@@ -67,19 +67,21 @@ export default function Screensaver({ playerName, onDismiss }: ScreensaverProps)
     onDismiss();
   }, [onDismiss]);
 
-  // Dismiss on click or keypress
+  // Dismiss on click, touch, or keypress
   useEffect(() => {
     const handleKey = () => handleDismiss();
-    const handleClick = () => handleDismiss();
+    const handlePointer = () => handleDismiss();
     // Small delay to prevent the click that triggers log off from also dismissing
     const timer = setTimeout(() => {
       document.addEventListener('keydown', handleKey);
-      document.addEventListener('mousedown', handleClick);
+      document.addEventListener('mousedown', handlePointer);
+      document.addEventListener('touchstart', handlePointer, { passive: true });
     }, 500);
     return () => {
       clearTimeout(timer);
       document.removeEventListener('keydown', handleKey);
-      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('mousedown', handlePointer);
+      document.removeEventListener('touchstart', handlePointer);
     };
   }, [handleDismiss]);
 
@@ -169,7 +171,7 @@ export default function Screensaver({ playerName, onDismiss }: ScreensaverProps)
       </div>
 
       {/* Hint */}
-      <div className={styles.hint}>Click anywhere to wake up</div>
+      <div className={styles.hint}>Tap or click anywhere to wake up</div>
     </div>
   );
 }

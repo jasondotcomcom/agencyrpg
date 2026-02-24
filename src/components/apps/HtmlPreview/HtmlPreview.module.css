@@ -37,3 +37,20 @@
   border: none;
   background: #fff;
 }
+
+/* ─── Mobile Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .toolbar {
+    padding: 6px 12px;
+  }
+
+  .title {
+    font-size: 12px;
+  }
+
+  .badge {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+}

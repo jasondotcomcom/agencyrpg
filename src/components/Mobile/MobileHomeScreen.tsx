@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import type { DesktopIcon as DesktopIconType } from '../../types';
 import { useEmailContext } from '../../context/EmailContext';
 import { useChatContext } from '../../context/ChatContext';
 import { useTerminalTools } from '../../hooks/useTerminalTools';
 import MobileAppIcon from './MobileAppIcon';
+import QuickActionMenu from './QuickActionMenu';
 import styles from './Mobile.module.css';
 
 const defaultIcons: DesktopIconType[] = [
@@ -18,10 +19,17 @@ const defaultIcons: DesktopIconType[] = [
   { id: 'icon-help', label: 'Help', icon: 'help', appId: 'help' },
 ];
 
+interface QuickActionState {
+  appId: string;
+  rect: DOMRect;
+}
+
 export default function MobileHomeScreen() {
   const { getUnreadCount } = useEmailContext();
   const { getUnreadCount: getChatUnreadCount } = useChatContext();
   const terminalTools = useTerminalTools();
+
+  const [quickAction, setQuickAction] = useState<QuickActionState | null>(null);
 
   const allIcons = useMemo<DesktopIconType[]>(() => {
     const toolIcons: DesktopIconType[] = terminalTools.map(t => ({
@@ -36,6 +44,14 @@ export default function MobileHomeScreen() {
   const unreadCount = getUnreadCount();
   const chatUnreadCount = getChatUnreadCount();
 
+  const handleLongPress = useCallback((appId: string, rect: DOMRect) => {
+    setQuickAction({ appId, rect });
+  }, []);
+
+  const handleCloseQuickAction = useCallback(() => {
+    setQuickAction(null);
+  }, []);
+
   return (
     <div className={styles.homeScreen}>
       {allIcons.map(icon => (
@@ -49,8 +65,17 @@ export default function MobileHomeScreen() {
             icon.appId === 'chat' ? chatUnreadCount :
             undefined
           }
+          onLongPress={handleLongPress}
         />
       ))}
+
+      {quickAction && (
+        <QuickActionMenu
+          appId={quickAction.appId}
+          anchorRect={quickAction.rect}
+          onClose={handleCloseQuickAction}
+        />
+      )}
     </div>
   );
 }

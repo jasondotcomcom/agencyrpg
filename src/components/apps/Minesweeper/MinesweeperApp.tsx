@@ -79,6 +79,9 @@ export default function MinesweeperApp() {
   const [flagCount, setFlagCount] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
   const hitMineRef = useRef(false);
+  const [touchMode, setTouchMode] = useState<'reveal' | 'flag'>('reveal');
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const longPressTriggeredRef = useRef(false);
 
   // Timer
   useEffect(() => {
@@ -182,6 +185,49 @@ export default function MinesweeperApp() {
     setBoard(newBoard);
   }, [board, status]);
 
+  // Touch handlers: long-press = flag, or use mode toggle
+  const handleCellTouchStart = useCallback((r: number, c: number) => {
+    longPressTriggeredRef.current = false;
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      // Long press = toggle flag
+      if (status !== 'playing') return;
+      const cell = board[r][c];
+      if (cell.state === 'revealed') return;
+      const newBoard = cloneBoard(board);
+      if (cell.state === 'flagged') {
+        newBoard[r][c].state = 'hidden';
+        setFlagCount(prev => prev - 1);
+      } else {
+        newBoard[r][c].state = 'flagged';
+        setFlagCount(prev => prev + 1);
+      }
+      setBoard(newBoard);
+    }, 500);
+  }, [board, status]);
+
+  const handleCellTouchEnd = useCallback((r: number, c: number) => {
+    clearTimeout(longPressTimerRef.current);
+    if (longPressTriggeredRef.current) return; // Already handled as long-press
+    // Short tap: use the current touch mode
+    if (touchMode === 'flag') {
+      if (status !== 'playing') return;
+      const cell = board[r][c];
+      if (cell.state === 'revealed') return;
+      const newBoard = cloneBoard(board);
+      if (cell.state === 'flagged') {
+        newBoard[r][c].state = 'hidden';
+        setFlagCount(prev => prev - 1);
+      } else {
+        newBoard[r][c].state = 'flagged';
+        setFlagCount(prev => prev + 1);
+      }
+      setBoard(newBoard);
+    } else {
+      handleCellClick(r, c);
+    }
+  }, [touchMode, board, status, handleCellClick]);
+
   const smileyFace = status === 'won' ? '😎' : status === 'lost' ? '😵' : '🙂';
 
   const NUMBER_COLORS = ['', '#0000ff', '#008000', '#ff0000', '#000080', '#800000', '#008080', '#000000', '#808080'];
@@ -224,6 +270,8 @@ export default function MinesweeperApp() {
                   className={cellClass}
                   onClick={() => handleCellClick(r, c)}
                   onContextMenu={(e) => handleRightClick(e, r, c)}
+                  onTouchStart={(e) => { e.preventDefault(); handleCellTouchStart(r, c); }}
+                  onTouchEnd={(e) => { e.preventDefault(); handleCellTouchEnd(r, c); }}
                 >
                   {content}
                 </button>
@@ -232,6 +280,24 @@ export default function MinesweeperApp() {
           </div>
         ))}
       </div>
+
+      {/* Mode toggle for mobile */}
+      {status === 'playing' && (
+        <div className={styles.modeToggle}>
+          <button
+            className={`${styles.modeBtn} ${touchMode === 'reveal' ? styles.modeBtnActive : ''}`}
+            onClick={() => setTouchMode('reveal')}
+          >
+            Reveal
+          </button>
+          <button
+            className={`${styles.modeBtn} ${touchMode === 'flag' ? styles.modeBtnActive : ''}`}
+            onClick={() => setTouchMode('flag')}
+          >
+            Flag
+          </button>
+        </div>
+      )}
 
       {status !== 'playing' && (
         <div className={styles.statusBar}>

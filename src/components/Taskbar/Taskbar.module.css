@@ -105,6 +105,13 @@
   user-select: none;
 }
 
+/* ─── Mobile: hide desktop taskbar (mobile uses MobileDock) ─────────────── */
+@media (max-width: 767px) {
+  .taskbar {
+    display: none;
+  }
+}
+
 /* ─── Dark Theme ─────────────────────────────────────────────────────────── */
 
 :global([data-theme="dark"]) .taskbar {

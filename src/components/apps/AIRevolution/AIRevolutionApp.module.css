@@ -169,3 +169,73 @@
   50% { transform: translateX(3px); filter: hue-rotate(-90deg); }
   75% { transform: translateX(-1px); filter: hue-rotate(45deg); }
 }
+
+/* ─── Mobile Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .header {
+    padding: 16px 16px 12px;
+  }
+
+  .title {
+    font-size: 1.0625rem;
+  }
+
+  .subtitle {
+    font-size: 0.6875rem;
+    letter-spacing: 1.5px;
+  }
+
+  .dialogue {
+    padding: 16px;
+    gap: 16px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .dialogue::-webkit-scrollbar {
+    display: none;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+    border-radius: 10px;
+  }
+
+  .text {
+    font-size: 0.8125rem;
+  }
+
+  .options {
+    padding: 12px 16px 20px;
+    gap: 8px;
+  }
+
+  .optionButton {
+    padding: 14px 16px;
+    min-height: 44px;
+    font-size: 0.8125rem;
+    border-radius: 10px;
+  }
+
+  .resolution {
+    padding: 24px 16px;
+  }
+
+  .resolutionTitle {
+    font-size: 1rem;
+  }
+
+  .resolutionText {
+    font-size: 0.8125rem;
+    max-width: 100%;
+  }
+
+  .closeButton {
+    padding: 12px 28px;
+    min-height: 44px;
+    font-size: 0.875rem;
+  }
+}

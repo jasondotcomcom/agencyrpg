@@ -719,6 +719,21 @@ export default function LawsuitApp(): React.ReactElement {
     };
   }, []);
 
+  // ── Touch handlers for mobile ──────────────────────────────────────────
+
+  const handleTouchLeft = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    // Simulate a quick left arrow press (edge-triggered via keysRef)
+    keysRef.current.add('arrowleft');
+    setTimeout(() => keysRef.current.delete('arrowleft'), 100);
+  }, []);
+
+  const handleTouchRight = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    keysRef.current.add('arrowright');
+    setTimeout(() => keysRef.current.delete('arrowright'), 100);
+  }, []);
+
   // ── Cleanup ───────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -749,6 +764,24 @@ export default function LawsuitApp(): React.ReactElement {
   return (
     <div className={styles.lawsuit}>
       <canvas ref={canvasRef} className={styles.canvas} />
+
+      {/* Touch zones for mobile */}
+      {hudState.phase === 'playing' && (
+        <>
+          <div
+            className={styles.touchZoneLeft}
+            onTouchStart={handleTouchLeft}
+          >
+            <span className={styles.touchZoneArrow}>&#9664;</span>
+          </div>
+          <div
+            className={styles.touchZoneRight}
+            onTouchStart={handleTouchRight}
+          >
+            <span className={styles.touchZoneArrow}>&#9654;</span>
+          </div>
+        </>
+      )}
 
       {/* Timer bar */}
       <div

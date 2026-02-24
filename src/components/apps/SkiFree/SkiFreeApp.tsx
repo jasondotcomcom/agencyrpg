@@ -750,6 +750,67 @@ export default function SkiFreeApp() {
     };
   }, []);
 
+  // ── Touch handlers for mobile ──────────────────────────────────────────
+
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const isMobileRef = useRef(false);
+
+  useEffect(() => {
+    isMobileRef.current = window.innerWidth < 768 || 'ontouchstart' in window;
+  }, []);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (phase !== 'playing') return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const containerW = containerRef.current?.clientWidth ?? window.innerWidth;
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+
+    // Left/right steering based on screen half
+    if (touch.clientX < containerW / 2) {
+      keysRef.current.add('ArrowLeft');
+      keysRef.current.delete('ArrowRight');
+    } else {
+      keysRef.current.add('ArrowRight');
+      keysRef.current.delete('ArrowLeft');
+    }
+
+    // Tap = boost
+    keysRef.current.add('f');
+  }, [phase]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (phase !== 'playing') return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const containerW = containerRef.current?.clientWidth ?? window.innerWidth;
+    const startY = touchStartRef.current?.y ?? touch.clientY;
+    const dy = startY - touch.clientY;
+
+    // Swipe up detection during move
+    if (dy > 30) {
+      keysRef.current.add('ArrowUp');
+    }
+
+    // Update steering
+    if (touch.clientX < containerW / 2) {
+      keysRef.current.add('ArrowLeft');
+      keysRef.current.delete('ArrowRight');
+    } else {
+      keysRef.current.add('ArrowRight');
+      keysRef.current.delete('ArrowLeft');
+    }
+  }, [phase]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    keysRef.current.delete('ArrowLeft');
+    keysRef.current.delete('ArrowRight');
+    keysRef.current.delete('f');
+    keysRef.current.delete('ArrowUp');
+    touchStartRef.current = null;
+  }, []);
+
   // ── Start / stop game loop ──────────────────────────────────────────────
 
   useEffect(() => {
@@ -780,6 +841,20 @@ export default function SkiFreeApp() {
     <div ref={containerRef} className={styles.container}>
       <canvas ref={canvasRef} className={styles.canvas} />
 
+      {/* Touch overlay for mobile */}
+      {phase === 'playing' && (
+        <div
+          className={styles.touchOverlay}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className={styles.touchIndicatorLeft}>&#9664;</div>
+          <div className={styles.touchIndicatorRight}>&#9654;</div>
+          <div className={styles.touchIndicatorSwipeUp}>&#9650; jump</div>
+        </div>
+      )}
+
       {/* HUD */}
       {phase === 'playing' && (
         <div className={styles.hud}>
@@ -802,6 +877,7 @@ export default function SkiFreeApp() {
             START
           </button>
           <span className={styles.controls}>Arrow Keys / A,D to move · Space to flip on jumps</span>
+          <span className={styles.controls}>Mobile: Tap left/right to steer · Hold to boost · Swipe up to jump</span>
         </div>
       )}
 

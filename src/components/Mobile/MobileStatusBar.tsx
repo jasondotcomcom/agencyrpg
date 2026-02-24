@@ -13,7 +13,12 @@ function formatTime(date: Date): string {
   return `${h}:${m} ${ampm}`;
 }
 
-export default function MobileStatusBar() {
+interface MobileStatusBarProps {
+  /** Optional callback — fired on tap (used for quick session summary). */
+  onTap?: () => void;
+}
+
+export default function MobileStatusBar({ onTap }: MobileStatusBarProps) {
   const { playerName } = usePlayerContext();
   const { state: repState } = useReputationContext();
   const { toggleNotifDrawer } = useMobileContext();
@@ -41,7 +46,7 @@ export default function MobileStatusBar() {
   }, []);
 
   return (
-    <div className={styles.statusBar} onClick={toggleNotifDrawer}>
+    <div className={styles.statusBar} onClick={onTap ?? toggleNotifDrawer}>
       <div className={styles.statusBarLeft}>
         {playerName ?? 'Player'}
       </div>

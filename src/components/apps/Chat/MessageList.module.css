@@ -214,9 +214,24 @@
 @media (max-width: 767px) {
   .messageList {
     padding: 12px 0;
+    padding-bottom: 80px; /* clearance for sticky input bar + safe area */
   }
 
   .messageRow {
+    padding: 6px 12px;
+  }
+
+  .messageRow:hover {
+    background: transparent; /* disable hover on touch */
+  }
+
+  .messageRow.playerMessage:hover {
+    background: rgba(168, 230, 207, 0.06); /* keep base color, no hover shift */
+  }
+
+  .reactionChip {
+    min-height: 36px;
+    min-width: 36px;
     padding: 6px 12px;
   }
 

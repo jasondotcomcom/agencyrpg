@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { icons } from '../Desktop/DesktopIcon';
 import { useMobileContext } from '../../context/MobileContext';
 import { useEmailContext } from '../../context/EmailContext';
@@ -26,11 +25,11 @@ export default function MobileDock() {
   const unreadCount = getUnreadCount();
   const chatUnreadCount = getChatUnreadCount();
 
-  const getBadge = useCallback((appId: string): number | undefined => {
+  const getBadge = (appId: string): number | undefined => {
     if (appId === 'inbox') return unreadCount || undefined;
     if (appId === 'chat') return chatUnreadCount || undefined;
     return undefined;
-  }, [unreadCount, chatUnreadCount]);
+  };
 
   return (
     <div className={styles.dock}>
@@ -43,25 +42,8 @@ export default function MobileDock() {
             key={item.appId}
             className={styles.dockIcon}
             onClick={() => openApp(item.appId)}
-            onTouchStart={(e) => {
-              (e.currentTarget as HTMLDivElement).style.transform = 'scale(0.9)';
-            }}
-            onTouchEnd={(e) => {
-              (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
-            }}
-            onTouchCancel={(e) => {
-              (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
-            }}
-            onMouseDown={(e) => {
-              (e.currentTarget as HTMLDivElement).style.transform = 'scale(0.9)';
-            }}
-            onMouseUp={(e) => {
-              (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
-            }}
             role="button"
+            tabIndex={0}
             aria-label={`Open ${item.label}`}
           >
             <div className={styles.dockIconImage}>

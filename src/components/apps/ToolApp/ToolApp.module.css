@@ -161,3 +161,61 @@
   color: #8888aa;
   font-size: 14px;
 }
+
+/* ─── Mobile Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .header {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .toolIcon {
+    font-size: 26px;
+  }
+
+  .toolName {
+    font-size: 14px;
+  }
+
+  .toolDesc {
+    font-size: 11px;
+  }
+
+  .context {
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+
+  .actions {
+    padding: 10px 14px;
+  }
+
+  .runButton {
+    padding: 10px 18px;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .output {
+    margin: 0 8px 8px;
+  }
+
+  .outputText {
+    font-size: 11px;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .outputText::-webkit-scrollbar {
+    display: none;
+  }
+
+  .footer {
+    padding: 8px 14px;
+    font-size: 10px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}

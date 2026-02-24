@@ -140,7 +140,7 @@
   box-sizing: border-box;
   padding: 12px 0;
   font-family: 'Brush Script MT', 'Segoe Script', 'Comic Sans MS', cursive;
-  font-size: 24px;
+  font-size: max(24px, 16px); /* 16px minimum prevents iOS zoom on focus */
   border: none;
   border-bottom: 2px solid #444;
   background: transparent;
@@ -148,6 +148,8 @@
   color: #1a1a2e;
   transition: border-color 0.2s;
   line-height: 1.2;
+  border-radius: 0; /* prevent iOS rounding */
+  -webkit-appearance: none; /* prevent iOS default styling */
 }
 
 .signatureInput:focus {
@@ -236,5 +238,93 @@
   .foundButton {
     padding: 10px 20px;
     margin-top: 12px;
+  }
+}
+
+/* ─── Mobile-width responsive ───────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .screen {
+    padding: 16px 12px;
+    gap: 14px;
+    justify-content: flex-start;
+    padding-top: env(safe-area-inset-top, 16px);
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  .document {
+    padding: 24px 18px;
+    max-height: none;
+    border-radius: 8px;
+  }
+
+  .documentHeader {
+    margin-bottom: 16px;
+  }
+
+  .seal {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-size: 16px;
+    letter-spacing: 2px;
+    padding-bottom: 8px;
+  }
+
+  .documentBody {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .list li {
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .finePrint {
+    font-size: 10px;
+  }
+
+  .signatureSection {
+    margin: 16px 0;
+    padding-top: 14px;
+  }
+
+  .signatureLabel {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .signatureInput {
+    font-size: 20px;
+    padding: 10px 0;
+  }
+
+  .foundButton {
+    padding: 14px 20px;
+    font-size: 15px;
+    min-height: 48px; /* touch-friendly minimum */
+    letter-spacing: 2px;
+    margin-top: 10px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .welcomeBackText {
+    font-size: 13px;
+  }
+
+  .runBadge {
+    font-size: 10px;
+  }
+}
+
+/* ─── Reduced Motion ────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .welcomeBack {
+    animation: none;
   }
 }

@@ -105,7 +105,7 @@
     flex-shrink: 0;
     position: sticky;
     bottom: 0;
-    z-index: 5;
+    z-index: 101; /* above mobile dock (z:100) so morale notifs aren't hidden */
     background: white;
   }
 

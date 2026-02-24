@@ -170,6 +170,24 @@
     min-height: 44px;
   }
 
+  /* Disable hover bg on touch — use :active instead */
+  .emailItem:hover {
+    background: white;
+    border-color: transparent;
+  }
+
+  .emailItem:active {
+    background: rgba(168, 230, 207, 0.15);
+  }
+
+  .emailItem.selected:hover {
+    background: linear-gradient(135deg, rgba(168, 230, 207, 0.25) 0%, rgba(168, 216, 234, 0.25) 100%);
+  }
+
+  .emailItem.unread:hover {
+    background: white;
+  }
+
   /* Always show star on mobile (no hover) */
   .actions {
     opacity: 1;

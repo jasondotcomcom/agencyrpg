@@ -427,6 +427,39 @@ export default function SolitaireApp() {
     setDragState({ cards: [card], sourceType: 'waste', sourceIndex: 0 });
   }, [waste, dragState]);
 
+  // Double-tap detection for mobile (maps to double-click)
+  const lastTapRef = useRef<{ time: number; id: string }>({ time: 0, id: '' });
+
+  const handleTableauTap = useCallback((colIdx: number, cardIdx: number) => {
+    const col = tableau[colIdx];
+    const card = col[cardIdx];
+    if (!card || !card.faceUp) return;
+    const now = Date.now();
+    const tapId = `tab-${colIdx}-${cardIdx}`;
+    if (now - lastTapRef.current.time < 350 && lastTapRef.current.id === tapId) {
+      // Double tap detected -- auto-move to foundation
+      if (cardIdx === col.length - 1) {
+        handleTableauDoubleClick(colIdx);
+      }
+      lastTapRef.current = { time: 0, id: '' };
+      return;
+    }
+    lastTapRef.current = { time: now, id: tapId };
+    handleTableauClick(colIdx, cardIdx);
+  }, [tableau, handleTableauDoubleClick, handleTableauClick]);
+
+  const handleWasteTap = useCallback(() => {
+    const now = Date.now();
+    const tapId = 'waste';
+    if (now - lastTapRef.current.time < 350 && lastTapRef.current.id === tapId) {
+      handleWasteDoubleClick();
+      lastTapRef.current = { time: 0, id: '' };
+      return;
+    }
+    lastTapRef.current = { time: now, id: tapId };
+    handleWasteClick();
+  }, [handleWasteDoubleClick, handleWasteClick]);
+
   // Click empty tableau column
   const handleEmptyColClick = useCallback((colIdx: number) => {
     if (!dragState) return;
@@ -520,7 +553,7 @@ export default function SolitaireApp() {
         </div>
 
         {/* Waste */}
-        <div className={styles.cardSlot} onClick={handleWasteClick} onDoubleClick={handleWasteDoubleClick}>
+        <div className={styles.cardSlot} onClick={handleWasteTap} onDoubleClick={handleWasteDoubleClick}>
           {waste.length > 0 ? (
             <CardView card={waste[waste.length - 1]} highlight={isDragging(waste[waste.length - 1].id)} />
           ) : (
@@ -556,7 +589,7 @@ export default function SolitaireApp() {
                   key={card.id}
                   className={styles.tableauCard}
                   style={{ top: cardIdx * (card.faceUp ? 22 : 8) }}
-                  onClick={() => handleTableauClick(colIdx, cardIdx)}
+                  onClick={() => handleTableauTap(colIdx, cardIdx)}
                   onDoubleClick={cardIdx === col.length - 1 ? () => handleTableauDoubleClick(colIdx) : undefined}
                 >
                   {card.faceUp ? (

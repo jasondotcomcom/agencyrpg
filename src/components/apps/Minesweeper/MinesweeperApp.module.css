@@ -100,3 +100,45 @@
   color: #333;
   text-align: center;
 }
+
+/* ─── Mode Toggle for Mobile ──────────────────────────────────────────── */
+
+.modeToggle {
+  display: none;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.modeBtn {
+  padding: 6px 16px;
+  border: 2px outset #fff;
+  background: #c0c0c0;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 36px;
+  min-width: 64px;
+}
+
+.modeBtnActive {
+  border-style: inset;
+  background: #a0a0e0;
+  color: #222;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .modeToggle {
+    display: flex;
+  }
+
+  .board {
+    touch-action: none;
+  }
+
+  .cell {
+    width: 36px;
+    height: 36px;
+    font-size: 0.875rem;
+  }
+}

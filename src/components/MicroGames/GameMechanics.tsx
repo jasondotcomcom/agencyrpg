@@ -130,25 +130,34 @@ export function DragDropGame({
     setPositions(init);
   }, [items.length]);
 
-  // Drag events
+  // Drag events (mouse + touch)
   useEffect(() => {
     if (!dragId) return;
-    const handleMove = (e: MouseEvent) => {
+    const getXY = (e: MouseEvent | TouchEvent): { clientX: number; clientY: number } => {
+      if ('touches' in e) {
+        const touch = e.touches[0] || (e as TouchEvent).changedTouches[0];
+        return { clientX: touch.clientX, clientY: touch.clientY };
+      }
+      return { clientX: (e as MouseEvent).clientX, clientY: (e as MouseEvent).clientY };
+    };
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const { clientX, clientY } = getXY(e);
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
       setPositions(prev => ({
         ...prev,
         [dragId]: {
-          x: Math.max(0, Math.min(rect.width - 80, e.clientX - rect.left - dragOffset.current.x)),
-          y: Math.max(0, Math.min(rect.height - 35, e.clientY - rect.top - dragOffset.current.y)),
+          x: Math.max(0, Math.min(rect.width - 80, clientX - rect.left - dragOffset.current.x)),
+          y: Math.max(0, Math.min(rect.height - 35, clientY - rect.top - dragOffset.current.y)),
         },
       }));
     };
-    const handleUp = (e: MouseEvent) => {
+    const handleUp = (e: MouseEvent | TouchEvent) => {
+      const { clientX, clientY } = getXY(e);
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) { setDragId(null); return; }
-      const dropY = e.clientY - rect.top;
-      const dropX = e.clientX - rect.left;
+      const dropY = clientY - rect.top;
+      const dropX = clientX - rect.left;
       // Drop zones are at bottom, evenly spaced
       if (dropY > rect.height - 90) {
         const zoneW = rect.width / zones.length;
@@ -169,7 +178,14 @@ export function DragDropGame({
     };
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleUp);
-    return () => { window.removeEventListener('mousemove', handleMove); window.removeEventListener('mouseup', handleUp); };
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleUp);
+    };
   }, [dragId, items, zones]);
 
   // Win check
@@ -201,6 +217,14 @@ export function DragDropGame({
             dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
             setDragId(item.id);
             e.preventDefault();
+          }}
+          onTouchStart={(e) => {
+            if (placed.has(item.id)) return;
+            const touch = e.touches[0];
+            const rect = e.currentTarget.getBoundingClientRect();
+            dragOffset.current = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+            setDragId(item.id);
+            e.preventDefault();
           }}>
           <span className={styles.pieceEmoji}>{item.emoji}</span> {item.label}
         </div>
@@ -228,20 +252,29 @@ export function SimpleDragGame({
 
   useEffect(() => {
     if (!isDragging) return;
-    const handleMove = (e: MouseEvent) => {
+    const getXY = (e: MouseEvent | TouchEvent): { clientX: number; clientY: number } => {
+      if ('touches' in e) {
+        const touch = e.touches[0] || (e as TouchEvent).changedTouches[0];
+        return { clientX: touch.clientX, clientY: touch.clientY };
+      }
+      return { clientX: (e as MouseEvent).clientX, clientY: (e as MouseEvent).clientY };
+    };
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const { clientX, clientY } = getXY(e);
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
       setPos({
-        x: Math.max(0, Math.min(rect.width - 50, e.clientX - rect.left - offset.current.x)),
-        y: Math.max(0, Math.min(rect.height - 50, e.clientY - rect.top - offset.current.y)),
+        x: Math.max(0, Math.min(rect.width - 50, clientX - rect.left - offset.current.x)),
+        y: Math.max(0, Math.min(rect.height - 50, clientY - rect.top - offset.current.y)),
       });
     };
-    const handleUp = (e: MouseEvent) => {
+    const handleUp = (e: MouseEvent | TouchEvent) => {
+      const { clientX, clientY } = getXY(e);
       setIsDragging(false);
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
-      const dx = (e.clientX - rect.left) - (targetPos.x + 30);
-      const dy = (e.clientY - rect.top) - (targetPos.y + 30);
+      const dx = (clientX - rect.left) - (targetPos.x + 30);
+      const dy = (clientY - rect.top) - (targetPos.y + 30);
       if (Math.sqrt(dx * dx + dy * dy) < 55) {
         setDone(true);
         setPos({ x: targetPos.x, y: targetPos.y });
@@ -250,7 +283,14 @@ export function SimpleDragGame({
     };
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleUp);
-    return () => { window.removeEventListener('mousemove', handleMove); window.removeEventListener('mouseup', handleUp); };
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleUp);
+    };
   }, [isDragging, onWin]);
 
   return (
@@ -267,6 +307,14 @@ export function SimpleDragGame({
           if (done) return;
           const rect = e.currentTarget.getBoundingClientRect();
           offset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+          setIsDragging(true);
+          e.preventDefault();
+        }}
+        onTouchStart={(e) => {
+          if (done) return;
+          const touch = e.touches[0];
+          const rect = e.currentTarget.getBoundingClientRect();
+          offset.current = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
           setIsDragging(true);
           e.preventDefault();
         }}>
@@ -358,13 +406,13 @@ export function RepelFlickGame({
     requestAnimationFrame(loop);
   }, [gravity, targetPos, targetRadius, startPos, onWin]);
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
+  const applyRepelForce = useCallback((clientX: number, clientY: number) => {
     if (resolvedRef.current) return;
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+    const clickX = clientX - rect.left;
+    const clickY = clientY - rect.top;
 
     const objCX = posRef.current.x + 20;
     const objCY = posRef.current.y + 20;
@@ -384,8 +432,18 @@ export function RepelFlickGame({
     startPhysics();
   }, [startPhysics]);
 
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    applyRepelForce(e.clientX, e.clientY);
+  }, [applyRepelForce]);
+
+  const handleFlickTouch = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    applyRepelForce(touch.clientX, touch.clientY);
+  }, [applyRepelForce]);
+
   return (
-    <div ref={containerRef} className={styles.flickCanvas} onClick={handleClick}>
+    <div ref={containerRef} className={styles.flickCanvas} onClick={handleClick} onTouchStart={handleFlickTouch}>
       <div className={styles.flickTarget} style={{ left: targetPos.x - 24, top: targetPos.y - 24 }}>
         <span>{targetEmoji}</span>
         <span className={styles.flickTargetLabel}>{targetLabel}</span>
@@ -561,7 +619,7 @@ export function AvoidGame({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseCount, baseSpeed, obstacleEmoji, movementPattern, onFail]);
 
-  // Track mouse
+  // Track mouse and touch
   useEffect(() => {
     const handleMove = (e: MouseEvent) => {
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -571,14 +629,30 @@ export function AvoidGame({
         y: Math.max(14, Math.min(246, e.clientY - rect.top)),
       };
     };
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      playerPos.current = {
+        x: Math.max(14, Math.min(426, touch.clientX - rect.left)),
+        y: Math.max(14, Math.min(246, touch.clientY - rect.top)),
+      };
+    };
     window.addEventListener('mousemove', handleMove);
-    return () => window.removeEventListener('mousemove', handleMove);
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchstart', handleTouchMove as EventListener, { passive: false });
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchstart', handleTouchMove as EventListener);
+    };
   }, []);
 
   void renderTick; // used to trigger re-render
 
   return (
-    <div ref={canvasRef} className={styles.dodgeCanvas}>
+    <div ref={canvasRef} className={styles.dodgeCanvas} style={{ touchAction: 'none' }}>
       <div className={styles.dodgePlayer}
         style={{ transform: `translate(${playerPos.current.x - 14}px, ${playerPos.current.y - 14}px)` }}>
         {playerEmoji}
@@ -739,17 +813,26 @@ export function DragLineGame({
 
   useEffect(() => {
     if (!isDragging) return;
-    const handleMove = (e: MouseEvent) => {
+    const getXY = (e: MouseEvent | TouchEvent): { clientX: number; clientY: number } => {
+      if ('touches' in e) {
+        const touch = e.touches[0] || (e as TouchEvent).changedTouches[0];
+        return { clientX: touch.clientX, clientY: touch.clientY };
+      }
+      return { clientX: (e as MouseEvent).clientX, clientY: (e as MouseEvent).clientY };
+    };
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const { clientX, clientY } = getXY(e);
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
-      setDragPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      setDragPos({ x: clientX - rect.left, y: clientY - rect.top });
     };
-    const handleUp = (e: MouseEvent) => {
+    const handleUp = (e: MouseEvent | TouchEvent) => {
+      const { clientX, clientY } = getXY(e);
       setIsDragging(false);
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
-      const dx = (e.clientX - rect.left) - (endPos.x + 22);
-      const dy = (e.clientY - rect.top) - (endPos.y + 22);
+      const dx = (clientX - rect.left) - (endPos.x + 22);
+      const dy = (clientY - rect.top) - (endPos.y + 22);
       if (Math.sqrt(dx * dx + dy * dy) < 40) {
         setConnected(true);
         setDragPos(null);
@@ -760,7 +843,14 @@ export function DragLineGame({
     };
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleUp);
-    return () => { window.removeEventListener('mousemove', handleMove); window.removeEventListener('mouseup', handleUp); };
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleUp);
+    };
   }, [isDragging, endPos, onWin]);
 
   return (
@@ -777,7 +867,8 @@ export function DragLineGame({
       </svg>
       <div className={`${styles.dragLineDot} ${styles.dragLineStart}`}
         style={{ left: startPos.x, top: startPos.y }}
-        onMouseDown={(e) => { if (!connected) { setIsDragging(true); e.preventDefault(); } }}>
+        onMouseDown={(e) => { if (!connected) { setIsDragging(true); e.preventDefault(); } }}
+        onTouchStart={(e) => { if (!connected) { setIsDragging(true); e.preventDefault(); } }}>
         {startLabel}
       </div>
       <div className={`${styles.dragLineDot} ${styles.dragLineEnd} ${connected ? styles.dragLineConnected : ''}`}
@@ -988,6 +1079,9 @@ export function HoldButtonGame({
         onMouseDown={() => setIsHolding(true)}
         onMouseUp={handleRelease}
         onMouseLeave={handleRelease}
+        onTouchStart={(e) => { e.preventDefault(); setIsHolding(true); }}
+        onTouchEnd={(e) => { e.preventDefault(); handleRelease(); }}
+        onTouchCancel={handleRelease}
       >
         <svg className={styles.holdRingSvg} viewBox="0 0 124 124">
           <circle className={styles.holdRingBg} cx="62" cy="62" r="56" />

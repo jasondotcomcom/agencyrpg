@@ -178,3 +178,84 @@
 :global([data-theme="dark"]) .footer {
   background: #252540;
 }
+
+/* ─── Mobile Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .header {
+    padding: 12px 14px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .headerTitle {
+    font-size: 0.75rem;
+  }
+
+  /* Stack content + sidebar vertically */
+  .content {
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .content::-webkit-scrollbar {
+    display: none;
+  }
+
+  .slideIcon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+
+  .slideTitle {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+
+  .slideBody {
+    font-size: 0.8125rem;
+    line-height: 1.7;
+  }
+
+  /* Sidebar stacks below slide */
+  .patSidebar {
+    width: 100%;
+    flex-direction: row;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .patAvatar {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .patComment {
+    text-align: left;
+    font-size: 0.6875rem;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 12px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .timer {
+    font-size: 0.6875rem;
+  }
+
+  .nextButton {
+    padding: 12px 20px;
+    min-height: 44px;
+    font-size: 0.875rem;
+  }
+
+  .progress {
+    padding: 8px 14px;
+  }
+}

@@ -39,16 +39,20 @@ function getAppTitle(appId: string): string {
 
 interface MobileAppHeaderProps {
   appId: string;
+  onBack?: () => void;
+  onHome?: () => void;
 }
 
-export default function MobileAppHeader({ appId }: MobileAppHeaderProps) {
+export default function MobileAppHeader({ appId, onBack, onHome }: MobileAppHeaderProps) {
   const { goBack, goHome } = useMobileContext();
+  const handleBack = onBack ?? goBack;
+  const handleHome = onHome ?? goHome;
 
   return (
     <div className={styles.appHeader}>
       <button
         className={styles.appHeaderBack}
-        onClick={goBack}
+        onClick={handleBack}
         aria-label="Go back"
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -66,7 +70,7 @@ export default function MobileAppHeader({ appId }: MobileAppHeaderProps) {
       </div>
       <button
         className={styles.appHeaderHome}
-        onClick={goHome}
+        onClick={handleHome}
         aria-label="Go home"
       >
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
