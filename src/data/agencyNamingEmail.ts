@@ -29,7 +29,7 @@ Or we can just keep "${playerName}'s Agency." It's fine. It's just... you know. 
 
 — Taylor
 Project Manager`,
-    timestamp: new Date(Date.now() - 3600000), // 1 hour ago — ensures it sorts below all other emails
+    timestamp: new Date(Date.now() - 4 * 86400000), // 4 days ago — ensures it sorts below all other emails
     isRead: false,
     isStarred: false,
     isDeleted: false,
