@@ -267,7 +267,7 @@ export default function EmailDetail({ email }: EmailDetailProps) {
       </div>
 
       {/* Content */}
-      <div className={styles.content} role="article" aria-label={`Email: ${email.subject}`}>
+      <div key={email.id} className={styles.content} role="article" aria-label={`Email: ${email.subject}`}>
         <div
           className={styles.body}
           dangerouslySetInnerHTML={{ __html: renderMarkdown(email.body) }}
