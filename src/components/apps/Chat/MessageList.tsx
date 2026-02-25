@@ -115,6 +115,14 @@ export default function MessageList(): React.ReactElement {
                   )}
                   <div className={styles.messageText}>{msg.text}</div>
                   {msg.memeData && <MemeCard data={msg.memeData} />}
+                  {msg.generatedImageUrl && (
+                    <img
+                      className={styles.generatedMemeImage}
+                      src={msg.generatedImageUrl}
+                      alt="generated meme"
+                      loading="lazy"
+                    />
+                  )}
                   {msg.imageUrl && !msg.memeData && (
                     <div className={styles.messageImage}>
                       <pre>{msg.imageUrl}</pre>

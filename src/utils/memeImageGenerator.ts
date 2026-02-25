@@ -429,3 +429,40 @@ export async function generateMemeImage(memeData: MemeData, dynamic = false): Pr
   memeCache.set(key, dataUrl);
   return dataUrl;
 }
+
+/**
+ * Generate a fully custom meme image via DALL-E based on a player's description.
+ * Returns a data URL of the generated image, or undefined if generation fails.
+ */
+export async function generateCustomMemeImage(description: string): Promise<string | undefined> {
+  const prompt = `Create a funny workplace meme illustration about: ${description}. Style: colorful cartoon illustration, humorous office comedy scene, expressive characters, vibrant colors, clean composition. This should look like a meme someone would share in a work Slack channel. No text anywhere in the image — the humor should be purely visual.`;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+
+    const response = await fetch('/api/openai/v1/images/generations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'dall-e-3',
+        prompt,
+        n: 1,
+        size: '1024x1024',
+        response_format: 'b64_json',
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) throw new Error(`DALL-E error ${response.status}`);
+
+    const data = await response.json();
+    const b64: string = data.data[0].b64_json;
+    return `data:image/png;base64,${b64}`;
+  } catch (err) {
+    console.warn('Custom meme generation failed:', err);
+    return undefined;
+  }
+}

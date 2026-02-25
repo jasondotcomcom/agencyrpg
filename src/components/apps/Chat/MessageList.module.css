@@ -112,6 +112,15 @@
   word-wrap: break-word;
 }
 
+/* Generated meme images (DALL-E) */
+.generatedMemeImage {
+  margin-top: 6px;
+  max-width: 280px;
+  border-radius: 10px;
+  border: 1px solid rgba(168, 230, 207, 0.15);
+  display: block;
+}
+
 /* Inline meme images */
 .messageImage {
   margin-top: 6px;

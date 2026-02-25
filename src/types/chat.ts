@@ -40,6 +40,7 @@ export interface ChatMessage {
   imageUrl?: string;
   tableData?: ChatTableData;
   memeData?: MemeData;
+  generatedImageUrl?: string;
 }
 
 // ─── Morale ───────────────────────────────────────────────────────────────────

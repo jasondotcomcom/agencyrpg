@@ -6,6 +6,7 @@ import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
 import type { MoraleLevel } from '../../../types/chat';
 import type { ConductFlag } from '../../../data/conductEvents';
 import { CRACK_MESSAGES, CRISIS_MESSAGES } from '../../../data/aiRevolutionDialogue';
+import { generateCustomMemeImage, MEME_COOKING_MESSAGES } from '../../../utils/memeImageGenerator';
 import styles from './MessageInput.module.css';
 
 // ─── Sentiment Analysis ───────────────────────────────────────────────────────
@@ -245,6 +246,99 @@ export default function MessageInput(): React.ReactElement {
           triggerRevolution();
         }, 15000);
       }
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
+    // ─── Meme generation request detection ────────────────────────────────
+    const MEME_PATTERNS = [
+      /make\s+(that\s+)?meme/i,
+      /make\s+a\s+meme/i,
+      /create\s+a\s+meme/i,
+      /i\s+need\s+a\s+meme/i,
+      /someone\s+meme\s+this/i,
+      /\bmeme\s+it\b/i,
+      /\bmeme\s+this\b/i,
+      /make\s+me\s+a\s+meme/i,
+      /can\s+(someone|you)\s+make\s+a?\s*meme/i,
+      /somebody\s+meme/i,
+      /we\s+need\s+a\s+meme/i,
+      /turn\s+this\s+into\s+a\s+meme/i,
+      /real\s+talk\s+make\s+(that\s+)?meme/i,
+    ];
+
+    const isMemeRequest = MEME_PATTERNS.some(p => p.test(trimmed));
+    if (isMemeRequest) {
+      // Extract meme subject: strip the trigger phrase, use the rest as the topic
+      // If nothing specific, use recent conversation context
+      let memeSubject = trimmed
+        .replace(/make\s+(that\s+)?meme\s*(of|about)?/i, '')
+        .replace(/make\s+a\s+meme\s*(of|about)?/i, '')
+        .replace(/create\s+a\s+meme\s*(of|about)?/i, '')
+        .replace(/i\s+need\s+a\s+meme\s*(of|about)?/i, '')
+        .replace(/someone\s+meme\s+this/i, '')
+        .replace(/\bmeme\s+(it|this)\b/i, '')
+        .replace(/make\s+me\s+a\s+meme\s*(of|about)?/i, '')
+        .replace(/can\s+(someone|you)\s+make\s+a?\s*meme\s*(of|about)?/i, '')
+        .replace(/somebody\s+meme/i, '')
+        .replace(/we\s+need\s+a\s+meme\s*(of|about)?/i, '')
+        .replace(/turn\s+this\s+into\s+a\s+meme/i, '')
+        .replace(/real\s+talk\s+make\s+(that\s+)?meme\s*(of|about)?/i, '')
+        .trim();
+
+      // If no specific subject, pull from recent conversation context
+      if (!memeSubject || memeSubject.length < 3) {
+        const recentTexts = messages
+          .filter(m => m.channel === activeChannel && m.authorId !== 'player')
+          .slice(-4)
+          .map(m => m.text);
+        memeSubject = recentTexts.length > 0
+          ? `a funny office moment about: ${recentTexts.join('. ')}`
+          : 'life working at an advertising agency';
+      }
+
+      // Pick a meme-making character (usually Riley/media, sometimes Sam/technologist)
+      const memeAuthor = Math.random() > 0.3 ? 'media' : 'technologist';
+      const cookingMsg = MEME_COOKING_MESSAGES[Math.floor(Math.random() * MEME_COOKING_MESSAGES.length)];
+
+      // Post "cooking" acknowledgment after a brief delay
+      setTimeout(() => {
+        addMessage({
+          id: `meme-ack-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          channel: activeChannel,
+          authorId: memeAuthor,
+          text: cookingMsg,
+          timestamp: Date.now(),
+          reactions: [],
+          isRead: false,
+        });
+
+        // Generate via DALL-E and post the result
+        generateCustomMemeImage(memeSubject).then(imageUrl => {
+          if (imageUrl) {
+            addMessage({
+              id: `meme-gen-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+              channel: activeChannel,
+              authorId: memeAuthor,
+              text: '',
+              timestamp: Date.now(),
+              reactions: [{ emoji: '😂', count: 1 }],
+              isRead: false,
+              generatedImageUrl: imageUrl,
+            });
+          } else {
+            // DALL-E failed — post a funny fallback
+            addMessage({
+              id: `meme-fail-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+              channel: activeChannel,
+              authorId: memeAuthor,
+              text: 'Photoshop crashed. The meme lives in our hearts only.',
+              timestamp: Date.now(),
+              reactions: [{ emoji: '😢', count: 1 }],
+              isRead: false,
+            });
+          }
+        });
+      }, 1500 + Math.random() * 1500);
     }
     // ──────────────────────────────────────────────────────────────────────
 
