@@ -10,6 +10,7 @@ import { useCheatContext } from '../../../context/CheatContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
 import { useEmailContext } from '../../../context/EmailContext';
 import { AWARD_DEFS } from '../../../data/awards';
+import { SEASONAL_BRIEFS } from '../../../data/seasonalBriefs';
 import { teamMembers } from '../../../data/team';
 import { formatBudget } from '../../../types/campaign';
 import { storeHtmlPreview } from '../../../utils/htmlPreviewStore';
@@ -66,17 +67,34 @@ const BANNER_LINES: Array<[LineType, string]> = [
 
 const HELP_TEXT = `Available commands:
 
-  help                  Show this help
-  status                Show agency status
+  AGENCY
+  ──────────────────────────────────────
+  status                Agency overview (funds, rep, morale)
   brief                 Show current campaign brief
-  team                  Show current campaign team
+  team                  Show team assignments & morale
+  deadlines             Show active campaign deadlines
+  summary               Campaign progress overview
+  rename                Rename / rebrand your agency
+
+  AI TOOLS
+  ──────────────────────────────────────
+  headlines             Generate headlines for current brief
+  budget                Budget breakdown for current brief
+  competitors           Competitor scan for current industry
+  sentiment             Analyze team chat sentiment
+
+  CUSTOM TOOLS
+  ──────────────────────────────────────
   list                  List your saved tools
   build [description]   Build a new AI tool
-  run [name]            Run a tool (AI-powered, uses your current brief)
+  run [name]            Run a tool (AI-powered)
   delete [name]         Delete a saved tool
-  clear                 Clear the terminal
 
-Tools built here appear in your campaign workspace.
+  OTHER
+  ──────────────────────────────────────
+  clear                 Clear the terminal
+  help                  Show this help
+
 Hidden: Try classic cheat codes for surprises.`;
 
 const KONAMI_REWARD = `
@@ -708,20 +726,25 @@ Generate output for this tool based on the context above. Rules:
         t.name.toLowerCase() === target.replace(/\s+/g, '_')
       );
       if (tool) {
-        addLines([
-          ['info',    `─── Running: ${tool.icon} ${tool.name} ──────────────`],
-          ['blank',   ''],
-          ['output',  tool.sampleOutput],
-          ['blank',   ''],
-          ['success', '✓ Done.'],
-          ['info',    '─────────────────────────────────────────────'],
-        ]);
+        if (getActiveCampaigns().length > 0) unlockAchievement('used-tool-on-campaign');
+        await handleRun(tool);
       } else {
         addLines([
           ['error',  `Tool not found: "${target}"`],
           ['output', 'Use "list" to see your saved tools.'],
         ]);
       }
+      return;
+    }
+
+    // Direct tool name: if the input matches a saved tool, run it
+    const directTool = tools.find(t =>
+      t.name.toLowerCase() === lower ||
+      t.name.toLowerCase() === lower.replace(/\s+/g, '_')
+    );
+    if (directTool) {
+      if (getActiveCampaigns().length > 0) unlockAchievement('used-tool-on-campaign');
+      await handleRun(directTool);
       return;
     }
 
@@ -763,14 +786,8 @@ Generate output for this tool based on the context above. Rules:
         const target = String(toolName || '').toLowerCase().replace(/\s+/g, '_');
         const tool = tools.find(t => t.name.toLowerCase() === target);
         if (tool) {
-          addLines([
-            ['info',    `─── Running: ${tool.icon} ${tool.name} ──────────────`],
-            ['blank',   ''],
-            ['output',  tool.sampleOutput],
-            ['blank',   ''],
-            ['success', '✓ Done.'],
-            ['info',    '─────────────────────────────────────────────'],
-          ]);
+          if (getActiveCampaigns().length > 0) unlockAchievement('used-tool-on-campaign');
+          await handleRun(tool);
         } else {
           addLines([
             ['error',  `Tool not found: "${toolName}"`],
@@ -808,7 +825,7 @@ Generate output for this tool based on the context above. Rules:
     } finally {
       setIsBuilding(false);
     }
-  }, [addLine, addLines, tools, handleBuild]);
+  }, [addLine, addLines, tools, handleBuild, handleRun, getActiveCampaigns, unlockAchievement]);
 
   // ─── Command Handler ─────────────────────────────────────────────────────────
 
@@ -856,7 +873,21 @@ Generate output for this tool based on the context above. Rules:
     // ─── Easter eggs & cheat codes ─────────────────────────────────────────
     // Checked FIRST — prevents the NL interpreter from misidentifying them
 
-    if (lower === 'funvideogames') {
+    if (lower === 'onmyai.club' || lower === 'onmyai') {
+      unlockAchievement('ai-curious');
+      addLines([
+        ['blank',  ''],
+        ['output', '🎵 All the day, all the day, on my ai, ai, uh oh! What\'d you prompt in it now? 🎵'],
+        ['blank',  ''],
+        ['output', '🌐 Opening OnMyAI.club...'],
+        ['blank',  ''],
+      ]);
+      setTimeout(() => {
+        focusOrOpenWindow('onmyai-club', '🌐 OnMyAI.club');
+      }, 800);
+    }
+
+    else if (lower === 'funvideogames') {
       triggerCheatEffect('KID MODE 🎮');
       const n = recordCheatUsed('funvideogames');
       if (n >= 5)  unlockAchievement('serial-cheater');
@@ -963,6 +994,98 @@ P.P.S. — My dad says hi`,
         ['blank',  ''],
         ['output', 'Check your inbox. Check #general.'],
         ['output', 'Marcus eats glue. We\'re doing this.'],
+      ]);
+    }
+
+    else if (lower === 'rosietheriveter') {
+      triggerCheatEffect("ROSIE THE RIVETER");
+      const n = recordCheatUsed('rosietheriveter');
+      if (n >= 5)  unlockAchievement('serial-cheater');
+      if (n >= 10) unlockAchievement('cheat-encyclopedia');
+
+      // Force-deliver the Women's History Month seasonal brief
+      const whmBrief = SEASONAL_BRIEFS.find(b => b.briefId === 'email-seasonal-whm-001');
+      if (whmBrief) {
+        addEmail(whmBrief.buildEmail());
+        addNotification('📅 Seasonal Brief!', `${whmBrief.clientName} has a limited-time campaign. Check your inbox!`);
+
+        // Team chat reactions
+        const whmChat = [
+          { authorId: 'copywriter',   text: "Oh wow — Maison Aura. An 80-year-old fashion house that never credited the women who designed their most iconic pieces. This is a real story.",  delay: 2000 },
+          { authorId: 'art-director', text: "I've been waiting for a brief like this. Archives, attribution, real accountability. Not a pink logo swap. Let's do this right.",                delay: 4000 },
+          { authorId: 'strategist',   text: "The risk is it looks like corporate guilt. The opportunity is it becomes a genuine cultural moment. We need to center the women, not the brand.", delay: 6000 },
+        ];
+        whmChat.forEach(({ authorId, text, delay }) => {
+          setTimeout(() => {
+            addMessage({
+              id: `whm-chat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              channel: 'general',
+              authorId,
+              text,
+              timestamp: Date.now(),
+              reactions: [],
+              isRead: false,
+            });
+          }, delay);
+        });
+      }
+
+      addLines([
+        ['ascii',   '💪  R O S I E   T H E   R I V E T E R'],
+        ['blank',   ''],
+        ['success', "Women's History Month brief unlocked!"],
+        ['blank',   ''],
+        ['output',  '  Client: Maison Aura'],
+        ['output',  '  Campaign: Archive Reattribution'],
+        ['output',  '  Budget: $75,000'],
+        ['blank',   ''],
+        ['output',  '  "We Can Do It!" — Now check your inbox.'],
+      ]);
+    }
+
+    else if (lower === 'itsmadnessisay') {
+      triggerCheatEffect("MARCH MADNESS");
+      const n = recordCheatUsed('itsmadnessisay');
+      if (n >= 5)  unlockAchievement('serial-cheater');
+      if (n >= 10) unlockAchievement('cheat-encyclopedia');
+
+      // Force-deliver the March Madness seasonal brief
+      const mmBrief = SEASONAL_BRIEFS.find(b => b.briefId === 'email-seasonal-mm-001');
+      if (mmBrief) {
+        addEmail(mmBrief.buildEmail());
+        addNotification('📅 Seasonal Brief!', `${mmBrief.clientName} has a limited-time campaign. Check your inbox!`);
+
+        // Team chat reactions
+        const mmChat = [
+          { authorId: 'suit',         text: "A wine bar doing March Madness watch parties? That's either brilliant or insane. I love it.",                                                  delay: 2000 },
+          { authorId: 'media',        text: "Sommeliers doing color commentary during basketball games. I can already see the TikToks. This content writes itself.",                         delay: 4000 },
+          { authorId: 'copywriter',   text: "Bracket picks for vintages. BRACKET PICKS FOR VINTAGES. Owen, you beautiful weirdo. I'm in.",                                                 delay: 6000 },
+        ];
+        mmChat.forEach(({ authorId, text, delay }) => {
+          setTimeout(() => {
+            addMessage({
+              id: `mm-chat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              channel: 'general',
+              authorId,
+              text,
+              timestamp: Date.now(),
+              reactions: [],
+              isRead: false,
+            });
+          }, delay);
+        });
+      }
+
+      addLines([
+        ['ascii',   '🏀  M A R C H   M A D N E S S'],
+        ['blank',   ''],
+        ['success', 'March Madness brief unlocked!'],
+        ['blank',   ''],
+        ['output',  '  Client: Decant Wine Bar'],
+        ['output',  '  Campaign: Wine + Basketball'],
+        ['output',  '  Budget: $40,000'],
+        ['blank',   ''],
+        ['output',  '  "It\'s madness, I say!" — Check your inbox. 🍷'],
       ]);
     }
 
@@ -1854,6 +1977,15 @@ Human Resources
       addLine('output', HELP_TEXT);
     }
 
+    else if (command === 'rename' || command === 'rebrand' || lower === 'rename agency') {
+      addLines([
+        ['output', '🏛️ Opening the agency rebrand tool...'],
+      ]);
+      setTimeout(() => {
+        focusOrOpenWindow('agency-naming', 'Name Your Agency');
+      }, 500);
+    }
+
     else if (command === 'clear') {
       setLines([]);
     }
@@ -1921,6 +2053,153 @@ Human Resources
           ['info',   '───────────────────────────────────────────'],
         ]);
       }
+    }
+
+    // ─── Deadlines ────────────────────────────────────────────────────────
+    else if (command === 'deadlines' || command === 'deadline' || command === 'deadline_check') {
+      const activeCampaigns = getActiveCampaigns();
+      if (activeCampaigns.length === 0) {
+        addLines([
+          ['output', 'No active campaigns. No deadlines to worry about.'],
+          ['output', 'Accept a brief from your Inbox to get started.'],
+        ]);
+      } else {
+        const lines: [LineType, string][] = [
+          ['info', '─── Active Deadlines ──────────────────────'],
+        ];
+        for (const c of activeCampaigns) {
+          const deadline = new Date(c.deadline);
+          const now = new Date();
+          const daysLeft = Math.max(0, Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+          const urgency = daysLeft <= 3 ? '🔴' : daysLeft <= 7 ? '🟡' : '🟢';
+          lines.push(['output', `  ${urgency}  ${c.clientName.padEnd(20)} ${daysLeft}d remaining  (${c.phase})`]);
+        }
+        lines.push(['info', '───────────────────────────────────────────']);
+        addLines(lines);
+      }
+    }
+
+    // ─── Campaign Summary ─────────────────────────────────────────────────
+    else if (command === 'summary' || command === 'campaign_summary') {
+      const activeCampaign = getActiveCampaigns()[0] ?? null;
+      if (!activeCampaign) {
+        addLines([
+          ['output', 'No active campaign to summarize.'],
+          ['output', 'Accept a brief from your Inbox to get started.'],
+        ]);
+      } else {
+        const { brief, clientName, campaignName, phase, productionBudget, productionSpent, deliverables, generatedConcepts, selectedConceptId, toolsUsed } = activeCampaign;
+        const selectedConcept = generatedConcepts.find(c => c.id === selectedConceptId);
+        const approvedCount = deliverables.filter(d => d.status === 'approved').length;
+        const totalDeliverables = deliverables.length;
+        const budgetUsedPct = productionBudget > 0 ? Math.round((productionSpent / productionBudget) * 100) : 0;
+        const members = activeCampaign.conceptingTeam
+          ? teamMembers.filter(m => activeCampaign.conceptingTeam!.memberIds.includes(m.id))
+          : [];
+
+        addLines([
+          ['info',   '─── Campaign Summary ──────────────────────'],
+          ['output', `📋  ${campaignName}`],
+          ['output', `🏢  Client: ${clientName}`],
+          ['output', `📍  Phase: ${phase}`],
+          ['blank',  ''],
+          ['output', `🎯  Challenge: ${brief.challenge}`],
+          ['output', `👥  Audience: ${brief.audience}`],
+          ['blank',  ''],
+          ['output', `💡  Concept: ${selectedConcept ? selectedConcept.name : 'Not selected yet'}`],
+          ['output', `👥  Team: ${members.length > 0 ? members.map(m => m.name).join(', ') : 'Not assigned'}`],
+          ['output', `💬  Morale: ${morale}`],
+          ['blank',  ''],
+          ['output', `💰  Budget: ${formatBudget(productionSpent)} / ${formatBudget(productionBudget)} spent (${budgetUsedPct}%)`],
+          ['output', `📦  Deliverables: ${approvedCount}/${totalDeliverables} approved`],
+          ['output', `🔧  Tools used: ${toolsUsed?.length ?? 0}`],
+          ['info',   '───────────────────────────────────────────'],
+        ]);
+      }
+    }
+
+    // ─── AI-powered built-in tools ────────────────────────────────────────
+
+    else if (command === 'headlines' || command === 'headline_generator') {
+      const activeCampaign = getActiveCampaigns()[0] ?? null;
+      if (!activeCampaign) {
+        addLines([
+          ['output', 'No active campaign.'],
+          ['output', 'Accept a brief first — headlines need a real brief to riff on.'],
+        ]);
+      } else {
+        const headlineTool: AgencyTool = {
+          id: 'builtin-headlines',
+          name: 'headline_generator',
+          icon: '✍️',
+          description: 'Generate 10 punchy headline options tailored to the current campaign brief.',
+          category: 'creative',
+          sampleOutput: `HEADLINE OPTIONS for ${activeCampaign.clientName}\n\n1. "The One Thing You've Been Waiting For"\n2. "Finally, Something Worth Talking About"\n3. "Less of Everything Else. More of This."\n4. "They Said It Couldn't Be Done."\n5. "Bold Moves. Bolder Results."\n6. "Made for the Real Ones."\n7. "Because Average Was Never the Goal."\n8. "We Made It for You."\n9. "This Changes Everything."\n10. "The [Product] That Earns Its Place."`,
+          runPromptHint: `Generate 10 creative headline options for the ${activeCampaign.clientName} campaign. Headlines should match the brief's vibe (${activeCampaign.brief.vibe}), speak to the target audience (${activeCampaign.brief.audience}), and address the challenge (${activeCampaign.brief.challenge}). Mix styles: provocative, emotional, clever, and straightforward. Number them 1-10.`,
+          createdAt: Date.now(),
+        };
+        await handleRun(headlineTool);
+      }
+    }
+
+    else if (command === 'budget' || command === 'budget_allocator') {
+      const activeCampaign = getActiveCampaigns()[0] ?? null;
+      if (!activeCampaign) {
+        addLines([
+          ['output', 'No active campaign.'],
+          ['output', 'Accept a brief first — need a real budget to allocate.'],
+        ]);
+      } else {
+        const budgetTool: AgencyTool = {
+          id: 'builtin-budget',
+          name: 'budget_allocator',
+          icon: '💰',
+          description: 'Recommend optimal budget allocation across campaign channels.',
+          category: 'finance',
+          sampleOutput: `BUDGET ALLOCATION for ${activeCampaign.clientName}\n\nTotal: $${activeCampaign.clientBudget.toLocaleString()}\n  Digital: 35%\n  Social: 28%\n  Search: 20%\n  Influencer: 12%\n  Contingency: 5%`,
+          runPromptHint: `Recommend a detailed budget allocation for the ${activeCampaign.clientName} campaign. Total budget is $${activeCampaign.clientBudget.toLocaleString()}. Production budget remaining: $${(activeCampaign.productionBudget - activeCampaign.productionSpent).toLocaleString()}. The campaign targets ${activeCampaign.brief.audience} with the vibe "${activeCampaign.brief.vibe}". Break down by channel (digital, social, search, influencer, OOH, content, contingency) with percentages and dollar amounts. Flag any risks.`,
+          createdAt: Date.now(),
+        };
+        await handleRun(budgetTool);
+      }
+    }
+
+    else if (command === 'competitors' || command === 'competitor' || command === 'competitor_scan') {
+      const activeCampaign = getActiveCampaigns()[0] ?? null;
+      if (!activeCampaign) {
+        addLines([
+          ['output', 'No active campaign.'],
+          ['output', 'Accept a brief first — need a real client to scan competitors for.'],
+        ]);
+      } else {
+        const industry = activeCampaign.brief.industry || 'their industry';
+        const compTool: AgencyTool = {
+          id: 'builtin-competitors',
+          name: 'competitive_intel',
+          icon: '🔍',
+          description: 'Surface competitor positioning gaps and whitespace opportunities.',
+          category: 'analytics',
+          sampleOutput: `COMPETITIVE LANDSCAPE for ${activeCampaign.clientName}\n\nCategory: Crowded\nWhitespace: "Effortless quality" positioning unclaimed\nOpportunity: Own the lifestyle narrative\nThreat: Challenger brand increasing spend 40% YoY`,
+          runPromptHint: `Run a competitive intelligence scan for ${activeCampaign.clientName} in the ${industry} space. Their challenge: "${activeCampaign.brief.challenge}". Target audience: ${activeCampaign.brief.audience}. Invent 3-4 plausible competitor brands with names, identify positioning gaps, whitespace opportunities, and threats. Be specific to this industry.`,
+          createdAt: Date.now(),
+        };
+        await handleRun(compTool);
+      }
+    }
+
+    else if (command === 'sentiment' || command === 'sentiment_analyzer') {
+      const activeCampaign = getActiveCampaigns()[0] ?? null;
+      const sentimentTool: AgencyTool = {
+        id: 'builtin-sentiment',
+        name: 'sentiment_analyzer',
+        icon: '📊',
+        description: 'Analyze team morale and chat sentiment.',
+        category: 'analytics',
+        sampleOutput: `TEAM SENTIMENT\n\nMorale: ${morale}\nTrend: Stable\nRisk Areas: None detected`,
+        runPromptHint: `Analyze the current team sentiment at this creative agency. Team morale is currently "${morale}". ${activeCampaign ? `They are working on the ${activeCampaign.clientName} campaign (${activeCampaign.phase} phase). Challenge: "${activeCampaign.brief.challenge}".` : 'No active campaign right now.'} The team includes: ${teamMembers.filter(m => m.id !== 'hr').map(m => `${m.name} (${m.role} — ${m.personality})`).join(', ')}. Based on the morale level, provide a sentiment report: overall mood, risk areas, recommendations for the creative director, and predicted impact on work quality.`,
+        createdAt: Date.now(),
+      };
+      await handleRun(sentimentTool);
     }
 
     else if (command === 'list') {

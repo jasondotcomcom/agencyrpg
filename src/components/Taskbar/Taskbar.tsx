@@ -7,10 +7,12 @@ import AgencyFundsDisplay from './AgencyFundsDisplay';
 import SaveIndicator from './SaveIndicator';
 import StartMenu from './StartMenu';
 import { loadLegacy } from '../Ending/EndingSequence';
+import { usePlayerContext } from '../../context/PlayerContext';
 import styles from './Taskbar.module.css';
 
 export default function Taskbar() {
   const { windows } = useWindowContext();
+  const { agencyName } = usePlayerContext();
   const legacy = loadLegacy();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -42,7 +44,7 @@ export default function Taskbar() {
             </defs>
           </svg>
         </div>
-        <span>Agency</span>
+        <span>{agencyName}</span>
       </button>
 
       {menuOpen && <StartMenu onClose={closeMenu} />}

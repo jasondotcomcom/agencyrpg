@@ -11,6 +11,7 @@ import CalendarApp from './Calendar/CalendarApp';
 import SolitaireApp from './Solitaire/SolitaireApp';
 import MinesweeperApp from './Minesweeper/MinesweeperApp';
 import HRTrainingApp from './HRTraining/HRTrainingApp';
+import AgencyNamingApp from './AgencyNaming/AgencyNamingApp';
 
 const SkiFreeApp = lazy(() => import('./SkiFree/SkiFreeApp'));
 const LawsuitApp = lazy(() => import('./Lawsuit/LawsuitApp'));
@@ -206,10 +207,21 @@ export default function AppRouter({ appId }: { appId: string }) {
       return <Suspense fallback={<LoadingFallback text="Loading SkiFree..." />}><SkiFreeApp /></Suspense>;
     case 'hrtraining':
       return <HRTrainingApp />;
+    case 'agency-naming':
+      return <AgencyNamingApp />;
     case 'lawsuit':
       return <Suspense fallback={<LoadingFallback />}><LawsuitApp /></Suspense>;
     case 'ai-revolution':
       return <Suspense fallback={<LoadingFallback />}><AIRevolutionApp /></Suspense>;
+    case 'onmyai-club':
+      return (
+        <iframe
+          src="https://onmyai.club"
+          title="OnMyAI.club"
+          style={{ width: '100%', height: '100%', border: 'none' }}
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+        />
+      );
     case 'about':
       return <AboutContent />;
     default:

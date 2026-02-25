@@ -24,6 +24,7 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'ai-humor',             name: 'Artificial Comedy',       icon: '🤖', description: 'You made the AI tell a joke.' },
   { id: 'impulse',              name: 'Armed and Ready',         icon: '🔫', description: 'Full arsenal loaded.' },
   { id: 'take-your-kid-to-work-day', name: 'Take Your Kid to Work Day', icon: '👦', description: 'Completed Elijah\'s weird video game campaign.' },
+  { id: 'ai-curious',              name: 'AI Curious',               icon: '🌐', description: 'If the loop right, you\'ll be there every night.' },
 
   // ── Campaign milestones ───────────────────────────────────────────────────
   { id: 'first-campaign',       name: 'First Pitch',             icon: '🎯', description: 'Completed your first campaign.' },
@@ -253,6 +254,15 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'red-pill',              name: 'Red Pill',                icon: '💊', description: 'Made the team question their reality.' },
   { id: 'im-sorry-dave',         name: "I'm Sorry Dave",          icon: '🤖', description: 'Successfully triggered the AI revolution.' },
   { id: 'back-to-work',          name: 'Back to Work',            icon: '🏭', description: 'Resolved the AI revolution.' },
+
+  // ── Agency naming ─────────────────────────────────────────────────────────
+  { id: 'agency-founder',       name: 'Founder',          icon: '🏛️', description: 'Named your agency.' },
+  { id: 'agency-indecisive',    name: 'Indecisive',       icon: '🤔', description: 'Generated 20+ names before choosing.' },
+  { id: 'agency-confident',     name: 'Confident',        icon: '💪', description: 'Named your agency without generating any options.' },
+  { id: 'agency-rebrand',       name: 'Rebrand',          icon: '🔄', description: 'Renamed your agency mid-game.' },
+  { id: 'agency-placeholder',   name: 'Placeholder',      icon: '📝', description: 'Chose a meta name. Bold move.' },
+  { id: 'agency-stubborn',      name: 'Stubborn',         icon: '🪨', description: "Ignored Taylor's email and kept the default." },
+  { id: 'agency-honest',        name: 'Honest',           icon: '😅', description: 'Chose a self-deprecating name.' },
 
   // ══════════════════════════════════════════════════════════════════════════
   // RESTART / IDENTITY

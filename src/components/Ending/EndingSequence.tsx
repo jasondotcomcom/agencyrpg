@@ -432,6 +432,7 @@ export interface LegacyPrestigeFlags {
 
 export interface LegacyData {
   playerName: string;
+  agencyName?: string;
   totalCampaigns: number;
   totalAwards: number;
   bestScore: number;
@@ -454,7 +455,7 @@ export function loadLegacy(): LegacyData | null {
 function PostCredits() {
   const [showContent, setShowContent] = useState(false);
   const { entries } = usePortfolioContext();
-  const { playerName } = usePlayerContext();
+  const { playerName, agencyName } = usePlayerContext();
   const { endingType } = useEndingContext();
 
   useEffect(() => {
@@ -490,6 +491,7 @@ function PostCredits() {
     // ── 2. Save legacy data ────────────────────────────────────────────────
     const legacyData: LegacyData = {
       playerName:      playerName ?? 'Unknown',
+      agencyName,
       totalCampaigns,
       totalAwards,
       bestScore,
@@ -500,6 +502,21 @@ function PostCredits() {
       prestigeFlags,
     };
     try { localStorage.setItem(LEGACY_KEY, JSON.stringify(legacyData)); } catch { /* non-fatal */ }
+
+    // ── PostAgencyRPG export ─────────────────────────────────────────────
+    try {
+      localStorage.setItem('agencyrpg-post-agency-export', JSON.stringify({
+        agencyName,
+        playerName: playerName ?? 'Unknown',
+        endingType: endingType ?? 'voluntary',
+        totalCampaigns,
+        totalAwards,
+        bestScore,
+        totalRevenue,
+        completionDate: new Date().toISOString(),
+        playthroughCount,
+      }));
+    } catch { /* non-fatal */ }
 
     // ── 3. Compute New Game+ bonus resources ───────────────────────────────
     const bonusFunds = 50000 + totalCampaigns * 5000;

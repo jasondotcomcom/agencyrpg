@@ -163,7 +163,7 @@ export function ConductProvider({ children }: { children: React.ReactNode }) {
   const { unlockAchievement, incrementCounter } = useAchievementContext();
   const { deductFunds } = useAgencyFunds();
   const { triggerEndingSequence } = useEndingContext();
-  const { playerName } = usePlayerContext();
+  const { playerName, agencyName: contextAgencyName } = usePlayerContext();
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   // Persist
@@ -275,7 +275,7 @@ export function ConductProvider({ children }: { children: React.ReactNode }) {
       case 4: {
         // Media Exposure
         warningSet?.messages.forEach((msg, i) => addChatMsg(msg.authorId, msg.text, 1000 + i * 2500));
-        const agencyName = playerName ? `${playerName}'s Agency` : 'The Agency';
+        const agencyName = contextAgencyName || (playerName ? `${playerName}'s Agency` : 'The Agency');
         const newsTimer = setTimeout(() => {
           addEmail(getNewsArticleEmail(flag, agencyName));
           addNotification('📰 Breaking News', 'An article about your agency has been published. Check inbox.');

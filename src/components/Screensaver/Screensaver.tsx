@@ -142,7 +142,11 @@ export default function Screensaver({ playerName, onDismiss }: ScreensaverProps)
     return () => cancelAnimationFrame(rafRef.current);
   }, [unlockAchievement]);
 
-  const logoText = `${playerName}'s Agency`;
+  // Use stored custom agency name if available, otherwise derive from player name
+  const storedAgencyName = (() => {
+    try { return localStorage.getItem('agencyrpg-agency-name'); } catch { return null; }
+  })();
+  const logoText = storedAgencyName || `${playerName}'s Agency`;
 
   return (
     <div ref={containerRef} className={styles.screensaver}>

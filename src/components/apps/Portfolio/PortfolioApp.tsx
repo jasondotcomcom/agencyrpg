@@ -148,8 +148,12 @@ function DetailPanel({
           .map(d => ({ type: d.type, platform: d.platform, description: d.description }));
       }
 
+      const storedAgencyName = localStorage.getItem('agencyrpg-agency-name');
+      const pName = playerName ?? localStorage.getItem('agencyrpg-player-name') ?? 'Anonymous';
+
       const payload = {
-        player_name:         playerName ?? localStorage.getItem('agencyrpg-player-name') ?? 'Anonymous',
+        player_name:         pName,
+        agency_name:         storedAgencyName || `${pName}'s Agency`,
         client_name:         entry.clientName,
         project_name:        entry.campaignName,
         concept_name:        conceptName,
@@ -160,28 +164,10 @@ function DetailPanel({
         awards:              entry.award ? [entry.award] : [],
       };
 
-      console.log('Sharing campaign data:', payload);
-      console.log('Type checks:', {
-        player_name_type: typeof payload.player_name,
-        score_type: typeof payload.score,
-        stars_type: typeof payload.stars,
-        deliverables_isArray: Array.isArray(payload.deliverables),
-        awards_isArray: Array.isArray(payload.awards),
-        required_nulls: {
-          player_name: payload.player_name == null,
-          client_name: payload.client_name == null,
-          project_name: payload.project_name == null,
-          concept_name: payload.concept_name == null,
-          score: payload.score == null,
-        },
-      });
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('campaigns')
         .insert([payload]);
 
-      console.log('Supabase response:', { data, error });
-      if (error) console.error('Supabase error:', error);
       if (error) throw error;
 
       onMarkShared(entry.id);
@@ -385,7 +371,7 @@ type SortKey = 'newest' | 'score' | 'client';
 export default function PortfolioApp(): React.ReactElement {
   const { entries, markShared, enrichEntry } = usePortfolioContext();
   const { unlockAchievement } = useAchievementContext();
-  const { playerName } = usePlayerContext();
+  const { playerName, agencyName } = usePlayerContext();
   const { getCampaign } = useCampaignContext();
   const [selected, setSelected] = useState<PortfolioEntry | null>(null);
   const [sort, setSort] = useState<SortKey>('newest');
@@ -426,7 +412,7 @@ export default function PortfolioApp(): React.ReactElement {
     return b.completedAt - a.completedAt; // newest
   });
 
-  const headerTitle = playerName ? `${playerName}'s Portfolio` : 'Portfolio';
+  const headerTitle = `${agencyName} Portfolio`;
 
   return (
     <div className={styles.app}>

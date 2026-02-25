@@ -13,6 +13,7 @@ interface Deliverable {
 interface Campaign {
   id: string;
   player_name: string;
+  agency_name?: string;
   client_name: string;
   project_name: string;
   concept_name: string;
@@ -90,7 +91,7 @@ function CampaignModal({
           <div className={styles.modalTitles}>
             <div className={styles.modalClient}>{campaign.client_name}</div>
             <div className={styles.modalProject}>{campaign.project_name}</div>
-            <div className={styles.modalBy}>by {campaign.player_name}</div>
+            <div className={styles.modalBy}>by {campaign.agency_name || `${campaign.player_name}'s Agency`}</div>
           </div>
         </div>
 
@@ -185,7 +186,7 @@ function CampaignCard({
       </div>
 
       <div className={styles.cardFooter}>
-        <span className={styles.cardBy}>by {campaign.player_name}</span>
+        <span className={styles.cardBy}>by {campaign.agency_name || `${campaign.player_name}'s Agency`}</span>
         <button
           className={`${styles.upvoteBtn} ${hasUpvoted ? styles.upvoteBtnVoted : ''}`}
           onClick={onUpvote}

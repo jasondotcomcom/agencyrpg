@@ -13,6 +13,7 @@ import { LOCKED_BRIEFS, LAWSUIT_BRIEF } from '../data/lockedBriefs';
 import { SEASONAL_BRIEFS, isSeasonalBriefActive } from '../data/seasonalBriefs';
 import { MANIFESTO_MESSAGES } from '../data/aiRevolutionDialogue';
 import { NG_PLUS_LOCKED_BRIEFS, buildBrewedAwakeningsNgPlus } from '../data/ngPlusBriefs';
+import { buildNamingEmail, NAMING_REMINDER } from '../data/agencyNamingEmail';
 import type { LegacyPrestigeFlags } from '../components/Ending/EndingSequence';
 
 /**
@@ -29,7 +30,7 @@ export function useCoreGameEffects(): void {
   const { addEmail } = useEmailContext();
   const { triggerCampaignEvent, morale, addMessage } = useChatContext();
   const { unlockAchievement } = useAchievementContext();
-  const { playerName } = usePlayerContext();
+  const { playerName, isAgencyNameDefault } = usePlayerContext();
   const conductState = useConductContext();
   const { phase: revolutionPhase } = useAIRevolutionContext();
 
@@ -172,7 +173,19 @@ export function useCoreGameEffects(): void {
             'Your progress has been saved. Pick up where you left off.'
           );
         }, 500));
-      } else if (!hasProgress && !localStorage.getItem('agencyrpg_first_brief_sent')) {
+      }
+
+      // ─── Naming email: deliver as the very first email ever ──────────────
+      // Arrives immediately so it's buried at the bottom of inbox as briefs stack on top
+      if (!localStorage.getItem('agencyrpg_naming_email_sent') && isAgencyNameDefault) {
+        localStorage.setItem('agencyrpg_naming_email_sent', '1');
+        const namingDelay = 100 + Math.random() * 400; // 100-500ms
+        timers.push(setTimeout(() => {
+          addEmail(buildNamingEmail(playerName));
+        }, namingDelay));
+      }
+
+      if (!hasProgress && !localStorage.getItem('agencyrpg_first_brief_sent')) {
         // First playthrough — deliver Brewed Awakenings as the first "New Brief!" moment
         localStorage.setItem('agencyrpg_first_brief_sent', '1');
         const delay = 5000 + Math.random() * 3000; // 5-8 seconds
@@ -247,6 +260,30 @@ export function useCoreGameEffects(): void {
 
     return () => timers.forEach(clearTimeout);
   }, [playerName, campaigns, addNotification, addEmail, triggerCampaignEvent, addMessage]);
+
+  // ─── Agency naming reminder — Taylor nudges if ignored too long ───────────
+  useEffect(() => {
+    if (!playerName || !isAgencyNameDefault) return;
+    if (localStorage.getItem('agencyrpg_naming_reminder_sent')) return;
+
+    const completedCount = campaigns.filter(c => c.phase === 'completed').length;
+    if (completedCount < 3) return;
+
+    localStorage.setItem('agencyrpg_naming_reminder_sent', '1');
+    const timer = setTimeout(() => {
+      addMessage({
+        id: `naming-reminder-${Date.now()}`,
+        channel: 'general',
+        authorId: 'pm',
+        text: NAMING_REMINDER.replace('{playerName}', playerName),
+        timestamp: Date.now(),
+        reactions: [],
+        isRead: false,
+      });
+    }, 5000 + Math.random() * 5000);
+
+    return () => clearTimeout(timer);
+  }, [playerName, isAgencyNameDefault, campaigns, addMessage]);
 
   // ─── Seasonal brief delivery (date-gated) ─────────────────────────────────
   useEffect(() => {

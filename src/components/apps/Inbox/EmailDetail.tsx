@@ -8,6 +8,8 @@ import { useChatContext } from '../../../context/ChatContext';
 import { useEndingContext } from '../../../context/EndingContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
 import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
+import { usePlayerContext } from '../../../context/PlayerContext';
+import { NAMING_CHAT_RESPONSES } from '../../../data/agencyNamingEmail';
 import styles from './EmailDetail.module.css';
 
 interface EmailDetailProps {
@@ -44,12 +46,14 @@ export default function EmailDetail({ email }: EmailDetailProps) {
   const { addNotification, openWindow, focusWindow, restoreWindow, windows } = useWindowContext();
   const { createCampaign, campaigns } = useCampaignContext();
   const { addReputation, subtractReputation, state: repState } = useReputationContext();
-  const { triggerCampaignEvent, setMorale } = useChatContext();
+  const { triggerCampaignEvent, setMorale, addMessage } = useChatContext();
   const { handleAcquisitionAccept, handleAcquisitionReject, handleHostileTakeoverAccept, acquisitionState } = useEndingContext();
   const { unlockAchievement, incrementCounter } = useAchievementContext();
   const { isRevolutionActive } = useAIRevolutionContext();
+  const { agencyName, setAgencyName, isAgencyNameDefault } = usePlayerContext();
   const [reputationApplied, setReputationApplied] = useState(false);
   const [acquisitionActioned, setAcquisitionActioned] = useState(false);
+  const [namingActioned, setNamingActioned] = useState(false);
   const briefOpenedAtRef = useRef<number>(email.type === 'campaign_brief' ? Date.now() : 0);
 
   // "Actually Read the Brief" achievement — 30+ seconds viewing a brief
@@ -453,6 +457,60 @@ export default function EmailDetail({ email }: EmailDetailProps) {
         <div className={styles.footer}>
           <span style={{ fontSize: 13, color: 'var(--text-muted)', padding: '0 12px' }}>
             Acknowledged.
+          </span>
+        </div>
+      )}
+
+      {/* Agency Naming Email Footer */}
+      {email.id === 'agency-naming-001' && !namingActioned && (
+        <div className={styles.footer}>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => {
+              setNamingActioned(true);
+              // Keep default — explicit choice
+              if (isAgencyNameDefault) {
+                setAgencyName(agencyName); // Persists current derived name as explicit choice
+              }
+              unlockAchievement('agency-stubborn');
+              addNotification('Agency Named', `"${agencyName}" it is.`);
+              const msg = NAMING_CHAT_RESPONSES.keptDefault[Math.floor(Math.random() * NAMING_CHAT_RESPONSES.keptDefault.length)];
+              setTimeout(() => {
+                addMessage({
+                  id: `naming-kept-${Date.now()}`,
+                  channel: 'general',
+                  authorId: 'pm',
+                  text: msg,
+                  timestamp: Date.now(),
+                  reactions: [],
+                  isRead: false,
+                });
+              }, 2000);
+            }}
+          >
+            Keep "{agencyName}"
+          </button>
+          <button
+            className={styles.primaryButton}
+            onClick={() => {
+              setNamingActioned(true);
+              // Open brainstorm window
+              const existingWin = Array.from(windows.values()).find(w => w.appId === 'agency-naming');
+              if (existingWin) {
+                focusWindow(existingWin.id);
+              } else {
+                openWindow('agency-naming', 'Name Your Agency');
+              }
+            }}
+          >
+            Let's Brainstorm
+          </button>
+        </div>
+      )}
+      {email.id === 'agency-naming-001' && namingActioned && (
+        <div className={styles.footer}>
+          <span style={{ fontSize: 13, color: 'var(--text-muted)', padding: '0 12px' }}>
+            {isAgencyNameDefault ? '✅ Keeping the default' : `✅ Agency Named: ${agencyName}`}
           </span>
         </div>
       )}

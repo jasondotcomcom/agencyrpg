@@ -28,6 +28,7 @@ const appSizeTier: Record<string, keyof typeof sizeTiers> = {
   hrtraining: 'medium',
   lawsuit: 'medium',
   'ai-revolution': 'medium',
+  'agency-naming': 'small',
   about: 'small',
 };
 
