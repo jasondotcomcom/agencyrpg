@@ -430,13 +430,69 @@ export async function generateMemeImage(memeData: MemeData, dynamic = false): Pr
   return dataUrl;
 }
 
-/**
- * Generate a fully custom meme image via DALL-E based on a player's description.
- * Returns a data URL of the generated image, or undefined if generation fails.
- */
-export async function generateCustomMemeImage(description: string): Promise<string | undefined> {
-  const prompt = `Create a funny workplace meme illustration about: ${description}. Style: colorful cartoon illustration, humorous office comedy scene, expressive characters, vibrant colors, clean composition. This should look like a meme someone would share in a work Slack channel. No text anywhere in the image — the humor should be purely visual.`;
+// ─── Text Detection ─────────────────────────────────────────────────────────
 
+interface MemeTextParts {
+  topText: string;
+  bottomText: string;
+  visualDesc: string;
+}
+
+/**
+ * Detect if a player's meme description contains text elements.
+ * Returns parsed top/bottom text + a visual-only description for DALL-E,
+ * or null if no text elements are found (pure visual meme).
+ */
+function extractMemeText(description: string): MemeTextParts | null {
+  // Pattern: "top text" / "bottom text" explicit format
+  const topBottomMatch = description.match(
+    /top\s*(?:text)?[:=]\s*["']?(.+?)["']?\s*[,/|]\s*bottom\s*(?:text)?[:=]\s*["']?(.+?)["']?\s*$/i
+  );
+  if (topBottomMatch) {
+    return {
+      topText: topBottomMatch[1].trim(),
+      bottomText: topBottomMatch[2].trim(),
+      visualDesc: description.replace(topBottomMatch[0], '').trim() || 'funny office workplace scene',
+    };
+  }
+
+  // Pattern: quoted strings separated by / or "and then" or newline
+  const quotedParts = [...description.matchAll(/["']([^"']+)["']/g)].map(m => m[1]);
+  if (quotedParts.length >= 2) {
+    return {
+      topText: quotedParts[0],
+      bottomText: quotedParts.slice(1).join(' / '),
+      visualDesc: description.replace(/["'][^"']+["']/g, '').trim() || 'funny office workplace scene',
+    };
+  }
+
+  // Pattern: text separated by " / " (setup / punchline)
+  const slashParts = description.split(/\s*\/\s*/);
+  if (slashParts.length >= 2 && slashParts.every(p => p.length > 2)) {
+    return {
+      topText: slashParts[0].trim(),
+      bottomText: slashParts.slice(1).join(' / ').trim(),
+      visualDesc: 'funny office workplace scene',
+    };
+  }
+
+  // Pattern: "when X" ... "but Y" (setup/punchline)
+  const whenButMatch = description.match(/^(when\s+.+?)\s+(but\s+.+)$/i);
+  if (whenButMatch) {
+    return {
+      topText: whenButMatch[1].trim(),
+      bottomText: whenButMatch[2].trim(),
+      visualDesc: 'funny relatable office moment',
+    };
+  }
+
+  // No text elements detected — pure visual meme
+  return null;
+}
+
+// ─── Custom Meme Generation ─────────────────────────────────────────────────
+
+async function callDallE(prompt: string): Promise<string | undefined> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60000);
@@ -455,14 +511,68 @@ export async function generateCustomMemeImage(description: string): Promise<stri
     });
 
     clearTimeout(timeout);
-
     if (!response.ok) throw new Error(`DALL-E error ${response.status}`);
 
     const data = await response.json();
-    const b64: string = data.data[0].b64_json;
-    return `data:image/png;base64,${b64}`;
+    return data.data[0].b64_json as string;
   } catch (err) {
-    console.warn('Custom meme generation failed:', err);
+    console.warn('DALL-E generation failed:', err);
     return undefined;
   }
+}
+
+/**
+ * Generate a custom meme image via DALL-E based on a player's description.
+ *
+ * - If the description contains text elements (quotes, top/bottom text,
+ *   setup/punchline), generates a DALL-E background + Canvas text overlay.
+ * - If it's a pure visual description, generates the full scene via DALL-E.
+ *
+ * Returns a data URL, or undefined if generation fails.
+ */
+export async function generateCustomMemeImage(description: string): Promise<string | undefined> {
+  const textParts = extractMemeText(description);
+
+  if (textParts) {
+    // ─── DALL-E background + Canvas text overlay ─────────────────────────
+    const bgPrompt = `Funny workplace meme background illustration about: ${textParts.visualDesc}. Style: colorful cartoon illustration, humorous office comedy scene, expressive characters, vibrant colors, clean composition. No text anywhere in the image — purely visual background for a meme.`;
+
+    const b64 = await callDallE(bgPrompt);
+    if (!b64) return undefined;
+
+    // Composite with Canvas
+    const W = 1024;
+    const H = 1024;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d')!;
+
+    // Draw DALL-E background
+    const img = await loadImageFromUrl(`data:image/png;base64,${b64}`);
+    ctx.drawImage(img, 0, 0, W, H);
+
+    // Semi-transparent overlay strips for text readability
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, W, H * 0.22);
+    ctx.fillRect(0, H * 0.78, W, H * 0.22);
+
+    // Top text
+    drawMemeText(ctx, textParts.topText.toUpperCase(), W / 2, 30, W - 60, 54);
+
+    // Bottom text
+    const bottomFontSize = 54;
+    ctx.font = `bold ${bottomFontSize}px Impact, 'Arial Black', sans-serif`;
+    const bottomLines = wrapText(ctx, textParts.bottomText.toUpperCase(), W - 60);
+    const bottomStartY = H - 30 - bottomLines.length * (bottomFontSize * 1.2);
+    drawMemeText(ctx, textParts.bottomText.toUpperCase(), W / 2, bottomStartY, W - 60, bottomFontSize);
+
+    return canvas.toDataURL('image/jpeg', 0.85);
+  }
+
+  // ─── Pure visual: DALL-E generates the full scene ──────────────────────
+  const scenePrompt = `Create a funny workplace meme illustration about: ${description}. Style: colorful cartoon illustration, humorous office comedy scene, expressive characters, vibrant colors, clean composition. This should look like a meme someone would share in a work Slack channel. No text anywhere in the image — the humor should be purely visual.`;
+
+  const b64 = await callDallE(scenePrompt);
+  return b64 ? `data:image/png;base64,${b64}` : undefined;
 }
