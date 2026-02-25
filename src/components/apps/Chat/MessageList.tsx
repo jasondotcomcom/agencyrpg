@@ -3,6 +3,7 @@ import { useChatContext } from '../../../context/ChatContext';
 import { usePlayerContext } from '../../../context/PlayerContext';
 import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
 import { getTeamMember } from '../../../data/team';
+import MemeCard from './MemeCard';
 import styles from './MessageList.module.css';
 
 function formatTime(timestamp: number): string {
@@ -113,7 +114,8 @@ export default function MessageList(): React.ReactElement {
                     </div>
                   )}
                   <div className={styles.messageText}>{msg.text}</div>
-                  {msg.imageUrl && (
+                  {msg.memeData && <MemeCard data={msg.memeData} />}
+                  {msg.imageUrl && !msg.memeData && (
                     <div className={styles.messageImage}>
                       <pre>{msg.imageUrl}</pre>
                     </div>

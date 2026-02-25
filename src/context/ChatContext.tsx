@@ -212,6 +212,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 isRead: false,
                 ...(msg.imageUrl ? { imageUrl: msg.imageUrl } : {}),
                 ...(msg.tableData ? { tableData: msg.tableData } : {}),
+                ...(msg.memeData ? { memeData: msg.memeData } : {}),
               },
             });
           }, msgDelay);

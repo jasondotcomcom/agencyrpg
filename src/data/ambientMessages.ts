@@ -1,4 +1,4 @@
-import type { ChannelId, ChatReaction, ChatTableData } from '../types/chat';
+import type { ChannelId, ChatReaction, ChatTableData, MemeData } from '../types/chat';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -7,6 +7,7 @@ export interface AmbientMessage {
   text: string;
   imageUrl?: string;
   tableData?: ChatTableData;
+  memeData?: MemeData;
   delayMs?: number;
   reactions?: ChatReaction[];
 }
@@ -17,8 +18,8 @@ export interface AmbientChain {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function solo(authorId: string, text: string, reactions?: ChatReaction[], imageUrl?: string): AmbientChain {
-  return { messages: [{ authorId, text, reactions, imageUrl }] };
+function solo(authorId: string, text: string, reactions?: ChatReaction[], memeData?: MemeData): AmbientChain {
+  return { messages: [{ authorId, text, reactions, memeData }] };
 }
 
 function chain(...msgs: AmbientMessage[]): AmbientChain {
@@ -104,115 +105,45 @@ const FOOD_POOL: AmbientChain[] = [
 
 // ─── #memes ──────────────────────────────────────────────────────────────────
 
-const meme = (top: string, bottom: string): string =>
-  `┌─────────────────────────┐\n│  ${top.padEnd(23)}│\n│                         │\n│  ${bottom.padEnd(23)}│\n└─────────────────────────┘`;
-
-const wideMeme = (...lines: string[]): string =>
-  '┌─────────────────────────┐\n' +
-  lines.map(l => `│  ${l.padEnd(23)}│`).join('\n') +
-  '\n└─────────────────────────┘';
-
 const MEMES_POOL: AmbientChain[] = [
   // Agency life memes
-  solo('media', 'just made this:', r('😂', 3), meme('✋ "Make it pop"', '👉 "Make it good"')),
+  solo('media', 'just made this:', r('😂', 3), { template: 'drake', items: ['Make it pop', 'Make it good'] }),
   chain(
-    { authorId: 'copywriter', text: 'mood:', imageUrl: meme('Me writing copy', 'Me deleting copy') },
+    { authorId: 'copywriter', text: 'mood:', memeData: { template: 'drake', items: ['Me writing copy', 'Me deleting copy'] } },
     { authorId: 'art-director', text: 'this is just your entire job description', reactions: r('💀', 2) },
   ),
-  solo('technologist', 'the duality of agency life:', r('😂', 2), wideMeme(
-    '"We need to move fast"',
-    '',
-    '"But also 12 rounds',
-    'of revisions"',
-  )),
+  solo('technologist', 'the duality of agency life:', r('😂', 2), { template: 'two-buttons', items: ['We need to move fast', '12 rounds of revisions'] }),
   chain(
-    { authorId: 'strategist', text: 'Found this on my camera roll:', imageUrl: wideMeme(
-      'Client: "I\'ll know it',
-      'when I see it"',
-      '',
-      'Also client: sees it',
-      '"That\'s not it"',
-    )},
+    { authorId: 'strategist', text: 'Found this on my camera roll:', memeData: { template: 'quote', items: ['"I\'ll know it when I see it"', 'Also client: sees it. "That\'s not it."'] } },
     { authorId: 'suit', text: 'I feel personally attacked', reactions: r('😂', 1) },
   ),
   // Making memes about each other
   chain(
-    { authorId: 'media', text: 'I made one of Taylor in standups:', imageUrl: wideMeme(
-      'Taylor: "Quick update—"',
-      '',
-      '[47 slides later]',
-      '',
-      '"—any questions?"',
-    )},
+    { authorId: 'media', text: 'I made one of Taylor in standups:', memeData: { template: 'expanding-brain', items: ['Quick update', '15 slides later', '47 slides later', '"Any questions?"'] } },
     { authorId: 'pm', text: 'I am thorough. There\'s a difference.', reactions: r('😂', 4) },
   ),
   chain(
-    { authorId: 'copywriter', text: 'new Jamie meme just dropped (yes, about myself):', imageUrl: wideMeme(
-      'Draft 1: "Perfect."',
-      'Draft 2: "Actually..."',
-      'Draft 47: "Ok draft 1',
-      'was right"',
-    )},
+    { authorId: 'copywriter', text: 'new Jamie meme just dropped (yes, about myself):', memeData: { template: 'expanding-brain', items: ['Draft 1: "Perfect."', 'Draft 2: "Actually..."', 'Draft 47: ok draft 1 was right'] } },
     { authorId: 'art-director', text: 'painfully accurate', reactions: r('💯', 2) },
   ),
-  solo('technologist', 'me every sprint:', r('😂', 2), wideMeme(
-    'PM: "Is the build done?"',
-    '',
-    'Me: "Define done"',
-    '',
-    'PM: 😐',
-  )),
+  solo('technologist', 'me every sprint:', r('😂', 2), { template: 'drake', items: ['"Is the build done?"', '"Define done"'] }),
   chain(
-    { authorId: 'media', text: 'Pat energy:', imageUrl: wideMeme(
-      '*someone laughs*',
-      '',
-      'Pat, from across',
-      'the office:',
-      '"Noted."',
-    )},
+    { authorId: 'media', text: 'Pat energy:', memeData: { template: 'quote', items: ['*someone laughs*', 'Pat, from across the office: "Noted."'] } },
     { authorId: 'hr', text: 'I don\'t appreciate being memed. This has been documented.' },
     { authorId: 'media', text: 'thank you for proving my point', reactions: r('😂', 5) },
   ),
   // Client memes
-  solo('suit', 'showed this to a client once. almost got fired:', r('💀', 1), wideMeme(
-    'Budget: $5,000',
-    'Expectations:',
-    'Super Bowl ad quality',
-  )),
-  solo('strategist', 'every pitch deck:', r('📊', 2), wideMeme(
-    'Slide 1: "The Insight"',
-    'Slide 2: "The Strategy"',
-    'Slide 37: please',
-    'just buy the idea',
-  )),
+  solo('suit', 'showed this to a client once. almost got fired:', r('💀', 1), { template: 'two-buttons', items: ['$5,000 budget', 'Super Bowl ad quality'] }),
+  solo('strategist', 'every pitch deck:', r('📊', 2), { template: 'expanding-brain', items: ['Slide 1: The Insight', 'Slide 2: The Strategy', 'Slide 37: please just buy the idea'] }),
   // Scope creep
-  solo('pm', 'this one hurt:', r('😢', 1), wideMeme(
-    'Original scope:',
-    '█░░░░░░░░░ 10%',
-    '',
-    'Final scope:',
-    '██████████████ 300%',
-  )),
+  solo('pm', 'this one hurt:', r('😢', 1), { template: 'this-is-fine', items: ['Original scope: 10%', 'Final scope: 300%'] }),
   chain(
-    { authorId: 'copywriter', text: 'Morgan every time someone says "can we explore a different direction":', imageUrl: wideMeme(
-      'ᕙ(⇀‸↼‶)ᕗ',
-      '',
-      '"Which direction,',
-      'specifically, would you',
-      'like me to explore?"',
-    )},
+    { authorId: 'copywriter', text: 'Morgan every time someone says "can we explore a different direction":', memeData: { template: 'quote', items: ['"Can we explore a different direction?"', 'Morgan: "Which direction, specifically?"'] } },
     { authorId: 'art-director', text: 'I\'m in this meme and I don\'t like it' },
   ),
   // Meta memes
-  solo('media', 'us right now in this channel:', r('😂', 2), meme('Working on campaigns', 'Making memes about work')),
-  solo('technologist', 'every morning:', r('☕', 3), wideMeme(
-    'Brain before coffee:',
-    '░░░░░░░░░░',
-    '',
-    'Brain after coffee:',
-    '█░░░░░░░░░',
-    '(still not great)',
-  )),
+  solo('media', 'us right now in this channel:', r('😂', 2), { template: 'drake', items: ['Working on campaigns', 'Making memes about work'] }),
+  solo('technologist', 'every morning:', r('☕', 3), { template: 'expanding-brain', items: ['Brain before coffee', 'Brain after coffee', '(still not great)'] }),
 ];
 
 // ─── #haiku ──────────────────────────────────────────────────────────────────

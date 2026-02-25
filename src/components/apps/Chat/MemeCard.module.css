@@ -1,0 +1,154 @@
+/* ─── Shared meme card ─────────────────────────────────────────────────────── */
+.memeCard {
+  margin-top: 6px;
+  max-width: 260px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #1a1a2e;
+  border: 1px solid rgba(168, 230, 207, 0.15);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #e0e0e0;
+}
+
+/* ─── Drake ────────────────────────────────────────────────────────────────── */
+.drakeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  position: relative;
+}
+
+.drakeRow:first-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.drakeIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.drakeReject {
+  color: #888;
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 100, 100, 0.5);
+}
+
+.drakeApprove {
+  color: #a8e6cf;
+  font-weight: 600;
+}
+
+.drakeAccent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #ff6b6b, #a8e6cf);
+  border-radius: 3px 0 0 3px;
+}
+
+/* Position the accent bar relative to the card, not the row */
+.memeCard {
+  position: relative;
+}
+
+/* ─── Expanding Brain ──────────────────────────────────────────────────────── */
+.brainTier {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, calc(var(--tier) * 0.03));
+}
+
+.brainTier:last-child {
+  border-bottom: none;
+  background: rgba(168, 230, 207, calc((var(--tier) + 1) * 0.06));
+}
+
+.brainEmoji {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.brainText {
+  flex: 1;
+}
+
+/* ─── Two Buttons ──────────────────────────────────────────────────────────── */
+.buttonsRow {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.buttonOption {
+  flex: 1;
+  padding: 8px 10px;
+  background: rgba(255, 183, 178, 0.15);
+  border: 1px solid rgba(255, 183, 178, 0.3);
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.6875rem;
+  color: #ffb7b2;
+}
+
+.buttonsSweater {
+  text-align: center;
+  padding: 4px 0 10px;
+  font-size: 1.5rem;
+}
+
+/* ─── This Is Fine ─────────────────────────────────────────────────────────── */
+.fineCard {
+  background: linear-gradient(135deg, #2d1810 0%, #3d1a0a 50%, #4a1c08 100%);
+  border-color: rgba(255, 140, 50, 0.25);
+}
+
+.fineContent {
+  padding: 10px 12px;
+}
+
+.fineLine {
+  padding: 4px 0;
+  color: #ffcc80;
+}
+
+.fineFooter {
+  text-align: center;
+  padding: 6px 12px 10px;
+  font-size: 0.875rem;
+  border-top: 1px solid rgba(255, 140, 50, 0.15);
+  color: #ff9800;
+}
+
+/* ─── Quote ────────────────────────────────────────────────────────────────── */
+.quoteCard {
+  border-left: 3px solid #a8e6cf;
+  border-radius: 0 10px 10px 0;
+  background: rgba(168, 230, 207, 0.06);
+}
+
+.quoteLine {
+  padding: 6px 14px;
+  font-style: italic;
+  color: #ccc;
+}
+
+.quoteLine:first-child {
+  padding-top: 10px;
+  color: #e0e0e0;
+  font-weight: 500;
+}
+
+.quoteLine:last-child {
+  padding-bottom: 10px;
+  font-style: normal;
+  color: #999;
+  font-size: 0.6875rem;
+}

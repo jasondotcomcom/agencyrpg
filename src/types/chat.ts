@@ -22,6 +22,13 @@ export interface ChatTableData {
   rows: string[][];
 }
 
+export type MemeTemplate = 'drake' | 'expanding-brain' | 'two-buttons' | 'this-is-fine' | 'quote';
+
+export interface MemeData {
+  template: MemeTemplate;
+  items: string[];
+}
+
 export interface ChatMessage {
   id: string;
   channel: ChannelId;
@@ -32,6 +39,7 @@ export interface ChatMessage {
   isRead: boolean;
   imageUrl?: string;
   tableData?: ChatTableData;
+  memeData?: MemeData;
 }
 
 // ─── Morale ───────────────────────────────────────────────────────────────────
@@ -82,6 +90,7 @@ export interface MessageTemplate {
   reactions?: ChatReaction[];
   imageUrl?: string;
   tableData?: ChatTableData;
+  memeData?: MemeData;
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
