@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { getHtmlPreview } from '../../../utils/htmlPreviewStore';
 import styles from './HtmlPreview.module.css';
 
@@ -7,19 +7,15 @@ interface Props {
 }
 
 export default function HtmlPreview({ previewId }: Props): React.ReactElement {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const preview = getHtmlPreview(previewId);
 
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe || !preview) return;
-
-    const doc = iframe.contentDocument;
-    if (!doc) return;
-
-    doc.open();
-    doc.write(preview.html);
-    doc.close();
+  // Strip markdown code fences if the AI wrapped its output
+  const cleanHtml = useMemo(() => {
+    if (!preview) return '';
+    let html = preview.html;
+    const fenceMatch = html.match(/```(?:html)?\s*\n([\s\S]*?)```/);
+    if (fenceMatch) html = fenceMatch[1];
+    return html.trim();
   }, [preview]);
 
   if (!preview) {
@@ -39,9 +35,9 @@ export default function HtmlPreview({ previewId }: Props): React.ReactElement {
         <span className={styles.badge}>Preview</span>
       </div>
       <iframe
-        ref={iframeRef}
         className={styles.iframe}
         sandbox="allow-scripts"
+        srcDoc={cleanHtml}
         title={preview.title || 'HTML Preview'}
       />
     </div>

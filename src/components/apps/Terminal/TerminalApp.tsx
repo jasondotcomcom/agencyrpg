@@ -233,16 +233,35 @@ function loadTools(): AgencyTool[] {
   }
 }
 
+function looksLikeGameRequest(input: string): boolean {
+  const lower = input.toLowerCase();
+  return /\bgame\b|\bvideogame\b|\bvideo game\b|\barcade\b|\bplayable\b|\bmini.?game\b/.test(lower);
+}
+
+function looksLikeWebRequest(input: string): boolean {
+  const lower = input.toLowerCase();
+  return /\bwebsite\b|\blanding page\b|\bweb page\b|\bmicrosite\b|\bdashboard\b|\bform\b|\bcalculator\b|\binteractive\b|\bwidget\b|\bchart\b/.test(lower);
+}
+
 function buildToolPrompt(description: string): string {
+  const isGame = looksLikeGameRequest(description);
+  const isWeb = looksLikeWebRequest(description);
+
+  const formatGuidance = isGame
+    ? 'This is a GAME request. Set outputFormat to "html" and set category to "visual". The runPromptHint MUST say: "Generate a complete, self-contained, playable HTML game with inline CSS and JS. Use canvas or DOM elements. Include game controls, scoring, and a game over state. The game should be fun and functional, not a mockup or description. Output ONLY the HTML code, no explanation." The sampleOutput should briefly describe the game mechanics.'
+    : isWeb
+    ? 'This is a visual/interactive request. Set outputFormat to "html". The runPromptHint should describe the HTML/CSS/JS page to generate.'
+    : 'If the description suggests something visual (landing page, microsite, chart, mockup, form, calculator, interactive widget, game), set outputFormat to "html". Otherwise set outputFormat to "text".';
+
   return `You are generating a tool definition for a creative advertising agency simulation game.
 
 The player wants: "${description}"
 
-Generate a realistic, useful agency tool. If the description suggests something visual (landing page, microsite, chart, mockup, form, calculator, interactive widget), set outputFormat to "html". Otherwise set outputFormat to "text".
+${formatGuidance}
 
-CRITICAL: Respond with ONLY a valid JSON object. No markdown, no backticks, no code fences, no preamble, no explanation — just the raw JSON starting with { and ending with }.
+Generate a realistic, useful tool. CRITICAL: Respond with ONLY a valid JSON object. No markdown, no backticks, no code fences, no preamble, no explanation — just the raw JSON starting with { and ending with }.
 
-{"name":"short_tool_name_in_snake_case","icon":"single_relevant_emoji","description":"One sentence: what this tool does.","category":"analytics|creative|client|operations|finance|visual","outputFormat":"text|html","runPromptHint":"A 1-2 sentence instruction describing what this tool generates when run against a campaign brief. If html: describe the HTML/CSS/JS page to generate.","sampleOutput":"A realistic 3-5 sentence sample output with data points and metrics."}`;
+{"name":"short_tool_name_in_snake_case","icon":"single_relevant_emoji","description":"One sentence: what this tool does.","category":"analytics|creative|client|operations|finance|visual","outputFormat":"text|html","runPromptHint":"A 1-2 sentence instruction describing what this tool generates when run. If html: describe the HTML/CSS/JS page to generate. If game: describe the playable game to generate.","sampleOutput":"A realistic 3-5 sentence sample output with data points and metrics."}`;
 }
 
 // ─── Natural language intent detection ───────────────────────────────────────
@@ -535,9 +554,29 @@ export default function TerminalApp(): React.ReactElement {
     }
 
     const isHtml = tool.outputFormat === 'html';
+    const isGame = /game|arcade|playable/i.test(tool.name) || /game|arcade|playable/i.test(hint);
 
-    const prompt = isHtml
-      ? `You are a code generator. Your ONLY job is to output raw, working HTML code. Do NOT describe what the page would look like. Do NOT explain your approach. Output ONLY the code itself.
+    const htmlPrompt = isGame
+      ? `You are a game developer. Generate a complete, self-contained, PLAYABLE HTML game. Output ONLY the raw HTML code — no explanation, no markdown, no code fences.
+
+GAME TO BUILD: "${tool.name.replace(/_/g, ' ')}" — ${hint}
+
+${contextBlock}
+
+CRITICAL RULES:
+1. Your response must start with <!DOCTYPE html> — no other text before it
+2. Include ALL CSS in a <style> tag and ALL JavaScript in a <script> tag
+3. The game must be fully self-contained and render in an iframe with sandbox="allow-scripts"
+4. Use canvas or DOM elements for game graphics — retro/arcade style is fine
+5. Include real game mechanics: player controls (arrow keys/WASD/mouse/touch), collision detection, scoring, win/lose states
+6. Include a start screen, active gameplay, and game over screen with restart option
+7. Use the campaign data above for theming if relevant (client names, challenges, etc.)
+8. Make it actually FUN and PLAYABLE — not a mockup, wireframe, or description
+9. Keep it simple but functional — think retro arcade games
+10. Support both keyboard and touch/click controls for mobile
+11. The very first character of your response must be < (the start of the HTML tag)
+12. Do NOT output markdown, code fences, explanations, or descriptions — ONLY raw HTML`
+      : `You are a code generator. Your ONLY job is to output raw, working HTML code. Do NOT describe what the page would look like. Do NOT explain your approach. Output ONLY the code itself.
 
 Generate a complete, self-contained HTML page for: "${tool.name.replace(/_/g, ' ')}" — ${hint}
 
@@ -551,7 +590,10 @@ CRITICAL RULES:
 5. Make it visually polished: modern design, good typography, soft colors, responsive
 6. If interactive (forms, calculators, generators), the JS must actually work
 7. Do NOT output markdown, code fences, explanations, or descriptions — ONLY raw HTML
-8. The very first character of your response must be < (the start of the HTML tag)`
+8. The very first character of your response must be < (the start of the HTML tag)`;
+
+    const prompt = isHtml
+      ? htmlPrompt
       : `You are running the "${tool.name.replace(/_/g, ' ')}" tool inside Agency OS Terminal — a creative advertising agency simulation.
 
 TOOL PURPOSE: ${hint}
@@ -571,7 +613,7 @@ Generate output for this tool based on the context above. Rules:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-5-20250929',
-          max_tokens: isHtml ? 4000 : 800,
+          max_tokens: isGame ? 8000 : isHtml ? 4000 : 800,
           messages: [{ role: 'user', content: prompt }],
         }),
       });

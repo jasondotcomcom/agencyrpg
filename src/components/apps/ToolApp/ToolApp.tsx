@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useTerminalTools } from '../../../hooks/useTerminalTools';
 import type { AgencyTool } from '../../../hooks/useTerminalTools';
 import { useCampaignContext } from '../../../context/CampaignContext';
@@ -51,6 +51,29 @@ function buildContextBlock(
 function buildPrompt(tool: AgencyTool, contextBlock: string): string {
   const hint = tool.runPromptHint || tool.description;
   const isHtml = tool.outputFormat === 'html';
+  const isGame = /game|arcade|playable/i.test(tool.name) || /game|arcade|playable/i.test(hint);
+
+  if (isHtml && isGame) {
+    return `You are a game developer. Generate a complete, self-contained, PLAYABLE HTML game. Output ONLY the raw HTML code — no explanation, no markdown, no code fences.
+
+GAME TO BUILD: "${tool.name.replace(/_/g, ' ')}" — ${hint}
+
+${contextBlock}
+
+CRITICAL RULES:
+1. Your response must start with <!DOCTYPE html> — no other text before it
+2. Include ALL CSS in a <style> tag and ALL JavaScript in a <script> tag
+3. The game must be fully self-contained and render in an iframe with sandbox="allow-scripts"
+4. Use canvas or DOM elements for game graphics — retro/arcade style is fine
+5. Include real game mechanics: player controls (arrow keys/WASD/mouse/touch), collision detection, scoring, win/lose states
+6. Include a start screen, active gameplay, and game over screen with restart option
+7. Use the campaign data above for theming if relevant (client names, challenges, etc.)
+8. Make it actually FUN and PLAYABLE — not a mockup, wireframe, or description
+9. Keep it simple but functional — think retro arcade games
+10. Support both keyboard and touch/click controls for mobile
+11. The very first character of your response must be < (the start of the HTML tag)
+12. Do NOT output markdown, code fences, explanations, or descriptions — ONLY raw HTML`;
+  }
 
   if (isHtml) {
     return `You are a code generator. Your ONLY job is to output raw, working HTML code. Do NOT describe what the page would look like. Do NOT explain your approach. Output ONLY the code itself.
@@ -96,8 +119,6 @@ export default function ToolApp({ toolId }: Props): React.ReactElement {
   const { state: fundsState } = useAgencyFunds();
   const { state: repState } = useReputationContext();
   const { morale } = useChatContext();
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
   const [output, setOutput] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,19 +129,13 @@ export default function ToolApp({ toolId }: Props): React.ReactElement {
   // Detect HTML in output
   const outputIsHtml = isHtmlTool || (output ? /^\s*<!DOCTYPE|^\s*<html/i.test(output.trim()) : false);
 
-  // Write HTML to iframe when output changes
-  useEffect(() => {
-    if (!outputIsHtml || !output || !iframeRef.current) return;
-    const doc = iframeRef.current.contentDocument;
-    if (!doc) return;
-
+  // Clean HTML for iframe srcdoc
+  const cleanHtml = useMemo(() => {
+    if (!outputIsHtml || !output) return '';
     let html = output;
     const fenceMatch = html.match(/```(?:html)?\s*\n([\s\S]*?)```/);
     if (fenceMatch) html = fenceMatch[1];
-
-    doc.open();
-    doc.write(html);
-    doc.close();
+    return html.trim();
   }, [output, outputIsHtml]);
 
   const handleRun = useCallback(async () => {
@@ -145,7 +160,7 @@ export default function ToolApp({ toolId }: Props): React.ReactElement {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-5-20250929',
-          max_tokens: isHtmlTool ? 4000 : 800,
+          max_tokens: isHtmlTool ? (/game|arcade|playable/i.test(tool.name) || /game|arcade|playable/i.test(tool.runPromptHint || '') ? 8000 : 4000) : 800,
           messages: [{ role: 'user', content: prompt }],
         }),
       });
@@ -213,9 +228,9 @@ export default function ToolApp({ toolId }: Props): React.ReactElement {
             <>
               <div className={styles.outputHeader}>Live Preview</div>
               <iframe
-                ref={iframeRef}
                 className={styles.outputHtml}
                 sandbox="allow-scripts"
+                srcDoc={cleanHtml}
                 title={tool.name}
               />
             </>
