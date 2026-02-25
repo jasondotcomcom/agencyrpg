@@ -2,11 +2,22 @@ import type { MemeData, MemeTemplate } from '../types/chat';
 
 // ─── Caches ──────────────────────────────────────────────────────────────────
 
-const bgCache = new Map<MemeTemplate, string>();          // template → base64 bg
-const memeCache = new Map<string, string>();              // content hash → data URL
-const pendingBg = new Map<MemeTemplate, Promise<string>>(); // dedup in-flight requests
+const bgCache = new Map<MemeTemplate, HTMLImageElement>(); // template → loaded Image
+const memeCache = new Map<string, string>();               // content hash → data URL
+const pendingBg = new Map<MemeTemplate, Promise<HTMLImageElement>>(); // dedup in-flight
 
-// ─── DALL-E Background Prompts ───────────────────────────────────────────────
+// ─── Static Background Paths ─────────────────────────────────────────────────
+// Pre-generated DALL-E backgrounds shipped as static assets.
+
+const STATIC_BG_PATHS: Record<MemeTemplate, string> = {
+  drake: '/images/memes/drake.png',
+  'expanding-brain': '/images/memes/expanding-brain.png',
+  'two-buttons': '/images/memes/two-buttons.png',
+  'this-is-fine': '/images/memes/this-is-fine.png',
+  quote: '/images/memes/quote.png',
+};
+
+// ─── DALL-E Background Prompts (for dynamic memes only) ─────────────────────
 
 const BG_PROMPTS: Record<MemeTemplate, string> = {
   drake:
@@ -21,12 +32,22 @@ const BG_PROMPTS: Record<MemeTemplate, string> = {
     'Moody dark office environment at night, single desk lamp casting warm light, atmospheric bokeh, soft shadows, cinematic mood, photographic style, no text anywhere in the image.',
 };
 
+// ─── "Cooking" messages for dynamic memes ────────────────────────────────────
+
+export const MEME_COOKING_MESSAGES = [
+  'Hold on, cooking something up...',
+  'Give me a sec, this one needs to be perfect',
+  'Making this as we speak...',
+  'One moment, the meme factory is working overtime',
+  'Hang on, this meme is loading in my brain...',
+  'Wait for it...',
+];
+
 // ─── Fallback Gradient Backgrounds ───────────────────────────────────────────
 
 function drawFallbackBg(ctx: CanvasRenderingContext2D, template: MemeTemplate, w: number, h: number) {
   switch (template) {
     case 'drake': {
-      // Top half red, bottom half green
       const g1 = ctx.createLinearGradient(0, 0, w, h / 2);
       g1.addColorStop(0, '#c0392b');
       g1.addColorStop(1, '#e74c3c');
@@ -37,7 +58,6 @@ function drawFallbackBg(ctx: CanvasRenderingContext2D, template: MemeTemplate, w
       g2.addColorStop(1, '#2ecc71');
       ctx.fillStyle = g2;
       ctx.fillRect(0, h / 2, w, h / 2);
-      // Divider line
       ctx.strokeStyle = 'rgba(255,255,255,0.3)';
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -83,19 +103,37 @@ function drawFallbackBg(ctx: CanvasRenderingContext2D, template: MemeTemplate, w
   }
 }
 
-// ─── DALL-E Background Generation ────────────────────────────────────────────
+// ─── Background Loading ─────────────────────────────────────────────────────
 
-async function fetchBackground(template: MemeTemplate): Promise<string> {
+function loadImageFromUrl(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Failed to load: ${url}`));
+    img.src = url;
+  });
+}
+
+async function fetchBackground(template: MemeTemplate, dynamic = false): Promise<HTMLImageElement> {
   // Check cache
   const cached = bgCache.get(template);
   if (cached) return cached;
 
-  // Dedup concurrent requests for the same template
+  // Dedup concurrent requests
   const pending = pendingBg.get(template);
   if (pending) return pending;
 
   const promise = (async () => {
     try {
+      if (!dynamic) {
+        // Try static asset first (instant, no API call)
+        const img = await loadImageFromUrl(STATIC_BG_PATHS[template]);
+        bgCache.set(template, img);
+        return img;
+      }
+
+      // Dynamic: call DALL-E for a fresh background
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 60000);
 
@@ -114,16 +152,15 @@ async function fetchBackground(template: MemeTemplate): Promise<string> {
 
       clearTimeout(timeout);
 
-      if (!response.ok) {
-        throw new Error(`DALL-E error ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`DALL-E error ${response.status}`);
 
       const data = await response.json();
       const b64: string = data.data[0].b64_json;
-      bgCache.set(template, b64);
-      return b64;
+      const img = await loadImageFromUrl(`data:image/png;base64,${b64}`);
+      // Don't overwrite static cache with dynamic results
+      return img;
     } catch (err) {
-      console.warn(`DALL-E background failed for ${template}:`, err);
+      console.warn(`Background failed for ${template}:`, err);
       throw err;
     } finally {
       pendingBg.delete(template);
@@ -171,12 +208,10 @@ function drawMemeText(
 
   for (let i = 0; i < lines.length; i++) {
     const ly = y + i * lineHeight;
-    // Black outline
     ctx.strokeStyle = 'black';
     ctx.lineWidth = Math.max(4, fontSize / 8);
     ctx.lineJoin = 'round';
     ctx.strokeText(lines[i], x, ly);
-    // White fill
     ctx.fillStyle = 'white';
     ctx.fillText(lines[i], x, ly);
   }
@@ -190,13 +225,11 @@ function compositeDrake(ctx: CanvasRenderingContext2D, items: string[], w: numbe
   const [reject, approve] = items;
   const panelH = h / 2;
 
-  // Dark overlay on each panel for readability
   ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
   ctx.fillRect(0, 0, w, panelH);
   ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
   ctx.fillRect(0, panelH, w, panelH);
 
-  // Divider
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -207,7 +240,6 @@ function compositeDrake(ctx: CanvasRenderingContext2D, items: string[], w: numbe
   const fontSize = 42;
   const padding = 60;
 
-  // ❌ emoji + reject text (top)
   ctx.font = `${fontSize + 10}px sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
@@ -215,7 +247,6 @@ function compositeDrake(ctx: CanvasRenderingContext2D, items: string[], w: numbe
   ctx.fillText('❌', padding - 40, panelH / 2);
   drawMemeText(ctx, reject || '', w / 2 + 20, panelH / 2 - fontSize / 2, w - padding * 2 - 40, fontSize);
 
-  // ✅ emoji + approve text (bottom)
   ctx.font = `${fontSize + 10}px sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
@@ -231,12 +262,10 @@ function compositeExpandingBrain(ctx: CanvasRenderingContext2D, items: string[],
   for (let i = 0; i < items.length; i++) {
     const y = i * tierH;
 
-    // Progressive overlay — darker at top, lighter at bottom
     const alpha = 0.55 - (i * 0.08);
     ctx.fillStyle = `rgba(0, 0, 0, ${Math.max(0.15, alpha)})`;
     ctx.fillRect(0, y, w, tierH);
 
-    // Tier divider
     if (i > 0) {
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.lineWidth = 2;
@@ -246,14 +275,12 @@ function compositeExpandingBrain(ctx: CanvasRenderingContext2D, items: string[],
       ctx.stroke();
     }
 
-    // Brain emoji
     const emojiSize = 50 + i * 8;
     ctx.font = `${emojiSize}px sans-serif`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText(brains[i] ?? '✨', 30, y + tierH / 2);
 
-    // Text
     const fontSize = 32 + i * 3;
     drawMemeText(ctx, items[i], w / 2 + 40, y + tierH / 2 - fontSize / 2, w - 160, fontSize);
   }
@@ -262,11 +289,9 @@ function compositeExpandingBrain(ctx: CanvasRenderingContext2D, items: string[],
 function compositeTwoButtons(ctx: CanvasRenderingContext2D, items: string[], w: number, h: number) {
   const [left, right] = items;
 
-  // Dark overlay
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.fillRect(0, 0, w, h);
 
-  // Two "button" rectangles
   const btnW = w * 0.38;
   const btnH = h * 0.3;
   const btnY = h * 0.15;
@@ -274,7 +299,6 @@ function compositeTwoButtons(ctx: CanvasRenderingContext2D, items: string[], w: 
   const leftX = w / 2 - btnW - gap / 2;
   const rightX = w / 2 + gap / 2;
 
-  // Draw button backgrounds
   for (const bx of [leftX, rightX]) {
     ctx.fillStyle = 'rgba(220, 50, 50, 0.7)';
     ctx.beginPath();
@@ -285,12 +309,10 @@ function compositeTwoButtons(ctx: CanvasRenderingContext2D, items: string[], w: 
     ctx.stroke();
   }
 
-  // Button text
   const btnFontSize = 30;
   drawMemeText(ctx, left || '', leftX + btnW / 2, btnY + btnH / 2 - btnFontSize / 2, btnW - 30, btnFontSize);
   drawMemeText(ctx, right || '', rightX + btnW / 2, btnY + btnH / 2 - btnFontSize / 2, btnW - 30, btnFontSize);
 
-  // Sweating emoji
   ctx.font = '120px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -298,11 +320,9 @@ function compositeTwoButtons(ctx: CanvasRenderingContext2D, items: string[], w: 
 }
 
 function compositeThisIsFine(ctx: CanvasRenderingContext2D, items: string[], w: number, h: number) {
-  // Dark overlay for text area
   ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
   ctx.fillRect(0, 0, w, h);
 
-  // Text items in upper portion
   const fontSize = 36;
   let textY = h * 0.15;
   for (const item of items) {
@@ -310,7 +330,6 @@ function compositeThisIsFine(ctx: CanvasRenderingContext2D, items: string[], w: 
     textY += used + 20;
   }
 
-  // "This is fine." footer
   const footerY = h * 0.78;
   ctx.font = 'bold 48px Impact, "Arial Black", sans-serif';
   ctx.textAlign = 'center';
@@ -324,22 +343,18 @@ function compositeThisIsFine(ctx: CanvasRenderingContext2D, items: string[], w: 
 }
 
 function compositeQuote(ctx: CanvasRenderingContext2D, items: string[], w: number, h: number) {
-  // Dark overlay
   ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
   ctx.fillRect(0, 0, w, h);
 
-  // Left accent bar
   ctx.fillStyle = 'rgba(168, 230, 207, 0.6)';
   ctx.fillRect(40, h * 0.15, 5, h * 0.7);
 
-  // Opening quote mark
   ctx.font = 'bold 120px Georgia, serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillStyle = 'rgba(168, 230, 207, 0.3)';
   ctx.fillText('\u201C', 55, h * 0.08);
 
-  // Quote text
   const mainFontSize = 36;
   let textY = h * 0.25;
   for (let i = 0; i < items.length; i++) {
@@ -353,7 +368,7 @@ function compositeQuote(ctx: CanvasRenderingContext2D, items: string[], w: numbe
 
 // ─── Main Compositor ─────────────────────────────────────────────────────────
 
-async function compositeImage(memeData: MemeData): Promise<string> {
+async function compositeImage(memeData: MemeData, dynamic = false): Promise<string> {
   const W = 1024;
   const H = 1024;
 
@@ -362,30 +377,21 @@ async function compositeImage(memeData: MemeData): Promise<string> {
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
 
-  // Try to load DALL-E background
+  // Load background (static asset or DALL-E)
   let bgLoaded = false;
   try {
-    const b64 = await fetchBackground(memeData.template);
-    const img = new Image();
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error('Image load failed'));
-      img.src = `data:image/png;base64,${b64}`;
-    });
+    const img = await fetchBackground(memeData.template, dynamic);
     ctx.drawImage(img, 0, 0, W, H);
     bgLoaded = true;
   } catch {
-    // Fall back to gradient
     drawFallbackBg(ctx, memeData.template, W, H);
   }
 
-  // If DALL-E bg loaded, we need slightly stronger overlay for some templates
   if (bgLoaded && memeData.template === 'quote') {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
     ctx.fillRect(0, 0, W, H);
   }
 
-  // Composite text per template
   switch (memeData.template) {
     case 'drake':
       compositeDrake(ctx, memeData.items, W, H);
@@ -409,13 +415,17 @@ async function compositeImage(memeData: MemeData): Promise<string> {
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
-export async function generateMemeImage(memeData: MemeData): Promise<string> {
+/**
+ * Generate a meme image. Standard memes use pre-baked static backgrounds
+ * (instant). Dynamic memes (dynamic=true) call DALL-E for a fresh background.
+ */
+export async function generateMemeImage(memeData: MemeData, dynamic = false): Promise<string> {
   const key = JSON.stringify(memeData);
 
   const cached = memeCache.get(key);
   if (cached) return cached;
 
-  const dataUrl = await compositeImage(memeData);
+  const dataUrl = await compositeImage(memeData, dynamic);
   memeCache.set(key, dataUrl);
   return dataUrl;
 }

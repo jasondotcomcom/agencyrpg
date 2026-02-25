@@ -7,9 +7,11 @@ import type {
   Channel,
   ChatCampaignEvent,
   ChatEventContext,
+  MemeData,
 } from '../types/chat';
 import { getInitialMessages, getCampaignEventMessages } from '../data/chatMessages';
 import { getAmbientPool } from '../data/ambientMessages';
+import { generateMemeImage, MEME_COOKING_MESSAGES } from '../utils/memeImageGenerator';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -132,6 +134,7 @@ interface ChatContextValue extends ChatState {
   setMorale: (level: MoraleLevel) => void;
   addReaction: (messageId: string, emoji: string) => void;
   addMessage: (msg: ChatMessage) => void;
+  postDynamicMeme: (channel: ChannelId, authorId: string, memeData: MemeData) => void;
   triggerCampaignEvent: (event: ChatCampaignEvent, context: ChatEventContext) => void;
   getUnreadCount: () => number;
   getUnreadCountForChannel: (channel: ChannelId) => number;
@@ -253,6 +256,40 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'ADD_MESSAGE', payload: msg });
   }, []);
 
+  const postDynamicMeme = useCallback((channel: ChannelId, authorId: string, memeData: MemeData) => {
+    // Post "cooking" message first
+    const cookingText = MEME_COOKING_MESSAGES[Math.floor(Math.random() * MEME_COOKING_MESSAGES.length)];
+    dispatch({
+      type: 'ADD_MESSAGE',
+      payload: {
+        id: `meme-cook-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        channel,
+        authorId,
+        text: cookingText,
+        timestamp: Date.now(),
+        reactions: [],
+        isRead: false,
+      },
+    });
+
+    // Generate via DALL-E (dynamic=true) and post meme when ready
+    generateMemeImage(memeData, true).then((_dataUrl) => {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: {
+          id: `meme-dyn-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          channel,
+          authorId,
+          text: '',
+          timestamp: Date.now(),
+          reactions: [{ emoji: '😂', count: 1 }],
+          isRead: false,
+          memeData,
+        },
+      });
+    });
+  }, []);
+
   const triggerCampaignEvent = useCallback(
     (event: ChatCampaignEvent, context: ChatEventContext) => {
       const templates = getCampaignEventMessages(event, context, state.morale);
@@ -325,6 +362,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setMorale,
     addReaction,
     addMessage,
+    postDynamicMeme,
     triggerCampaignEvent,
     getUnreadCount,
     getUnreadCountForChannel,
