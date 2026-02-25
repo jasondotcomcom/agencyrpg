@@ -1,7 +1,7 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .title {
@@ -15,42 +15,93 @@
   font-size: 0.75rem;
   color: var(--text-secondary, #666);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* ── Selected team summary ── */
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  background: var(--color-mint, #2ecc71);
+  color: white;
+}
 
-.selectedGrid {
+/* ── Grid layout ── */
+
+.grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 
-.memberChip {
+.cell {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 10px;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 4px;
   background: white;
-  border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 2px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
 }
 
-.memberAvatar {
-  font-size: 1.5rem;
+.cell:active {
+  transform: scale(0.96);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.cellSelected {
+  border-color: var(--color-mint, #2ecc71);
+  background: rgba(46, 204, 113, 0.06);
+}
+
+.cellDimmed {
+  opacity: 0.4;
+}
+
+.checkOverlay {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: var(--color-mint, #2ecc71);
   line-height: 1;
 }
 
-.memberName {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--text-dark, #333);
+.avatar {
+  font-size: 1.75rem;
+  line-height: 1;
 }
 
-.memberRole {
-  font-size: 0.625rem;
+.name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-dark, #333);
+  line-height: 1.2;
+}
+
+.role {
+  font-size: 0.5625rem;
   color: var(--text-muted, #999);
   font-weight: 600;
+  line-height: 1.2;
 }
+
+/* ── Cost row ── */
 
 .costRow {
   display: flex;
@@ -58,101 +109,11 @@
   align-items: center;
   font-size: 0.75rem;
   color: var(--text-secondary, #666);
-  padding: 8px 0;
+  padding: 6px 0 0;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .costValue {
   font-weight: 800;
   color: var(--text-dark, #333);
-}
-
-.editBtn {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  font-family: inherit;
-  padding: 10px;
-  min-height: 44px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  background: white;
-  color: var(--text-secondary, #666);
-  cursor: pointer;
-}
-
-/* ── Selection list ── */
-
-.memberList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.memberRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  min-height: 56px;
-  background: white;
-  border: 2px solid rgba(0, 0, 0, 0.06);
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.memberRow:active {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.memberSelected {
-  border-color: var(--color-mint, #2ecc71);
-  background: rgba(46, 204, 113, 0.04);
-}
-
-.memberInfo {
-  flex: 1;
-  min-width: 0;
-}
-
-.memberSpecialty {
-  font-size: 0.625rem;
-  color: var(--text-muted, #999);
-  font-style: italic;
-}
-
-.checkmark {
-  font-size: 1rem;
-  font-weight: 900;
-  color: var(--color-mint, #2ecc71);
-  width: 24px;
-  text-align: center;
-}
-
-.saveBtn {
-  font-size: 0.875rem;
-  font-weight: 800;
-  font-family: inherit;
-  padding: 12px;
-  min-height: 48px;
-  border: none;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--text-muted, #999);
-  cursor: not-allowed;
-  transition: all 0.2s ease;
-}
-
-.saveBtn.active {
-  background: var(--color-mint, #2ecc71);
-  color: white;
-  cursor: pointer;
-}
-
-.saveBtn.active:active {
-  background: #27ae60;
-  transform: scale(0.97);
 }

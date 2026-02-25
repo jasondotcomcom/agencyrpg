@@ -15,6 +15,8 @@ export interface CheatState {
   bigHeadMode: boolean;
   /** Shows Pat from HR following your cursor. */
   hrWatcherActive: boolean;
+  /** Unlocks a special kid-themed campaign brief. */
+  kidMode: boolean;
   /** Tracks which unique cheat codes have been used (for achievements). */
   usedCheats: string[];
 }
@@ -28,6 +30,7 @@ interface CheatContextValue {
   toggleNightmareMode: () => void;
   toggleBigHeadMode: () => void;
   setHRWatcherActive: (active: boolean) => void;
+  setKidMode: (active: boolean) => void;
   /** Records a cheat code use. Returns the NEW total count of unique cheats used. */
   recordCheatUsed: (code: string) => number;
   resetCheats: () => void;
@@ -42,6 +45,7 @@ const defaultCheat: CheatState = {
   nightmareMode: false,
   bigHeadMode: false,
   hrWatcherActive: false,
+  kidMode: false,
   usedCheats: [],
 };
 
@@ -89,6 +93,10 @@ export function CheatProvider({ children }: { children: React.ReactNode }) {
     setCheat(prev => ({ ...prev, hrWatcherActive: active }));
   }, []);
 
+  const setKidMode = useCallback((active: boolean) => {
+    setCheat(prev => ({ ...prev, kidMode: active }));
+  }, []);
+
   const recordCheatUsed = useCallback((code: string): number => {
     let newCount = 0;
     setCheat(prev => {
@@ -117,6 +125,7 @@ export function CheatProvider({ children }: { children: React.ReactNode }) {
       toggleNightmareMode,
       toggleBigHeadMode,
       setHRWatcherActive,
+      setKidMode,
       recordCheatUsed,
       resetCheats,
     }}>

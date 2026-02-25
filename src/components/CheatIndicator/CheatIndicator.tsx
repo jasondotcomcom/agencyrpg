@@ -30,6 +30,9 @@ export default function CheatIndicator(): React.ReactElement | null {
   if (cheat.hrWatcherActive) {
     activeCheats.push({ id: 'hrwatcher', label: '👔 HR is Watching' });
   }
+  if (cheat.kidMode) {
+    activeCheats.push({ id: 'kidmode', label: '🎮 Kid Mode' });
+  }
 
   if (activeCheats.length === 0) return null;
 

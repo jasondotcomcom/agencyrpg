@@ -322,7 +322,7 @@ export default function TerminalApp(): React.ReactElement {
   const { addNotification, focusOrOpenWindow } = useWindowContext();
   const { entries: portfolioEntries, attachAward, addEntry } = usePortfolioContext();
   const { applyMinScore, setOneTimeMinScore, toggleNightmareMode,
-    toggleBigHeadMode, setHRWatcherActive, recordCheatUsed, cheat } = useCheatContext();
+    toggleBigHeadMode, setHRWatcherActive, setKidMode, recordCheatUsed, cheat } = useCheatContext();
   const { unlockAchievement, unlockedAchievements, incrementCounter } = useAchievementContext();
   const { addEmail } = useEmailContext();
 
@@ -796,7 +796,117 @@ Generate output for this tool based on the context above. Rules:
     // ─── Easter eggs & cheat codes ─────────────────────────────────────────
     // Checked FIRST — prevents the NL interpreter from misidentifying them
 
-    if (lower === 'rosebud' || lower === 'rosebud!') {
+    if (lower === 'funvideogames') {
+      triggerCheatEffect('KID MODE 🎮');
+      const n = recordCheatUsed('funvideogames');
+      if (n >= 5)  unlockAchievement('serial-cheater');
+      if (n >= 10) unlockAchievement('cheat-encyclopedia');
+      setKidMode(true);
+
+      // Build and deliver Elijah's email
+      const kidEmail = {
+        id: `kid-brief-${Date.now()}`,
+        type: 'campaign_brief' as const,
+        from: { name: 'Elijah (age 7) and his dad', email: 'elijah@coolkids.games', avatar: '👦' },
+        subject: '🎮 THE WEIRDEST VIDEO GAME EVER — Please help us make it!!!',
+        isUrgent: false,
+        isKidMode: true,
+        body: `Dear Agency People,
+
+My name is Elijah and I am 7 years old. My dad is helping me type this.
+
+I invented the BEST video game ever. It's called "THE WEIRDEST VIDEO GAME EVER" and here is what happens in it:
+
+🏀 You play basketball but on ICE
+⚽ But the ball is a SOCCER BALL (because it's weirder that way)
+🌋 There's LAVA on the sides so don't fall
+🦖 The ref is a DINOSAUR and he's NOT FAIR
+⚡ The logo has LIGHTNING because lightning is cool
+
+My dad said you guys can make it look really professional but I said it should still look WEIRD because that's the whole point.
+
+Budget: $25,000 (my dad said that's how much it costs) (also I have $5,000 in candy if you need more)
+
+Please say yes!! My friend Marcus said it's a dumb idea but Marcus also eats glue so I don't listen to him.
+
+Thank you!!!!!!!
+Elijah 🎮
+
+P.S. — Can the dinosaur ref wear sunglasses? That would be SO COOL
+P.P.S. — My dad says hi`,
+        timestamp: new Date(),
+        isRead: false,
+        isStarred: false,
+        isDeleted: false,
+        campaignBrief: {
+          clientName: 'Elijah (age 7)',
+          challenge: 'Create a brand identity and launch campaign for THE WEIRDEST VIDEO GAME EVER — basketball on ice with a soccer ball, lava hazards, and a dinosaur referee in sunglasses.',
+          audience: 'Kids ages 6-12 who love weird stuff, plus parents who think it\'s hilarious',
+          message: 'This is the weirdest (and therefore best) video game ever made. Your friend Marcus is wrong.',
+          successMetrics: [
+            'Kids think it looks COOL',
+            'Parents actually want to buy it',
+            'The dinosaur ref looks good in sunglasses',
+            'Marcus admits he was wrong',
+          ],
+          budget: 25000,
+          timeline: '3 weeks (Elijah has a book report due so he needs it done before that)',
+          vibe: 'Weird, fun, colorful, exciting, a little chaotic — like recess but with lava',
+          openEndedAsk: 'Make it look professional but still WEIRD. And cool. And the lightning on the logo has to be yellow. Not blue lightning. Yellow.',
+          constraints: ['Must include a dinosaur in sunglasses', 'Lightning must be yellow', 'No blue lightning under any circumstances'],
+          clientPersonality: 'Enthusiastic 7-year-old with strong creative opinions and a dad who is trying very hard not to laugh',
+          industry: 'gaming',
+        },
+      };
+      addEmail(kidEmail);
+      addNotification('📧 New Brief!', '🎮 Elijah (age 7) has a game idea for you.');
+
+      // Team chat reactions — wholesome, enthusiastic
+      const kidChat = [
+        { authorId: 'pm',           text: "...did we just get a brief from a 7-year-old?",                                   delay: 800 },
+        { authorId: 'copywriter',   text: "Basketball on ICE with a SOCCER BALL?? I'm already obsessed.",                    delay: 2000 },
+        { authorId: 'art-director', text: "A dinosaur referee in sunglasses. This is the best brief we've ever gotten.",     delay: 3200 },
+        { authorId: 'strategist',   text: 'Target audience: kids who love weird stuff. Honestly? Strongest positioning I\'ve seen all quarter.', delay: 4500 },
+        { authorId: 'suit',         text: "Budget includes $5,000 in candy. I've never been more motivated to close a deal.",  delay: 5800 },
+        { authorId: 'technologist', text: "The lava mechanics alone... this kid is a visionary. I'm not even joking.",        delay: 7000 },
+        { authorId: 'media',        text: "If we can't make this go viral with kids, we don't deserve to be in advertising.", delay: 8200 },
+        { authorId: 'pm',           text: "Also Marcus eats glue so his opinion is IRRELEVANT. Check your inbox, everyone. We're doing this. 🎮", delay: 9500 },
+      ];
+      kidChat.forEach(({ authorId, text, delay }) => {
+        setTimeout(() => {
+          addMessage({
+            id: `kidmode-chat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            channel: 'general',
+            authorId,
+            text,
+            timestamp: Date.now(),
+            reactions: [],
+            isRead: false,
+          });
+        }, delay);
+      });
+
+      addLines([
+        ['ascii',  '🎮  K I D   M O D E'],
+        ['blank',  ''],
+        ['success', 'New brief from Elijah (age 7) has arrived!'],
+        ['blank',  ''],
+        ['output', '  Client: Elijah (age 7) and his dad'],
+        ['output', '  Project: THE WEIRDEST VIDEO GAME EVER'],
+        ['output', '  Budget: $25,000 (+ $5,000 in candy)'],
+        ['blank',  ''],
+        ['output', '  🏀 Basketball on ice'],
+        ['output', '  ⚽ With a soccer ball'],
+        ['output', '  🌋 Lava on the sides'],
+        ['output', '  🦖 Dinosaur referee in sunglasses'],
+        ['output', '  ⚡ Yellow lightning logo'],
+        ['blank',  ''],
+        ['output', 'Check your inbox. Check #general.'],
+        ['output', 'Marcus eats glue. We\'re doing this.'],
+      ]);
+    }
+
+    else if (lower === 'rosebud' || lower === 'rosebud!') {
       addProfit(`cheat-rosebud-${Date.now()}`, '💰 Console: rosebud', 1000);
       triggerCheatEffect('ROSEBUD');
       const n = recordCheatUsed('rosebud');
@@ -1507,6 +1617,7 @@ Human Resources
         ['info',   'FUN:'],
         ['output', '  bighead ........... Big Head Mode'],
         ['output', '  hotcoffee ......... ☕ You\'ll see.'],
+        ['output', '  funvideogames ..... 🎮 Kid Mode'],
         ['output', '  theclientisalwaysright ... Nightmare feedback'],
         ['output', '  noclip ............ Phase through walls (kinda)'],
         ['blank',  ''],
@@ -1852,7 +1963,7 @@ Human Resources
     triggerEndingSequence, sendAcquisitionOffer, getActiveCampaigns, addReputation,
     addNotification, portfolioEntries, attachAward, addEntry, addMessage, addEmail,
     applyMinScore, setOneTimeMinScore, toggleNightmareMode,
-    toggleBigHeadMode, setHRWatcherActive, recordCheatUsed, cheat,
+    toggleBigHeadMode, setHRWatcherActive, setKidMode, recordCheatUsed, cheat,
     unlockAchievement, unlockedAchievements, incrementCounter,
   ]);
 

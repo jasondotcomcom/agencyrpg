@@ -70,6 +70,7 @@ export interface ChatEventContext {
   tierDescription?: string;
   isSketchyClient?: boolean;
   isSeasonal?: boolean;
+  isKidMode?: boolean;
 }
 
 // ─── Message Template (used by chatMessages.ts) ──────────────────────────────

@@ -23,6 +23,7 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'credits',              name: 'Credit Where Due',        icon: '✨', description: 'Found the creator.' },
   { id: 'ai-humor',             name: 'Artificial Comedy',       icon: '🤖', description: 'You made the AI tell a joke.' },
   { id: 'impulse',              name: 'Armed and Ready',         icon: '🔫', description: 'Full arsenal loaded.' },
+  { id: 'take-your-kid-to-work-day', name: 'Take Your Kid to Work Day', icon: '👦', description: 'Completed Elijah\'s weird video game campaign.' },
 
   // ── Campaign milestones ───────────────────────────────────────────────────
   { id: 'first-campaign',       name: 'First Pitch',             icon: '🎯', description: 'Completed your first campaign.' },

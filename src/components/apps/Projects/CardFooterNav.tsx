@@ -6,9 +6,11 @@ interface CardFooterNavProps {
   maxAccessible: number;
   onNext: () => void;
   onBack: () => void;
+  nextDisabled?: boolean;
+  nextLabel?: string;
 }
 
-export default function CardFooterNav({ activeIndex, maxAccessible, onNext, onBack }: CardFooterNavProps) {
+export default function CardFooterNav({ activeIndex, maxAccessible, onNext, onBack, nextDisabled, nextLabel }: CardFooterNavProps) {
   const canGoBack = activeIndex > 0;
   const canGoNext = activeIndex < maxAccessible;
 
@@ -26,10 +28,11 @@ export default function CardFooterNav({ activeIndex, maxAccessible, onNext, onBa
       )}
       {canGoNext && (
         <button
-          className={styles.nextBtn}
-          onClick={() => { hapticTap(); onNext(); }}
+          className={`${styles.nextBtn} ${nextDisabled ? styles.nextDisabled : ''}`}
+          onClick={() => { if (!nextDisabled) { hapticTap(); onNext(); } }}
+          disabled={nextDisabled}
         >
-          Next ›
+          {nextLabel || 'Next ›'}
         </button>
       )}
     </div>

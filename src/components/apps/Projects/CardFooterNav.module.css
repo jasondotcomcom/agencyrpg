@@ -41,3 +41,13 @@
   background: #27ae60;
   transform: scale(0.97);
 }
+
+.nextDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.nextDisabled:active {
+  background: var(--color-mint, #2ecc71);
+  transform: none;
+}

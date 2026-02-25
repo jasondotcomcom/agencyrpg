@@ -1173,3 +1173,178 @@
 .swipeRight:hover { border-color: var(--color-mint); background: rgba(168, 230, 207, 0.1); }
 
 /* Calendar Shuffle styles moved to CalendarApp.module.css */
+
+/* ─── Mobile Overrides ─────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .container {
+    min-width: 0;
+    max-width: 100vw;
+    padding: 12px;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow-x: hidden;
+  }
+
+  .readyInstruction {
+    font-size: 1.375rem;
+    max-width: 280px;
+  }
+
+  .gameArea {
+    max-width: 100%;
+    height: auto;
+    max-height: 260px;
+  }
+
+  .timerBar {
+    max-width: 100%;
+  }
+
+  /* All canvas / play-area containers */
+  .gameCanvas,
+  .flickCanvas,
+  .dodgeCanvas,
+  .bubbleField,
+  .drawCanvas {
+    max-width: 100%;
+    width: 100%;
+    height: 220px;
+  }
+
+  /* Drag pieces: allow text to wrap if needed */
+  .dragPiece {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    max-width: 45%;
+  }
+
+  .dragPiece .pieceEmoji {
+    font-size: 1rem;
+  }
+
+  /* Drop targets: ensure they fit */
+  .dropTarget {
+    font-size: 0.6875rem;
+  }
+
+  .dropEmoji {
+    font-size: 1rem;
+  }
+
+  .dropLabel {
+    font-size: 0.5625rem;
+  }
+
+  /* Options row: tighter spacing */
+  .optionsRow {
+    gap: 8px;
+  }
+
+  .option {
+    padding: 12px 14px;
+    min-width: 72px;
+  }
+
+  .optionEmoji {
+    font-size: 1.5rem;
+  }
+
+  /* Pattern dots: smaller on narrow screens */
+  .patternDots {
+    gap: 10px;
+  }
+
+  .patternDot {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    font-size: 1.25rem;
+  }
+
+  /* Spot difference: tighter */
+  .spotWrap {
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  .spotPanel {
+    padding: 12px 8px;
+  }
+
+  /* Tab game: fit viewport */
+  .tabGameWrap {
+    max-width: 100%;
+  }
+
+  .tab {
+    max-width: 100px;
+    font-size: 0.625rem;
+    padding: 5px 8px;
+  }
+
+  /* Spin: smaller wheel */
+  .spinCircle {
+    width: 150px;
+    height: 150px;
+  }
+
+  /* Swipe game: fit screen */
+  .swipeWrap {
+    max-width: 100%;
+  }
+
+  .swipeCard {
+    padding: 20px 24px;
+    min-width: 140px;
+  }
+
+  /* Typo find: smaller words */
+  .typoWrap {
+    max-width: 100%;
+    padding: 8px;
+    gap: 6px 8px;
+  }
+
+  .typoWord {
+    padding: 4px 10px;
+    font-size: 0.875rem;
+  }
+
+  /* Meter: fit screen */
+  .meterWrap {
+    max-width: 100%;
+  }
+
+  /* Layer stack: smaller */
+  .layerStack {
+    width: 100%;
+    max-width: 260px;
+    height: 180px;
+  }
+
+  /* Hold button: smaller */
+  .holdTarget {
+    width: 100px;
+    height: 100px;
+    font-size: 2rem;
+  }
+
+  /* Rapid click */
+  .rapidMeter {
+    width: 180px;
+  }
+
+  /* Result/complete screens */
+  .resultIcon {
+    font-size: 2.5rem;
+  }
+
+  .completeEmoji {
+    font-size: 2.5rem;
+  }
+
+  .completeTitle {
+    font-size: 1.25rem;
+  }
+}

@@ -124,6 +124,7 @@ export default function EmailDetail({ email }: EmailDetailProps) {
       clientName: email.campaignBrief.clientName,
       assignedTeamIds: [],
       isSeasonal: email.isSeasonal,
+      isKidMode: email.isKidMode,
     });
 
     // Fontaine brief — sketchy client accepted, team is uncomfortable

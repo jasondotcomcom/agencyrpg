@@ -121,11 +121,14 @@ export function DragDropGame({
     return () => clearTimeout(timer);
   }, [revealDelayMs, visibleCount, items.length]);
 
-  // Initialize item positions scattered in top portion
+  // Initialize item positions scattered in top portion (responsive to container width)
   useEffect(() => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    const w = rect ? rect.width : 440;
+    const colWidth = Math.floor((w - 40) / 3);
     const init: Record<string, { x: number; y: number }> = {};
     items.forEach((item, i) => {
-      init[item.id] = { x: 30 + (i % 3) * 130, y: 15 + Math.floor(i / 3) * 55 };
+      init[item.id] = { x: 15 + (i % 3) * colWidth, y: 15 + Math.floor(i / 3) * 50 };
     });
     setPositions(init);
   }, [items.length]);
@@ -247,8 +250,15 @@ export function SimpleDragGame({
   const [isDragging, setIsDragging] = useState(false);
   const [done, setDone] = useState(false);
   const offset = useRef({ x: 0, y: 0 });
-  // Target position: bottom-right area
-  const targetPos = { x: 320, y: 180 };
+  // Target position: bottom-right area (responsive)
+  const [targetPos, setTargetPos] = useState({ x: 320, y: 180 });
+  // Adjust target position based on container size
+  useEffect(() => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) {
+      setTargetPos({ x: Math.min(320, rect.width - 100), y: Math.min(180, rect.height - 80) });
+    }
+  }, []);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -372,9 +382,10 @@ export function RepelFlickGame({
 
       rotRef.current += velRef.current.x * 1.5;
 
-      // Wall bounces (sides and top)
+      // Wall bounces (responsive to container)
+      const maxX = (containerRef.current?.clientWidth ?? 440) - 40;
       if (posRef.current.x < 0) { posRef.current.x = 0; velRef.current.x *= -0.4; }
-      if (posRef.current.x > 400) { posRef.current.x = 400; velRef.current.x *= -0.4; }
+      if (posRef.current.x > maxX) { posRef.current.x = maxX; velRef.current.x *= -0.4; }
       if (posRef.current.y < -20) { posRef.current.y = -20; velRef.current.y *= -0.3; }
 
       // Target check
@@ -391,7 +402,8 @@ export function RepelFlickGame({
       }
 
       // Off bottom — reset to start (allow retry within timer)
-      if (posRef.current.y > 300) {
+      const maxY = (containerRef.current?.clientHeight ?? 260) + 40;
+      if (posRef.current.y > maxY) {
         posRef.current = { ...startPos };
         velRef.current = { x: 0, y: 0 };
         rotRef.current = 0;
@@ -468,14 +480,14 @@ type MovementPattern = 'horizontal' | 'inward' | 'vertical';
 interface Obstacle { x: number; y: number; vx: number; vy: number; emoji: string }
 
 function spawnObstacle(
-  emoji: string, speed: number, pattern: MovementPattern,
+  emoji: string, speed: number, pattern: MovementPattern, canvasW = 440, canvasH = 260,
 ): Obstacle {
   switch (pattern) {
     case 'horizontal': {
       const fromLeft = Math.random() > 0.5;
       return {
-        x: fromLeft ? -20 : 460,
-        y: 30 + Math.random() * 200,
+        x: fromLeft ? -20 : canvasW + 20,
+        y: 30 + Math.random() * (canvasH - 60),
         vx: (fromLeft ? 1 : -1) * speed * (0.8 + Math.random() * 0.4),
         vy: (Math.random() - 0.5) * speed * 0.15,
         emoji,
@@ -484,13 +496,14 @@ function spawnObstacle(
     case 'inward': {
       const side = Math.floor(Math.random() * 4);
       let x: number, y: number;
+      const cw = canvasW, ch = canvasH;
       switch (side) {
-        case 0: x = 40 + Math.random() * 360; y = -20; break;
-        case 1: x = 460; y = 30 + Math.random() * 200; break;
-        case 2: x = 40 + Math.random() * 360; y = 280; break;
-        default: x = -20; y = 30 + Math.random() * 200; break;
+        case 0: x = 40 + Math.random() * (cw - 80); y = -20; break;
+        case 1: x = cw + 20; y = 30 + Math.random() * (ch - 60); break;
+        case 2: x = 40 + Math.random() * (cw - 80); y = ch + 20; break;
+        default: x = -20; y = 30 + Math.random() * (ch - 60); break;
       }
-      const centerX = 220, centerY = 130;
+      const centerX = cw / 2, centerY = ch / 2;
       const dx = centerX - x, dy = centerY - y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       return {
@@ -502,7 +515,7 @@ function spawnObstacle(
     }
     case 'vertical': {
       return {
-        x: 20 + Math.random() * 400,
+        x: 20 + Math.random() * (canvasW - 40),
         y: -20 - Math.random() * 40,
         vx: (Math.random() - 0.5) * speed * 0.15,
         vy: speed * (0.4 + Math.random() * 0.4),
@@ -523,6 +536,7 @@ export function AvoidGame({
   onFail: (meta?: { hits?: number }) => void;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const canvasSizeRef = useRef({ w: 440, h: 260 });
   const playerPos = useRef({ x: 220, y: 130 });
   const [renderTick, setRenderTick] = useState(0);
   const obstaclesRef = useRef<Obstacle[]>([]);
@@ -530,16 +544,22 @@ export function AvoidGame({
   const hitCountRef = useRef(0);
 
   useEffect(() => {
+    // Measure actual canvas size
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (rect) {
+      canvasSizeRef.current = { w: rect.width, h: rect.height };
+      playerPos.current = { x: rect.width / 2, y: rect.height / 2 };
+    }
+    const cw = canvasSizeRef.current.w;
+    const ch = canvasSizeRef.current.h;
+
     // Wave 1: slow sparse obstacles
     const wave1Speed = baseSpeed * 0.6;
     const obs: Obstacle[] = [];
     for (let i = 0; i < baseCount; i++) {
-      const o = spawnObstacle(obstacleEmoji, wave1Speed, movementPattern);
-      // For vertical pattern all obstacles spawn above the canvas (-20 to -60),
-      // making the game look empty for 6+ seconds. Stagger initial y positions
-      // so ~2/3 of obstacles are already visible at the top of the canvas.
+      const o = spawnObstacle(obstacleEmoji, wave1Speed, movementPattern, cw, ch);
       if (movementPattern === 'vertical') {
-        o.y = -20 + (i / baseCount) * 70; // spreads -20 … 26 (safe: player at y=130)
+        o.y = -20 + (i / baseCount) * 70;
       }
       obs.push(o);
     }
@@ -550,7 +570,7 @@ export function AvoidGame({
       if (failedRef.current) return;
       const speed = baseSpeed * 0.85;
       for (let i = 0; i < 2; i++) {
-        obstaclesRef.current.push(spawnObstacle(obstacleEmoji, speed, movementPattern));
+        obstaclesRef.current.push(spawnObstacle(obstacleEmoji, speed, movementPattern, cw, ch));
       }
     }, 3000);
 
@@ -559,7 +579,7 @@ export function AvoidGame({
       if (failedRef.current) return;
       const speed = baseSpeed * 1.1;
       for (let i = 0; i < 2; i++) {
-        obstaclesRef.current.push(spawnObstacle(obstacleEmoji, speed, movementPattern));
+        obstaclesRef.current.push(spawnObstacle(obstacleEmoji, speed, movementPattern, cw, ch));
       }
     }, 6000);
 
@@ -572,22 +592,21 @@ export function AvoidGame({
         o.x += o.vx;
         o.y += o.vy;
 
-        // Respawn/wrap based on pattern
+        // Respawn/wrap based on pattern (using actual canvas size)
         switch (movementPattern) {
           case 'horizontal':
-            if (o.y < 0 || o.y > 250) o.vy *= -1;
-            if (o.x > 460) { o.x = -20; o.y = 30 + Math.random() * 200; }
-            if (o.x < -20) { o.x = 460; o.y = 30 + Math.random() * 200; }
+            if (o.y < 0 || o.y > ch - 10) o.vy *= -1;
+            if (o.x > cw + 20) { o.x = -20; o.y = 30 + Math.random() * (ch - 60); }
+            if (o.x < -20) { o.x = cw + 20; o.y = 30 + Math.random() * (ch - 60); }
             break;
           case 'inward':
-            // Passed through center and went off the other side — respawn from edge
-            if (o.x < -30 || o.x > 470 || o.y < -30 || o.y > 290) {
-              const fresh = spawnObstacle(obstacleEmoji, baseSpeed * 0.7, movementPattern);
+            if (o.x < -30 || o.x > cw + 30 || o.y < -30 || o.y > ch + 30) {
+              const fresh = spawnObstacle(obstacleEmoji, baseSpeed * 0.7, movementPattern, cw, ch);
               o.x = fresh.x; o.y = fresh.y; o.vx = fresh.vx; o.vy = fresh.vy;
             }
             break;
           case 'vertical':
-            if (o.y > 280) { o.y = -20; o.x = 20 + Math.random() * 400; }
+            if (o.y > ch + 20) { o.y = -20; o.x = 20 + Math.random() * (cw - 40); }
             break;
         }
       }
@@ -619,14 +638,14 @@ export function AvoidGame({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseCount, baseSpeed, obstacleEmoji, movementPattern, onFail]);
 
-  // Track mouse and touch
+  // Track mouse and touch (responsive to actual canvas size)
   useEffect(() => {
     const handleMove = (e: MouseEvent) => {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
       playerPos.current = {
-        x: Math.max(14, Math.min(426, e.clientX - rect.left)),
-        y: Math.max(14, Math.min(246, e.clientY - rect.top)),
+        x: Math.max(14, Math.min(rect.width - 14, e.clientX - rect.left)),
+        y: Math.max(14, Math.min(rect.height - 14, e.clientY - rect.top)),
       };
     };
     const handleTouchMove = (e: TouchEvent) => {
@@ -635,8 +654,8 @@ export function AvoidGame({
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
       playerPos.current = {
-        x: Math.max(14, Math.min(426, touch.clientX - rect.left)),
-        y: Math.max(14, Math.min(246, touch.clientY - rect.top)),
+        x: Math.max(14, Math.min(rect.width - 14, touch.clientX - rect.left)),
+        y: Math.max(14, Math.min(rect.height - 14, touch.clientY - rect.top)),
       };
     };
     window.addEventListener('mousemove', handleMove);
@@ -701,11 +720,14 @@ export function BubblePopGame({
     let lastRender = 0;
     const loop = (time: number) => {
       if (!running) return;
+      const cRect = containerRef.current?.getBoundingClientRect();
+      const bw = (cRect?.width ?? 440) - 60;
+      const bh = (cRect?.height ?? 260) - 50;
       positionsRef.current.forEach((pos, i) => {
         pos.x += bubbles[i].vx;
         pos.y += bubbles[i].vy;
-        if (pos.x < 0 || pos.x > 380) bubbles[i].vx *= -1;
-        if (pos.y < 0 || pos.y > 210) bubbles[i].vy *= -1;
+        if (pos.x < 0 || pos.x > bw) bubbles[i].vx *= -1;
+        if (pos.y < 0 || pos.y > bh) bubbles[i].vy *= -1;
       });
       if (time - lastRender > 50) {
         lastRender = time;

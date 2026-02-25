@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Campaign, CampaignPhase } from '../../../types/campaign';
+import { useCampaignContext } from '../../../context/CampaignContext';
 import { useTouchGesture } from '../../../hooks/useTouchGesture';
 import { hapticTap } from '../../../utils/haptics';
 import ProgressDots from './ProgressDots';
@@ -25,6 +26,8 @@ const PHASE_MAX: Record<CampaignPhase, number> = {
   completed: 6,
 };
 
+const TEAM_CARD_INDEX = 1;
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 interface MobileCampaignCardFlowProps {
@@ -42,18 +45,32 @@ export default function MobileCampaignCardFlow({
   isSubmitting,
   onBack,
 }: MobileCampaignCardFlowProps) {
+  const { setConceptingTeam } = useCampaignContext();
   const [activeIndex, setActiveIndex] = useState(0);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isAnimating, setIsAnimating] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const swipingHorizontalRef = useRef(false);
 
+  // Track team selection from TeamCard (state so Next button reactively enables/disables)
+  const [teamSelection, setTeamSelection] = useState<string[]>(
+    campaign.conceptingTeam?.memberIds || []
+  );
+  const teamSelectionRef = useRef(teamSelection);
+  teamSelectionRef.current = teamSelection;
+
+  const handleTeamSelectionChange = useCallback((ids: string[]) => {
+    setTeamSelection(ids);
+  }, []);
+
+  const teamIsValid = teamSelection.length >= 2 && teamSelection.length <= 4;
+
   const maxAccessible = PHASE_MAX[campaign.phase] ?? 2;
 
-  // Auto-advance when phase changes
+  // Auto-advance when phase changes (but not during concepting — let user navigate manually)
   useEffect(() => {
     const target = PHASE_MAX[campaign.phase] ?? 0;
-    if (target > activeIndex) {
+    if (campaign.phase !== 'concepting' && target > activeIndex) {
       setActiveIndex(target);
     }
   }, [campaign.phase]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -62,6 +79,15 @@ export default function MobileCampaignCardFlow({
     setIsAnimating(true);
     setActiveIndex(Math.max(0, Math.min(idx, maxAccessible)));
   }, [maxAccessible]);
+
+  // Handle Next — if on team card, commit the team first
+  const handleNext = useCallback(() => {
+    if (activeIndex === TEAM_CARD_INDEX && !campaign.conceptingTeam) {
+      if (!teamIsValid) return;
+      setConceptingTeam(campaign.id, teamSelectionRef.current);
+    }
+    goTo(activeIndex + 1);
+  }, [activeIndex, campaign.id, campaign.conceptingTeam, goTo, setConceptingTeam, teamIsValid]);
 
   // Swipe handling
   useTouchGesture(containerRef, {
@@ -80,7 +106,7 @@ export default function MobileCampaignCardFlow({
     onSwipeLeft() {
       if (swipingHorizontalRef.current && activeIndex < maxAccessible) {
         hapticTap();
-        goTo(activeIndex + 1);
+        handleNext();
       }
       setSwipeOffset(0);
       swipingHorizontalRef.current = false;
@@ -101,6 +127,11 @@ export default function MobileCampaignCardFlow({
   });
 
   const trackTransform = `translateX(calc(-${activeIndex * 100}% + ${swipeOffset}px))`;
+
+  // Next button disabled when on team card with invalid selection
+  const isOnTeamCard = activeIndex === TEAM_CARD_INDEX;
+  const teamAlreadySet = !!campaign.conceptingTeam;
+  const nextDisabled = isOnTeamCard && !teamAlreadySet && !teamIsValid;
 
   return (
     <div className={styles.cardFlow} ref={containerRef}>
@@ -127,7 +158,9 @@ export default function MobileCampaignCardFlow({
         }}
       >
         <div className={styles.cardSlot}><BriefCard campaign={campaign} /></div>
-        <div className={styles.cardSlot}><TeamCard campaign={campaign} /></div>
+        <div className={styles.cardSlot}>
+          <TeamCard campaign={campaign} onSelectionChange={handleTeamSelectionChange} />
+        </div>
         <div className={styles.cardSlot}><DirectionCard campaign={campaign} /></div>
         <div className={styles.cardSlot}><ConceptsCard campaign={campaign} /></div>
         <div className={styles.cardSlot}><DeliverablesCard campaign={campaign} /></div>
@@ -145,8 +178,9 @@ export default function MobileCampaignCardFlow({
       <CardFooterNav
         activeIndex={activeIndex}
         maxAccessible={maxAccessible}
-        onNext={() => goTo(activeIndex + 1)}
+        onNext={handleNext}
         onBack={() => goTo(activeIndex - 1)}
+        nextDisabled={nextDisabled}
       />
     </div>
   );

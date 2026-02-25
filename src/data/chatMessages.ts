@@ -282,6 +282,14 @@ export function getCampaignEventMessages(
 // No team assigned yet — everyone reacts as general awareness
 
 function getBriefAcceptedMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
+  if (ctx.isKidMode) {
+    return [
+      { channel: 'general', authorId: 'pm', text: `We're really doing this. ${ctx.clientName}'s brief is officially locked in. Let's make this kid's dream come true. 🎮` },
+      { channel: 'general', authorId: 'copywriter', text: `I haven't been this excited about a brief in YEARS. "${ctx.clientName}" — the copy practically writes itself.` },
+      { channel: 'general', authorId: 'strategist', text: `The strategic insight is simple: this kid knows exactly what he wants. That's more than most clients. Let's deliver.` },
+      { channel: 'general', authorId: 'art-director', text: `Dinosaur in sunglasses. Yellow lightning. Lava. This is the creative brief I've been waiting my whole career for.` },
+    ];
+  }
   if (ctx.isSeasonal) {
     return [
       { channel: 'general', authorId: 'pm', text: `Seasonal brief locked in — ${ctx.clientName}. Let's make the most of the timing! ⏰` },
@@ -998,6 +1006,12 @@ function getCampaignScoredPoorlyMessages(ctx: ChatEventContext, morale: MoraleLe
 // No team assigned yet — pure awareness
 
 function getNewBriefArrivedMessages(ctx: ChatEventContext, morale: MoraleLevel): MessageTemplate[] {
+  if (ctx.isKidMode) {
+    return [
+      { channel: 'general', authorId: 'suit', text: `New brief just came in from... ${ctx.clientName}. This is not a drill. A 7-year-old just pitched us a video game. 🎮` },
+      { channel: 'general', authorId: 'pm', text: `Everyone stop what you're doing and check the inbox. This is the most wholesome brief I've ever read. Marcus eats glue.` },
+    ];
+  }
   if (ctx.isSeasonal) {
     return [
       { channel: 'general', authorId: 'suit', text: `Seasonal brief just came in from ${ctx.clientName}. Limited window on this one — worth a look. 📅` },

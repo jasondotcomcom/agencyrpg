@@ -9,6 +9,7 @@
   position: relative;
   font-family: 'Quicksand', sans-serif;
   user-select: none;
+  touch-action: none;
 }
 
 /* ─── Top Row ──────────────────────────────────────────────────────────────── */
@@ -50,6 +51,21 @@
   opacity: 0.4;
 }
 
+/* ─── Waste Pile (draw-3 fan) ──────────────────────────────────────────────── */
+
+.wasteSlot {
+  position: relative;
+  width: 94px; /* 62 + 2*16 for the fan */
+  height: 88px;
+  flex-shrink: 0;
+}
+
+.wasteCard {
+  position: absolute;
+  top: 0;
+  cursor: pointer;
+}
+
 /* ─── Card ─────────────────────────────────────────────────────────────────── */
 
 .card {
@@ -59,19 +75,15 @@
   border-radius: 6px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   position: relative;
-  cursor: pointer;
-  transition: box-shadow 0.1s ease;
-}
-
-.card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: grab;
 }
 
 .cardRed { color: #e74c3c; }
 .cardBlack { color: #2c3e50; }
 
-.cardHighlight {
-  box-shadow: 0 0 0 3px #ffd700, 0 4px 12px rgba(255, 215, 0, 0.4) !important;
+.cardGhost {
+  opacity: 0.15;
+  pointer-events: none;
 }
 
 .cardRank {
@@ -135,6 +147,20 @@
 .tableauCard {
   position: absolute;
   left: 0;
+}
+
+/* ─── Floating Drag Overlay ────────────────────────────────────────────────── */
+
+.floatingCards {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.floatingCard {
+  position: absolute;
+  left: 0;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
 }
 
 /* ─── Buttons ──────────────────────────────────────────────────────────────── */
@@ -218,7 +244,6 @@
 @media (max-width: 768px), (pointer: coarse) {
   .container {
     padding: 6px;
-    touch-action: manipulation;
   }
 
   .topRow {
@@ -246,6 +271,15 @@
     width: 48px;
     height: 68px;
     font-size: 1rem;
+  }
+
+  .wasteSlot {
+    width: 74px; /* 48 + 2*13 for the fan */
+    height: 68px;
+  }
+
+  .wasteCard {
+    /* Slightly tighter fan on mobile */
   }
 
   .cardRank {
@@ -279,5 +313,10 @@
 
   .foundationHint {
     font-size: 1.125rem;
+  }
+
+  .floatingCard .card {
+    width: 48px;
+    height: 68px;
   }
 }

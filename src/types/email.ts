@@ -57,6 +57,7 @@ export interface Email {
   isDeleted: boolean;
   isUrgent?: boolean;
   isSeasonal?: boolean;
+  isKidMode?: boolean;
   declined?: boolean;
   // Type-specific data
   campaignBrief?: CampaignBrief;

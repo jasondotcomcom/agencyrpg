@@ -42,4 +42,6 @@
   justify-content: center;
   overflow: hidden;
   padding: 8px;
+  max-width: 100vw;
+  box-sizing: border-box;
 }
