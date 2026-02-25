@@ -421,6 +421,9 @@ export default function TerminalApp(): React.ReactElement {
     ]);
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch('/api/anthropic/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -429,7 +432,10 @@ export default function TerminalApp(): React.ReactElement {
           max_tokens: 600,
           messages: [{ role: 'user', content: buildToolPrompt(description) }],
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       if (!response.ok) {
         const errText = await response.text().catch(() => '');
@@ -608,6 +614,9 @@ Generate output for this tool based on the context above. Rules:
 - Each run should produce fresh, varied output — never repeat the same result`;
 
     try {
+      const controller = new AbortController();
+      const runTimeout = setTimeout(() => controller.abort(), isGame ? 60000 : 30000);
+
       const response = await fetch('/api/anthropic/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -616,7 +625,10 @@ Generate output for this tool based on the context above. Rules:
           max_tokens: isGame ? 8000 : isHtml ? 4000 : 800,
           messages: [{ role: 'user', content: prompt }],
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(runTimeout);
 
       if (!response.ok) {
         const errText = await response.text().catch(() => '');
@@ -718,6 +730,9 @@ Generate output for this tool based on the context above. Rules:
     setIsBuilding(true);
 
     try {
+      const controller = new AbortController();
+      const nlTimeout = setTimeout(() => controller.abort(), 15000);
+
       const response = await fetch('/api/anthropic/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -726,7 +741,10 @@ Generate output for this tool based on the context above. Rules:
           max_tokens: 300,
           messages: [{ role: 'user', content: interpretPrompt(input) }],
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(nlTimeout);
 
       if (!response.ok) throw new Error(`API ${response.status}`);
 

@@ -248,6 +248,9 @@ export async function tweakConcept(
 ): Promise<CampaignConcept> {
   const prompt = buildTweakPrompt(concept, tweakNote, campaign);
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
   const response = await fetch('/api/anthropic/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -256,7 +259,10 @@ export async function tweakConcept(
       max_tokens: 2000,
       messages: [{ role: 'user', content: prompt }],
     }),
+    signal: controller.signal,
   });
+
+  clearTimeout(timeout);
 
   if (!response.ok) {
     throw new Error(`Concept tweak failed (${response.status})`);
@@ -324,11 +330,8 @@ export async function generateConcepts(campaign: Campaign): Promise<CampaignConc
 
   const prompt = buildConceptPrompt(campaign);
 
-  console.log('=== CONCEPT GENERATION DEBUG ===');
-  console.log('Direction received:', campaign.strategicDirection);
-  console.log('Team:', getTeamMembers(conceptingTeam.memberIds).map(m => m.name));
-  console.log('Full prompt length:', prompt.length);
-  console.log('Calling Claude API...');
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
 
   const response = await fetch('/api/anthropic/v1/messages', {
     method: 'POST',
@@ -338,11 +341,13 @@ export async function generateConcepts(campaign: Campaign): Promise<CampaignConc
       max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }],
     }),
+    signal: controller.signal,
   });
+
+  clearTimeout(timeout);
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
-    console.error('Claude API error:', response.status, errorText);
     throw new Error(`Concept generation failed (${response.status}): ${errorText}`);
   }
 

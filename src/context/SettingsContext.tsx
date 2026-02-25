@@ -116,7 +116,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   // Apply + persist whenever settings change
   useEffect(() => {
     applySettings(settings);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch { /* quota or private browsing */ }
   }, [settings]);
 
   // Apply immediately on mount (catches any saved state)

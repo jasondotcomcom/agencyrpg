@@ -18,6 +18,9 @@ async function generateDeliverableText(
     feedback
   );
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
   const response = await fetch('/api/anthropic/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -26,7 +29,10 @@ async function generateDeliverableText(
       max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }],
     }),
+    signal: controller.signal,
   });
+
+  clearTimeout(timeout);
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
@@ -46,6 +52,9 @@ async function generateDeliverableImage(
   const size = getSizeForDeliverableType(deliverableType);
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+
     const response = await fetch('/api/openai/v1/images/generations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -56,7 +65,10 @@ async function generateDeliverableImage(
         size,
         response_format: 'url',
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');

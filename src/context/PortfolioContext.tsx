@@ -56,7 +56,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
 
   // Persist on change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); } catch { /* quota or private browsing */ }
     emitSave();
   }, [entries]);
 

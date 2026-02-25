@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { WindowProvider } from './context/WindowContext';
 import { EmailProvider } from './context/EmailContext';
 import { CampaignProvider } from './context/CampaignContext';
@@ -233,6 +234,7 @@ function App() {
   }
 
   return (
+    <ErrorBoundary>
     <PlayerProvider>
     <SettingsProvider>
       <AchievementProvider>
@@ -262,6 +264,7 @@ function App() {
       </AchievementProvider>
     </SettingsProvider>
     </PlayerProvider>
+    </ErrorBoundary>
   );
 }
 

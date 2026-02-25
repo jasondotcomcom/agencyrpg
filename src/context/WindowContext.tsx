@@ -44,7 +44,7 @@ function loadSizeMemory(): Record<string, { width: number; height: number }> {
 function saveSizeMemory(appId: string, width: number, height: number) {
   const mem = loadSizeMemory();
   mem[appId] = { width, height };
-  localStorage.setItem(SIZE_MEMORY_KEY, JSON.stringify(mem));
+  try { localStorage.setItem(SIZE_MEMORY_KEY, JSON.stringify(mem)); } catch { /* quota or private browsing */ }
 }
 
 const TASKBAR_HEIGHT = 56;
@@ -379,10 +379,12 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
   // Persist windows to localStorage
   useEffect(() => {
     const windowsArray = Array.from(state.windows.entries());
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      windows: windowsArray,
-      nextZIndex: state.nextZIndex,
-    }));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        windows: windowsArray,
+        nextZIndex: state.nextZIndex,
+      }));
+    } catch { /* quota or private browsing */ }
   }, [state.windows, state.nextZIndex]);
 
   const openWindow = useCallback((appId: string, title: string) => {

@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect, Suspense } from 'react';
 import AppRouter from '../apps/AppRouter';
+import { WindowErrorBoundary } from '../ErrorBoundary';
 import MobileAppHeader from './MobileAppHeader';
 import { useMobileContext } from '../../context/MobileContext';
 import { useTouchGesture } from '../../hooks/useTouchGesture';
@@ -59,9 +60,11 @@ function DelayedContent({ appId }: { appId: string }) {
   }
 
   return (
-    <Suspense fallback={<AppLoadingSkeleton />}>
-      <AppRouter appId={appId} />
-    </Suspense>
+    <WindowErrorBoundary>
+      <Suspense fallback={<AppLoadingSkeleton />}>
+        <AppRouter appId={appId} />
+      </Suspense>
+    </WindowErrorBoundary>
   );
 }
 

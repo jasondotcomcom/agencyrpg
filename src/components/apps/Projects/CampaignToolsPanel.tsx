@@ -73,6 +73,9 @@ export default function CampaignToolsPanel({ campaign }: Props): React.ReactElem
     setRunningToolId(tool.id);
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch('/api/anthropic/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,7 +84,10 @@ export default function CampaignToolsPanel({ campaign }: Props): React.ReactElem
           max_tokens: 700,
           messages: [{ role: 'user', content: buildContextualPrompt(tool, campaign) }],
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       if (!response.ok) throw new Error(`API ${response.status}`);
 

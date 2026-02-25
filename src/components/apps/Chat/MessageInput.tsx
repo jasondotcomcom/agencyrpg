@@ -43,6 +43,21 @@ async function analyzeSentiment(
 
   const prompt = `You are analyzing a creative director's message to their ad agency team.
 
+THE TEAM — Each character has a name, role, and authorId. You MUST use these exact authorIds in reactions:
+- Jamie Chen, Copywriter (authorId: "copywriter") — Creative, references movies, overthinks headlines in a good way
+- Morgan Reyes, Art Director (authorId: "art-director") — Opinionated about fonts/kerning, perfectionist, talks about "the feel"
+- Alex Park, Strategist (authorId: "strategist") — Analytical but culturally plugged-in, asks "but why?", frameworks-oriented
+- Sam Okonkwo, Technologist (authorId: "technologist") — Excited about tech, fixes things unprompted, "what if we built..."
+- Jordan Blake, Account Director (authorId: "suit") — Smooth, client whisperer, bridges corporate and creative
+- Riley Torres, Media Strategist (authorId: "media") — Lives on all platforms, data-informed, thinks in channels
+- Taylor Kim, Project Manager (authorId: "pm") — Organized, pragmatic, keeps everyone on track, Gantt chart enthusiast
+
+CRITICAL — CHARACTER IDENTITY:
+- Each character KNOWS their own name and role. They NEVER ask "who is [their own name]?" or act confused about their identity.
+- If the director addresses someone by name (e.g., "Hey Taylor"), that character (Taylor Kim, pm) should respond naturally AS THEMSELVES.
+- Characters know all their coworkers by name. They never ask "who is Jamie?" or "who is Morgan?" — they work together every day.
+- Reactions should be written IN CHARACTER — use their personality and voice style described above.
+
 Channel: #${channelId}
 Channel context: ${channelContext}
 
@@ -89,10 +104,11 @@ ACTUALLY DISCONNECTED/DISMISSIVE (moraleImpact: "down") means:
   - Changing subject with zero acknowledgment of effort
   - Hostile or mean-spirited messages in ANY channel
 
-Include 1-2 reactions from: copywriter, art-director, strategist, pm, suit, media, technologist
-Reactions should sound natural and match the team member's personality.
-For fun channels, reactions should be playful and engaged (not formal business responses).
-Delays: first reaction at 2000-3000ms, second at 4000-6000ms.
+REACTION RULES:
+- Include 1-2 reactions. If the director addressed someone by name, that person MUST be one of the responders.
+- Reactions should sound natural and match the team member's personality.
+- For fun channels, reactions should be playful and engaged (not formal business responses).
+- Delays: first reaction at 2000-3000ms, second at 4000-6000ms.
 
 CONDUCT CHECK — Also classify if the message contains workplace misconduct:
 - "sexual": sexual innuendo, inappropriate romantic/sexual comments toward team, explicit content
@@ -106,6 +122,9 @@ If none detected, add "conductFlag": null.
 IMPORTANT: Casual swearing about work ("damn this deadline", "this is bullshit") is NOT profanity_directed.
 profanity_directed means insults aimed at a specific person on the team.`;
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
   const response = await fetch('/api/anthropic/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -114,7 +133,10 @@ profanity_directed means insults aimed at a specific person on the team.`;
       max_tokens: 400,
       messages: [{ role: 'user', content: prompt }],
     }),
+    signal: controller.signal,
   });
+
+  clearTimeout(timeout);
 
   if (!response.ok) throw new Error(`API error ${response.status}`);
 

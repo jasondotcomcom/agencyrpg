@@ -7,6 +7,7 @@ import { useWindowResize } from '../../hooks/useWindowResize';
 import TitleBar from './TitleBar';
 import ResizeHandles from './ResizeHandles';
 import AppRouter from '../apps/AppRouter';
+import { WindowErrorBoundary } from '../ErrorBoundary';
 import { useSettingsContext } from '../../context/SettingsContext';
 import styles from './Window.module.css';
 
@@ -107,7 +108,9 @@ export default function Window({ window: windowState, children }: WindowProps) {
         onMouseDown={onDragMouseDown}
       />
       <div className={styles.windowContent}>
-        {children || <AppRouter appId={windowState.appId} />}
+        <WindowErrorBoundary>
+          {children || <AppRouter appId={windowState.appId} />}
+        </WindowErrorBoundary>
       </div>
       {!windowState.isMaximized && <ResizeHandles getHandleProps={getHandleProps} />}
     </div>

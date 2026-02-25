@@ -155,6 +155,9 @@ export default function ToolApp({ toolId }: Props): React.ReactElement {
     const prompt = buildPrompt(tool, contextBlock);
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch('/api/anthropic/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -163,7 +166,10 @@ export default function ToolApp({ toolId }: Props): React.ReactElement {
           max_tokens: isHtmlTool ? (/game|arcade|playable/i.test(tool.name) || /game|arcade|playable/i.test(tool.runPromptHint || '') ? 8000 : 4000) : 800,
           messages: [{ role: 'user', content: prompt }],
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       if (!response.ok) throw new Error(`API ${response.status}`);
 
