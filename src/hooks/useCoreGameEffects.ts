@@ -175,14 +175,12 @@ export function useCoreGameEffects(): void {
         }, 500));
       }
 
-      // ─── Naming email: deliver as the very first email ever ──────────────
-      // Arrives immediately so it's buried at the bottom of inbox as briefs stack on top
+      // ─── Naming email: silently pre-load as the oldest email ─────────────
+      // Backdated timestamp ensures it sits at the very bottom of the inbox.
+      // No notification — players discover it organically by scrolling down.
       if (!localStorage.getItem('agencyrpg_naming_email_sent') && isAgencyNameDefault) {
         localStorage.setItem('agencyrpg_naming_email_sent', '1');
-        const namingDelay = 100 + Math.random() * 400; // 100-500ms
-        timers.push(setTimeout(() => {
-          addEmail(buildNamingEmail(playerName));
-        }, namingDelay));
+        addEmail(buildNamingEmail(playerName));
       }
 
       if (!hasProgress && !localStorage.getItem('agencyrpg_first_brief_sent')) {
