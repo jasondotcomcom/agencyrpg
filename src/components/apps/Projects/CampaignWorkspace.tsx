@@ -250,6 +250,11 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
       unlockAchievement('one-at-a-time');
     }
 
+    // ── Kid Mode achievement ─────────────────────────────────────────────
+    if (campaign.briefId?.startsWith('kid-brief-')) {
+      unlockAchievement('take-your-kid-to-work-day');
+    }
+
     // ── Prestige (NG+) achievements ────────────────────────────────────────
     if (campaign.briefId?.startsWith('email-ngp-')) {
       unlockAchievement('repeat-customer');
