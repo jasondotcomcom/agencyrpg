@@ -176,3 +176,47 @@ export function stripTrailingVisualDescription(raw: string): string {
   if (index === -1) return raw;
   return raw.substring(0, index).trimEnd();
 }
+
+/**
+ * Extract the QUICK VIEW section from a deliverable response.
+ * Returns { quickView, rest } where rest is the content without the QUICK VIEW block.
+ */
+export function extractQuickView(raw: string): { quickView: string | null; rest: string } {
+  const marker = /^QUICK VIEW:\s*/im;
+  const match = raw.match(marker);
+  if (!match || match.index === undefined) {
+    return { quickView: null, rest: raw };
+  }
+
+  const afterMarker = raw.substring(match.index + match[0].length);
+
+  // The quick view ends at the next section header (all-caps label with colon,
+  // a ━ divider line, or a blank line followed by a header pattern).
+  const endPattern = /\n\s*\n\s*(?=[A-Z][A-Z\s]{2,}:|━)/;
+  const endMatch = afterMarker.match(endPattern);
+
+  let quickView: string;
+  let rest: string;
+  if (endMatch && endMatch.index !== undefined) {
+    quickView = afterMarker.substring(0, endMatch.index).trim();
+    rest = afterMarker.substring(endMatch.index).trim();
+  } else {
+    // No clear section break — take the first paragraph
+    const paraEnd = afterMarker.indexOf('\n\n');
+    if (paraEnd !== -1) {
+      quickView = afterMarker.substring(0, paraEnd).trim();
+      rest = afterMarker.substring(paraEnd).trim();
+    } else {
+      quickView = afterMarker.trim();
+      rest = '';
+    }
+  }
+
+  // Prepend any content before the QUICK VIEW marker
+  const before = raw.substring(0, match.index).trim();
+  if (before) {
+    rest = before + '\n\n' + rest;
+  }
+
+  return { quickView, rest };
+}

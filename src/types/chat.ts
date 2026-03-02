@@ -38,6 +38,7 @@ export interface ChatMessage {
   reactions: ChatReaction[];
   isRead: boolean;
   imageUrl?: string;
+  pendingImageUrl?: string;
   tableData?: ChatTableData;
   memeData?: MemeData;
   generatedImageUrl?: string;

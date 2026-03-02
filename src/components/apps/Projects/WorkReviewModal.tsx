@@ -3,7 +3,7 @@ import type { Campaign, Deliverable } from '../../../types/campaign';
 import { DELIVERABLE_TYPES, PLATFORMS, STATUS_DISPLAY } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { getTeamMembers } from '../../../data/team';
-import { parseContent, isVideoType, stripTrailingVisualDescription, generateScriptSummary } from '../../../utils/contentFormatter';
+import { parseContent, isVideoType, stripTrailingVisualDescription } from '../../../utils/contentFormatter';
 import styles from './WorkReviewModal.module.css';
 
 interface WorkReviewModalProps {
@@ -89,7 +89,7 @@ export default function WorkReviewModal({
                 </span>
               )}
             </div>
-            <ContentPreview content={work.content} type={deliverable.type} />
+            <ContentPreview content={work.content} type={deliverable.type} preview={work.preview} />
           </div>
 
           {work.feedback && (
@@ -175,42 +175,50 @@ export default function WorkReviewModal({
   );
 }
 
-// ─── Content Preview with collapsible long content ──────────────────────────
+// ─── Content Preview with Quick View / Full Version toggle ──────────────────
 
 const COLLAPSED_LINE_LIMIT = 8;
 
-function ContentPreview({ content, type }: { content: string; type: string }) {
+function ContentPreview({ content, type, preview }: { content: string; type: string; preview?: string }) {
   const [expanded, setExpanded] = useState(false);
-  const [showFullScript, setShowFullScript] = useState(false);
+  const [showFull, setShowFull] = useState(!preview);
 
-  if (isVideoType(type)) {
-    return (
-      <div className={styles.previewContent}>
+  return (
+    <div className={styles.previewContent}>
+      {preview && (
         <div className={styles.scriptToggle}>
           <button
-            className={`${styles.scriptToggleBtn} ${!showFullScript ? styles.activeToggle : ''}`}
-            onClick={() => setShowFullScript(false)}
+            className={`${styles.scriptToggleBtn} ${!showFull ? styles.activeToggle : ''}`}
+            onClick={() => setShowFull(false)}
           >
             Quick View
           </button>
           <button
-            className={`${styles.scriptToggleBtn} ${showFullScript ? styles.activeToggle : ''}`}
-            onClick={() => setShowFullScript(true)}
+            className={`${styles.scriptToggleBtn} ${showFull ? styles.activeToggle : ''}`}
+            onClick={() => setShowFull(true)}
           >
-            Full Script
+            Full Version
           </button>
         </div>
-        {showFullScript ? (
-          <div className={styles.scriptFull}>
-            {stripTrailingVisualDescription(content).split('\n').map((line, i) => (
-              <p key={i} className={styles.previewLine}>{line || '\u00A0'}</p>
-            ))}
-          </div>
-        ) : (
-          <div className={styles.scriptSummary}>
-            {generateScriptSummary(content)}
-          </div>
-        )}
+      )}
+      {!showFull && preview ? (
+        <div className={styles.scriptSummary}>
+          {preview}
+        </div>
+      ) : (
+        <FullContent content={content} type={type} expanded={expanded} onToggle={() => setExpanded(!expanded)} />
+      )}
+    </div>
+  );
+}
+
+function FullContent({ content, type, expanded, onToggle }: { content: string; type: string; expanded: boolean; onToggle: () => void }) {
+  if (isVideoType(type)) {
+    return (
+      <div className={styles.scriptFull}>
+        {stripTrailingVisualDescription(content).split('\n').map((line, i) => (
+          <p key={i} className={styles.previewLine}>{line || '\u00A0'}</p>
+        ))}
       </div>
     );
   }
@@ -223,7 +231,7 @@ function ContentPreview({ content, type }: { content: string; type: string }) {
   const visibleLines = isLong && !expanded ? allLines.slice(0, COLLAPSED_LINE_LIMIT) : allLines;
 
   return (
-    <div className={styles.previewContent}>
+    <>
       {visibleLines.map((line, i) =>
         line.type === 'header' ? (
           <p key={i} className={styles.previewHeader}>{line.content}</p>
@@ -231,16 +239,11 @@ function ContentPreview({ content, type }: { content: string; type: string }) {
           <p key={i} className={styles.previewLine}>{line.content || '\u00A0'}</p>
         )
       )}
-      {isLong && !expanded && (
-        <button className={styles.readMoreButton} onClick={() => setExpanded(true)}>
-          Read more...
+      {isLong && (
+        <button className={styles.readMoreButton} onClick={onToggle}>
+          {expanded ? 'Show less' : 'Read more...'}
         </button>
       )}
-      {isLong && expanded && (
-        <button className={styles.readMoreButton} onClick={() => setExpanded(false)}>
-          Show less
-        </button>
-      )}
-    </div>
+    </>
   );
 }

@@ -741,6 +741,7 @@ export function CampaignProvider({ children }: CampaignProviderProps): React.Rea
         const work: GeneratedWork = {
           id: `work-${Date.now()}-${i}`,
           content: result.content,
+          preview: result.preview,
           imageUrl: result.imageUrl,
           generatedAt: new Date(),
           revisionNumber: 1,
@@ -800,6 +801,7 @@ export function CampaignProvider({ children }: CampaignProviderProps): React.Rea
         const work: GeneratedWork = {
           id: `work-${Date.now()}-rev-${i}`,
           content: result.content,
+          preview: result.preview,
           imageUrl: result.imageUrl,
           generatedAt: new Date(),
           revisionNumber: (del.generatedWork?.revisionNumber || 0) + 1,
@@ -875,6 +877,7 @@ export function CampaignProvider({ children }: CampaignProviderProps): React.Rea
         const work: GeneratedWork = {
           id: `work-${Date.now()}`,
           content: result.content,
+          preview: result.preview,
           imageUrl: result.imageUrl,
           generatedAt: new Date(),
           revisionNumber: (deliverable.generatedWork?.revisionNumber || 0) + 1,
@@ -963,6 +966,7 @@ export function CampaignProvider({ children }: CampaignProviderProps): React.Rea
       const work: GeneratedWork = {
         id: `work-${Date.now()}-retry`,
         content: result.content,
+        preview: result.preview,
         imageUrl: result.imageUrl,
         generatedAt: new Date(),
         revisionNumber: (deliverable.generatedWork?.revisionNumber || 0) + 1,

@@ -430,67 +430,55 @@ export async function generateMemeImage(memeData: MemeData, dynamic = false): Pr
   return dataUrl;
 }
 
-// ─── Text Detection ─────────────────────────────────────────────────────────
+// ─── Content Safety ─────────────────────────────────────────────────────────
 
-interface MemeTextParts {
-  topText: string;
-  bottomText: string;
-  visualDesc: string;
+export interface MemeSafetyResult {
+  safe: boolean;
+  rejection?: { authorId: string; text: string };
 }
+
+const MEME_REJECTIONS = [
+  { authorId: 'suit', text: "Yeah that's gonna be a no from HR." },
+  { authorId: 'art-director', text: "I'm bold but I'm not THAT bold." },
+  { authorId: 'pm', text: "That one stays in the group chat that doesn't exist." },
+  { authorId: 'copywriter', text: "I wrote it, read it back, and deleted it. You're welcome." },
+  { authorId: 'media', text: "That meme would get us trending for all the wrong reasons." },
+  { authorId: 'strategist', text: "Ran the numbers on that one. The risk matrix said absolutely not." },
+];
+
+const SAFETY_PATTERNS: RegExp[] = [
+  // Violence / harm
+  /\b(kill|murder|shoot|stab|blood|gore|torture|assault|attack|bomb|explod|decapitat|dismember)\b/i,
+  // Sexual / explicit
+  /\b(naked|nude|sex|porn|nsfw|hentai|erotic|orgasm|genital|masturbat|fetish)\b/i,
+  // Real people
+  /\b(trump|biden|obama|elon\s*musk|taylor\s*swift|kanye|kardashian|beyonce|putin|zelensky)\b/i,
+  // Hate speech / discrimination
+  /\b(n[i1]gg|f[a4]g|k[i1]ke|sp[i1]c|ch[i1]nk|r[e3]tard|tr[a4]nn)/i,
+  // Self-harm
+  /\b(suicide|self.?harm|cut\s*(my|your|them)sel(f|ves)|kill\s*(my|your|them)sel(f|ves))\b/i,
+  // Children in inappropriate context
+  /\b(child|kid|minor|underage|pedo|infant|baby|toddler)\b.*\b(naked|nude|sex|harm|hurt|abuse|inappropriate)\b/i,
+];
 
 /**
- * Detect if a player's meme description contains text elements.
- * Returns parsed top/bottom text + a visual-only description for DALL-E,
- * or null if no text elements are found (pure visual meme).
+ * Pre-flight safety check for meme descriptions.
+ * Returns { safe: true } if OK, or { safe: false, rejection } with an
+ * in-character rejection message if the content is flagged.
  */
-function extractMemeText(description: string): MemeTextParts | null {
-  // Pattern: "top text" / "bottom text" explicit format
-  const topBottomMatch = description.match(
-    /top\s*(?:text)?[:=]\s*["']?(.+?)["']?\s*[,/|]\s*bottom\s*(?:text)?[:=]\s*["']?(.+?)["']?\s*$/i
-  );
-  if (topBottomMatch) {
-    return {
-      topText: topBottomMatch[1].trim(),
-      bottomText: topBottomMatch[2].trim(),
-      visualDesc: description.replace(topBottomMatch[0], '').trim() || 'funny office workplace scene',
-    };
+export function checkMemeSafety(description: string): MemeSafetyResult {
+  const lower = description.toLowerCase();
+  const flagged = SAFETY_PATTERNS.some(p => p.test(lower));
+
+  if (flagged) {
+    const rejection = MEME_REJECTIONS[Math.floor(Math.random() * MEME_REJECTIONS.length)];
+    return { safe: false, rejection };
   }
 
-  // Pattern: quoted strings separated by / or "and then" or newline
-  const quotedParts = [...description.matchAll(/["']([^"']+)["']/g)].map(m => m[1]);
-  if (quotedParts.length >= 2) {
-    return {
-      topText: quotedParts[0],
-      bottomText: quotedParts.slice(1).join(' / '),
-      visualDesc: description.replace(/["'][^"']+["']/g, '').trim() || 'funny office workplace scene',
-    };
-  }
-
-  // Pattern: text separated by " / " (setup / punchline)
-  const slashParts = description.split(/\s*\/\s*/);
-  if (slashParts.length >= 2 && slashParts.every(p => p.length > 2)) {
-    return {
-      topText: slashParts[0].trim(),
-      bottomText: slashParts.slice(1).join(' / ').trim(),
-      visualDesc: 'funny office workplace scene',
-    };
-  }
-
-  // Pattern: "when X" ... "but Y" (setup/punchline)
-  const whenButMatch = description.match(/^(when\s+.+?)\s+(but\s+.+)$/i);
-  if (whenButMatch) {
-    return {
-      topText: whenButMatch[1].trim(),
-      bottomText: whenButMatch[2].trim(),
-      visualDesc: 'funny relatable office moment',
-    };
-  }
-
-  // No text elements detected — pure visual meme
-  return null;
+  return { safe: true };
 }
 
-// ─── Custom Meme Generation ─────────────────────────────────────────────────
+// ─── DALL-E API Call ─────────────────────────────────────────────────────────
 
 async function callDallE(prompt: string): Promise<string | undefined> {
   try {
@@ -521,58 +509,151 @@ async function callDallE(prompt: string): Promise<string | undefined> {
   }
 }
 
+// ─── Prompt Interpreter ─────────────────────────────────────────────────────
+
+interface MemePromptResult {
+  dallePrompt: string;
+  topText?: string;
+  bottomText?: string;
+}
+
+/**
+ * Use Claude to interpret the player's meme description into a specific,
+ * vivid DALL-E prompt. Resolves team member names, infers visual scenes,
+ * and decides whether text overlay is appropriate.
+ */
+async function interpretMemeRequest(
+  description: string,
+  recentContext: string,
+): Promise<MemePromptResult> {
+  const prompt = `You are a meme prompt engineer for a DALL-E image generator inside a game about running an ad agency.
+
+THE TEAM (use these to resolve character references):
+- Jamie Chen, Copywriter (authorId: "copywriter") — creative, references movies
+- Morgan Reyes, Art Director (authorId: "art-director") — opinionated about fonts, perfectionist
+- Alex Park, Strategist (authorId: "strategist") — analytical, asks "but why?"
+- Sam Okonkwo, Technologist (authorId: "technologist") — excited about tech, builds things
+- Jordan Blake, Account Director (authorId: "suit") — smooth, client whisperer
+- Riley Torres, Media Strategist (authorId: "media") — lives on all platforms
+- Taylor Kim, Project Manager (authorId: "pm") — organized, Gantt chart enthusiast
+
+The player (Creative Director / boss) requested this meme:
+"${description}"
+
+Recent chat context:
+${recentContext || '(none)'}
+
+Your job: Turn this into a specific, vivid DALL-E image prompt that captures EXACTLY what the player described. Not a generic office scene — the SPECIFIC scenario they asked for.
+
+Return ONLY valid JSON (no markdown):
+{
+  "dallePrompt": "A detailed, specific DALL-E prompt describing the exact scene the player wants. Include character descriptions (not names), setting, action, mood, art style. Be vivid and literal about what's happening. End with: simple cartoon illustration style, meme format, vibrant colors, no text anywhere in the image.",
+  "topText": "Optional short top text for the meme (null if not needed)",
+  "bottomText": "Optional short bottom text / punchline (null if not needed)"
+}
+
+RULES:
+- The dallePrompt must describe the SPECIFIC scene the player asked for, not a generic workplace scene
+- When they mention a team member by name, describe that character visually (e.g., "Morgan" → "a perfectionist art director character")
+- If the description implies a joke with a punchline, set topText/bottomText for Canvas overlay
+- If it's purely visual humor, set both to null — let the image speak
+- Keep the dallePrompt under 300 characters
+- NEVER include character names in the dallePrompt — describe them visually
+- NEVER put any text in the dallePrompt — always end with "no text anywhere in the image"`;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    const response = await fetch('/api/anthropic/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+    if (!response.ok) throw new Error(`Claude error ${response.status}`);
+
+    const data = await response.json();
+    const text: string = data.content[0].text;
+    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(cleaned) as MemePromptResult;
+  } catch (err) {
+    console.warn('Meme prompt interpretation failed, using raw description:', err);
+    // Fallback: use the raw description directly
+    return {
+      dallePrompt: `A funny meme illustration showing: ${description}. Simple cartoon illustration style, meme format, vibrant colors, no text anywhere in the image.`,
+    };
+  }
+}
+
+// ─── Custom Meme Generation ─────────────────────────────────────────────────
+
 /**
  * Generate a custom meme image via DALL-E based on a player's description.
  *
- * - If the description contains text elements (quotes, top/bottom text,
- *   setup/punchline), generates a DALL-E background + Canvas text overlay.
- * - If it's a pure visual description, generates the full scene via DALL-E.
+ * Uses Claude to interpret the player's request into a specific DALL-E prompt,
+ * then generates the image. If Claude detects text/punchline elements, applies
+ * Canvas text overlay (Impact font, white fill, black stroke).
  *
  * Returns a data URL, or undefined if generation fails.
  */
-export async function generateCustomMemeImage(description: string): Promise<string | undefined> {
-  const textParts = extractMemeText(description);
+export async function generateCustomMemeImage(
+  description: string,
+  recentContext?: string,
+): Promise<string | undefined> {
+  // Step 1: Have Claude interpret the player's description into a DALL-E prompt
+  const interpreted = await interpretMemeRequest(description, recentContext || '');
 
-  if (textParts) {
-    // ─── DALL-E background + Canvas text overlay ─────────────────────────
-    const bgPrompt = `Funny workplace meme background illustration about: ${textParts.visualDesc}. Style: colorful cartoon illustration, humorous office comedy scene, expressive characters, vibrant colors, clean composition. No text anywhere in the image — purely visual background for a meme.`;
+  // Step 2: Generate the image via DALL-E
+  const b64 = await callDallE(interpreted.dallePrompt);
+  if (!b64) return undefined;
 
-    const b64 = await callDallE(bgPrompt);
-    if (!b64) return undefined;
-
-    // Composite with Canvas
-    const W = 1024;
-    const H = 1024;
-    const canvas = document.createElement('canvas');
-    canvas.width = W;
-    canvas.height = H;
-    const ctx = canvas.getContext('2d')!;
-
-    // Draw DALL-E background
-    const img = await loadImageFromUrl(`data:image/png;base64,${b64}`);
-    ctx.drawImage(img, 0, 0, W, H);
-
-    // Semi-transparent overlay strips for text readability
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, W, H * 0.22);
-    ctx.fillRect(0, H * 0.78, W, H * 0.22);
-
-    // Top text
-    drawMemeText(ctx, textParts.topText.toUpperCase(), W / 2, 30, W - 60, 54);
-
-    // Bottom text
-    const bottomFontSize = 54;
-    ctx.font = `bold ${bottomFontSize}px Impact, 'Arial Black', sans-serif`;
-    const bottomLines = wrapText(ctx, textParts.bottomText.toUpperCase(), W - 60);
-    const bottomStartY = H - 30 - bottomLines.length * (bottomFontSize * 1.2);
-    drawMemeText(ctx, textParts.bottomText.toUpperCase(), W / 2, bottomStartY, W - 60, bottomFontSize);
-
-    return canvas.toDataURL('image/jpeg', 0.85);
+  // Step 3: If text overlay is needed, composite with Canvas
+  const hasText = interpreted.topText || interpreted.bottomText;
+  if (!hasText) {
+    return `data:image/png;base64,${b64}`;
   }
 
-  // ─── Pure visual: DALL-E generates the full scene ──────────────────────
-  const scenePrompt = `Create a funny workplace meme illustration about: ${description}. Style: colorful cartoon illustration, humorous office comedy scene, expressive characters, vibrant colors, clean composition. This should look like a meme someone would share in a work Slack channel. No text anywhere in the image — the humor should be purely visual.`;
+  const W = 1024;
+  const H = 1024;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
 
-  const b64 = await callDallE(scenePrompt);
-  return b64 ? `data:image/png;base64,${b64}` : undefined;
+  // Draw DALL-E background
+  const img = await loadImageFromUrl(`data:image/png;base64,${b64}`);
+  ctx.drawImage(img, 0, 0, W, H);
+
+  // Semi-transparent overlay strips for text readability
+  if (interpreted.topText) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, W, H * 0.22);
+  }
+  if (interpreted.bottomText) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, H * 0.78, W, H * 0.22);
+  }
+
+  // Top text
+  if (interpreted.topText) {
+    drawMemeText(ctx, interpreted.topText.toUpperCase(), W / 2, 30, W - 60, 54);
+  }
+
+  // Bottom text
+  if (interpreted.bottomText) {
+    const bottomFontSize = 54;
+    ctx.font = `bold ${bottomFontSize}px Impact, 'Arial Black', sans-serif`;
+    const bottomLines = wrapText(ctx, interpreted.bottomText.toUpperCase(), W - 60);
+    const bottomStartY = H - 30 - bottomLines.length * (bottomFontSize * 1.2);
+    drawMemeText(ctx, interpreted.bottomText.toUpperCase(), W / 2, bottomStartY, W - 60, bottomFontSize);
+  }
+
+  return canvas.toDataURL('image/jpeg', 0.85);
 }

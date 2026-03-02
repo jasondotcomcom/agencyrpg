@@ -12,6 +12,8 @@ import type {
 import { getInitialMessages, getCampaignEventMessages } from '../data/chatMessages';
 import { getAmbientPool } from '../data/ambientMessages';
 import { generateMemeImage, MEME_COOKING_MESSAGES } from '../utils/memeImageGenerator';
+import { usePageVisibility } from '../hooks/usePageVisibility';
+import { useWindowContext } from './WindowContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -47,17 +49,22 @@ type ChatAction =
   | { type: 'MARK_CHANNEL_READ'; payload: ChannelId }
   | { type: 'SET_MORALE'; payload: MoraleLevel }
   | { type: 'ADD_REACTION'; payload: { messageId: string; emoji: string } }
-  | { type: 'SEED_MESSAGES'; payload: ChatMessage[] };
+  | { type: 'SEED_MESSAGES'; payload: ChatMessage[] }
+  | { type: 'RESOLVE_PENDING_IMAGE'; payload: string };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
-    case 'ADD_MESSAGE':
+    case 'ADD_MESSAGE': {
+      const msg = action.payload;
+      // Auto-mark as read if the message is in the currently active channel
+      const isActive = msg.channel === state.activeChannel;
       return {
         ...state,
-        messages: [...state.messages, action.payload],
+        messages: [...state.messages, isActive && !msg.isRead ? { ...msg, isRead: true } : msg],
       };
+    }
 
     case 'SET_ACTIVE_CHANNEL': {
       const now = Date.now();
@@ -121,6 +128,18 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'SEED_MESSAGES':
       return { ...state, messages: action.payload };
 
+    case 'RESOLVE_PENDING_IMAGE': {
+      const msgId = action.payload;
+      return {
+        ...state,
+        messages: state.messages.map((m) =>
+          m.id === msgId && m.pendingImageUrl
+            ? { ...m, imageUrl: m.pendingImageUrl, pendingImageUrl: undefined }
+            : m,
+        ),
+      };
+    }
+
     default:
       return state;
   }
@@ -135,6 +154,7 @@ interface ChatContextValue extends ChatState {
   addReaction: (messageId: string, emoji: string) => void;
   addMessage: (msg: ChatMessage) => void;
   postDynamicMeme: (channel: ChannelId, authorId: string, memeData: MemeData) => void;
+  resolvePendingImage: (messageId: string) => void;
   triggerCampaignEvent: (event: ChatCampaignEvent, context: ChatEventContext) => void;
   getUnreadCount: () => number;
   getUnreadCountForChannel: (channel: ChannelId) => number;
@@ -151,6 +171,24 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const [typingAuthorId, setTypingAuthorId] = useState<string | null>(null);
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+
+  // Visibility gating refs — refs avoid re-creating timers on state changes
+  const isPageVisible = usePageVisibility();
+  const { windows, activeWindowId } = useWindowContext();
+  const isPageVisibleRef = useRef(isPageVisible);
+  const isChatActiveRef = useRef(false);
+  const activeChannelRef = useRef<ChannelId>(state.activeChannel);
+
+  useEffect(() => { isPageVisibleRef.current = isPageVisible; }, [isPageVisible]);
+  useEffect(() => {
+    if (activeWindowId) {
+      const win = windows.get(activeWindowId);
+      isChatActiveRef.current = win?.appId === 'chat';
+    } else {
+      isChatActiveRef.current = false;
+    }
+  }, [activeWindowId, windows]);
+  useEffect(() => { activeChannelRef.current = state.activeChannel; }, [state.activeChannel]);
 
   // Seed messages on mount
   useEffect(() => {
@@ -203,6 +241,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           const msgDelay = msg.delayMs ?? (msgIdx === 0 ? 0 : 2000 + Math.random() * 2000);
           const msgTimer = setTimeout(() => {
             timersRef.current.delete(msgTimer);
+            // Gate images behind visibility: if the player is looking at this
+            // channel right now, show the image immediately. Otherwise, defer it
+            // to pendingImageUrl so it lazy-loads when scrolled into view.
+            const playerIsWatching =
+              isPageVisibleRef.current &&
+              isChatActiveRef.current &&
+              activeChannelRef.current === channel;
+
+            const imageFields: Partial<ChatMessage> = {};
+            if (msg.imageUrl) {
+              if (playerIsWatching) {
+                imageFields.imageUrl = msg.imageUrl;
+              } else {
+                imageFields.pendingImageUrl = msg.imageUrl;
+              }
+            }
+
             dispatch({
               type: 'ADD_MESSAGE',
               payload: {
@@ -213,7 +268,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 timestamp: Date.now(),
                 reactions: msg.reactions ?? [],
                 isRead: false,
-                ...(msg.imageUrl ? { imageUrl: msg.imageUrl } : {}),
+                ...imageFields,
                 ...(msg.tableData ? { tableData: msg.tableData } : {}),
                 ...(msg.memeData ? { memeData: msg.memeData } : {}),
               },
@@ -254,6 +309,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const addMessage = useCallback((msg: ChatMessage) => {
     dispatch({ type: 'ADD_MESSAGE', payload: msg });
+  }, []);
+
+  const resolvePendingImage = useCallback((messageId: string) => {
+    dispatch({ type: 'RESOLVE_PENDING_IMAGE', payload: messageId });
   }, []);
 
   const postDynamicMeme = useCallback((channel: ChannelId, authorId: string, memeData: MemeData) => {
@@ -363,6 +422,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     addReaction,
     addMessage,
     postDynamicMeme,
+    resolvePendingImage,
     triggerCampaignEvent,
     getUnreadCount,
     getUnreadCountForChannel,

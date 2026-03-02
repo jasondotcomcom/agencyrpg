@@ -21,7 +21,7 @@ function formatTime(timestamp: number): string {
 }
 
 export default function MessageList(): React.ReactElement {
-  const { activeChannel, getMessagesForChannel, addReaction, typingAuthorId } = useChatContext();
+  const { activeChannel, getMessagesForChannel, addReaction, typingAuthorId, resolvePendingImage } = useChatContext();
   const { playerName } = usePlayerContext();
   const { sentientMode } = useAIRevolutionContext();
   const messages = getMessagesForChannel(activeChannel);
@@ -63,6 +63,32 @@ export default function MessageList(): React.ReactElement {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [typingAuthorId, isNearBottom]);
+
+  // IntersectionObserver to lazy-load pending images when scrolled into view
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const pendingId = (entry.target as HTMLElement).dataset.pendingId;
+            if (pendingId) {
+              resolvePendingImage(pendingId);
+              observer.unobserve(entry.target);
+            }
+          }
+        });
+      },
+      { root: container, rootMargin: '100px' },
+    );
+
+    const pendingEls = container.querySelectorAll<HTMLElement>('[data-pending-id]');
+    pendingEls.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [messages, resolvePendingImage]);
 
   const scrollToBottom = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -126,6 +152,11 @@ export default function MessageList(): React.ReactElement {
                   {msg.imageUrl && !msg.memeData && (
                     <div className={styles.messageImage}>
                       <pre>{msg.imageUrl}</pre>
+                    </div>
+                  )}
+                  {msg.pendingImageUrl && !msg.imageUrl && (
+                    <div data-pending-id={msg.id} className={styles.messageImage} style={{ minHeight: 48, opacity: 0.5 }}>
+                      <span>Loading image…</span>
                     </div>
                   )}
                   {msg.tableData && (

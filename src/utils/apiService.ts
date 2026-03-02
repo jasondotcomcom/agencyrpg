@@ -1,5 +1,6 @@
 import type { Campaign, CampaignConcept, DeliverableType, Platform } from '../types/campaign';
 import { getTeamMembers } from '../data/team';
+import { extractQuickView } from './contentFormatter';
 
 // ─── Claude Text Generation ──────────────────────────────────────────────────
 
@@ -19,7 +20,7 @@ async function generateDeliverableText(
   );
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60s for deliverable text
 
   const response = await fetch('/api/anthropic/v1/messages', {
     method: 'POST',
@@ -118,7 +119,7 @@ export async function generateDeliverable(
   concept: CampaignConcept,
   feedback?: string,
   retryCount = 0
-): Promise<{ content: string; imageUrl?: string }> {
+): Promise<{ content: string; preview?: string; imageUrl?: string }> {
   try {
     const textContent = await generateDeliverableText(
       deliverable,
@@ -126,6 +127,9 @@ export async function generateDeliverable(
       concept,
       feedback
     );
+
+    // Extract Quick View (idea summary) from the response
+    const { quickView, rest } = extractQuickView(textContent);
 
     let imageUrl: string | undefined;
     try {
@@ -137,7 +141,7 @@ export async function generateDeliverable(
       // Image failure is non-fatal
     }
 
-    return { content: textContent, imageUrl };
+    return { content: rest, preview: quickView || undefined, imageUrl };
   } catch (error) {
     if (retryCount < 1) {
       await new Promise((r) => setTimeout(r, 1000));
@@ -190,15 +194,38 @@ PLATFORM: ${platform}
 
   const typePrompt = getTypeSpecificPrompt(type, platform);
 
-  const isScript = type === 'video' || type === 'tiktok_series';
-  const brevityNote = isScript
-    ? ''
-    : '\n\nIMPORTANT: Keep your response SHORT. 2-3 sentences for the core content. No markdown formatting (no ###, no **bold**). No section headers unless the type specifically calls for them. This is for a game — be punchy, not thorough.';
+  // Short-form types where the full content already IS the idea — no Quick View needed
+  const SHORT_FORM_TYPES: DeliverableType[] = [
+    'social_post', 'print_ad', 'billboard', 'ooh', 'direct_mail',
+    'email_campaign', 'podcast_ad', 'audio', 'blog_post', 'content', 'reddit_ama',
+  ];
+  const needsQuickView = !SHORT_FORM_TYPES.includes(type);
+
+  const brevityNote = SHORT_FORM_TYPES.includes(type)
+    ? '\n\nIMPORTANT: Keep your response SHORT. 2-3 sentences for the core content. No markdown formatting (no ###, no **bold**). No section headers unless the type specifically calls for them. This is for a game — be punchy, not thorough.'
+    : '';
+
+  const quickViewBlock = needsQuickView
+    ? `
+START your response with a section labeled "QUICK VIEW:" — this is 2-3 sentences that describe the IDEA and why it's compelling. Do NOT summarize the execution, shots, copy, or stage direction. Describe the concept so a stranger could immediately understand what this deliverable is and why it's interesting.
+
+Good QUICK VIEW examples:
+- Brand film: "A reverent 2-minute film that treats the reattribution of credit like a luxury unboxing — white-gloved hands remove old labels bearing men's names and replace them with the women who actually designed the pieces. The correction itself becomes the product."
+- Experience: "A pop-up archive exhibition where visitors can see the original sketches alongside the misattributed final products, then watch the relabeling happen live."
+- Social campaign: "A week-long series revealing one misattributed designer per day, each post showing the original sketch in her handwriting next to the piece that made someone else famous."
+- Direct mail: "2,500 postcards to Arts District residents that roast their current coffee routine with personalized competitor call-outs."
+
+Bad QUICK VIEW: the first 8 seconds of a script, condensed stage direction, opening lines of copy, or a shortened version of the deliverable. The QUICK VIEW answers "What is this and why should I care?" — NOT "What does the first few seconds look like?"
+
+After the QUICK VIEW, generate the full deliverable:
+`
+    : '';
 
   return `You are a world-class creative team at an advertising agency. Generate content for the following deliverable.
 
 ${context}
 ${revisionNote}
+${quickViewBlock}
 ${typePrompt}
 ${brevityNote}
 

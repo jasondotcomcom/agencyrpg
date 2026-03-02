@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import type { Campaign } from '../../../types/campaign';
 import { DELIVERABLE_TYPES, PLATFORMS, formatBudget } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
-import { parseContent, isVideoType, stripTrailingVisualDescription, generateScriptSummary } from '../../../utils/contentFormatter';
+import { parseContent, isVideoType, stripTrailingVisualDescription } from '../../../utils/contentFormatter';
 import styles from './ReviewMeeting.module.css';
 
 interface ReviewMeetingProps {
@@ -37,10 +37,12 @@ export default function ReviewMeeting({ campaign }: ReviewMeetingProps): React.R
       setCurrentSlide(prev => prev + 1);
       setShowFeedback(false);
       setFeedbackText('');
+      setShowFullScript(false);
     } else if (e.key === 'ArrowLeft' && currentSlide > 0) {
       setCurrentSlide(prev => prev - 1);
       setShowFeedback(false);
       setFeedbackText('');
+      setShowFullScript(false);
     }
   }, [currentSlide, deliverables.length, view]);
 
@@ -241,8 +243,8 @@ export default function ReviewMeeting({ campaign }: ReviewMeetingProps): React.R
               )}
               <div className={styles.splitContent}>
                 {currentDel.generatedWork?.content ? (
-                  isVideoType(currentDel.type) ? (
-                    <div className={styles.videoScriptWrap}>
+                  <>
+                    {currentDel.generatedWork.preview && (
                       <div className={styles.scriptToggle}>
                         <button
                           className={`${styles.scriptToggleBtn} ${!showFullScript ? styles.activeToggle : ''}`}
@@ -254,30 +256,30 @@ export default function ReviewMeeting({ campaign }: ReviewMeetingProps): React.R
                           className={`${styles.scriptToggleBtn} ${showFullScript ? styles.activeToggle : ''}`}
                           onClick={() => setShowFullScript(true)}
                         >
-                          Full Script
+                          Full Version
                         </button>
                       </div>
-                      {showFullScript ? (
-                        <div className={styles.videoScript}>
-                          {stripTrailingVisualDescription(currentDel.generatedWork.content)}
-                        </div>
-                      ) : (
-                        <div className={styles.scriptSummary}>
-                          {generateScriptSummary(currentDel.generatedWork.content)}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className={styles.contentPreview}>
-                      {parseContent(currentDel.generatedWork.content).map((section, idx) =>
-                        section.type === 'header' ? (
-                          <div key={idx} className={styles.contentHeader}>{section.content}</div>
-                        ) : (
-                          <div key={idx} className={styles.contentText}>{section.content}</div>
-                        )
-                      )}
-                    </div>
-                  )
+                    )}
+                    {!showFullScript && currentDel.generatedWork.preview ? (
+                      <div className={styles.scriptSummary}>
+                        {currentDel.generatedWork.preview}
+                      </div>
+                    ) : isVideoType(currentDel.type) ? (
+                      <div className={styles.videoScript}>
+                        {stripTrailingVisualDescription(currentDel.generatedWork.content)}
+                      </div>
+                    ) : (
+                      <div className={styles.contentPreview}>
+                        {parseContent(currentDel.generatedWork.content).map((section, idx) =>
+                          section.type === 'header' ? (
+                            <div key={idx} className={styles.contentHeader}>{section.content}</div>
+                          ) : (
+                            <div key={idx} className={styles.contentText}>{section.content}</div>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className={styles.contentPreview}>No content generated.</div>
                 )}

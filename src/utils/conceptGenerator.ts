@@ -249,7 +249,7 @@ export async function tweakConcept(
   const prompt = buildTweakPrompt(concept, tweakNote, campaign);
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60s for tweak
 
   const response = await fetch('/api/anthropic/v1/messages', {
     method: 'POST',
@@ -331,7 +331,7 @@ export async function generateConcepts(campaign: Campaign): Promise<CampaignConc
   const prompt = buildConceptPrompt(campaign);
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout = setTimeout(() => controller.abort(), 90000); // 90s — large structured response
 
   const response = await fetch('/api/anthropic/v1/messages', {
     method: 'POST',

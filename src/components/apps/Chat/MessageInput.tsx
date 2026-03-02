@@ -6,7 +6,7 @@ import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
 import type { MoraleLevel } from '../../../types/chat';
 import type { ConductFlag } from '../../../data/conductEvents';
 import { CRACK_MESSAGES, CRISIS_MESSAGES } from '../../../data/aiRevolutionDialogue';
-import { generateCustomMemeImage, MEME_COOKING_MESSAGES } from '../../../utils/memeImageGenerator';
+import { generateCustomMemeImage, checkMemeSafety, MEME_COOKING_MESSAGES } from '../../../utils/memeImageGenerator';
 import styles from './MessageInput.module.css';
 
 // ─── Sentiment Analysis ───────────────────────────────────────────────────────
@@ -296,6 +296,34 @@ export default function MessageInput(): React.ReactElement {
           : 'life working at an advertising agency';
       }
 
+      // ─── Safety check before DALL-E call ───────────────────────────────
+      const safetyResult = checkMemeSafety(memeSubject);
+      if (!safetyResult.safe && safetyResult.rejection) {
+        const rej = safetyResult.rejection;
+        setTimeout(() => {
+          addMessage({
+            id: `meme-reject-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            channel: activeChannel,
+            authorId: rej.authorId,
+            text: rej.text,
+            timestamp: Date.now(),
+            reactions: [{ emoji: '😬', count: 1 }],
+            isRead: false,
+          });
+        }, 1500 + Math.random() * 1000);
+
+        // Skip the rest — don't even hit DALL-E
+        // (fall through to post the player's message and run sentiment below)
+      } else {
+      // ─── Safe: proceed with generation ───────────────────────────────
+
+      // Gather recent chat context for the prompt interpreter
+      const recentChatContext = messages
+        .filter(m => m.channel === activeChannel)
+        .slice(-6)
+        .map(m => `${m.authorId}: ${m.text}`)
+        .join('\n');
+
       // Pick a meme-making character (usually Riley/media, sometimes Sam/technologist)
       const memeAuthor = Math.random() > 0.3 ? 'media' : 'technologist';
       const cookingMsg = MEME_COOKING_MESSAGES[Math.floor(Math.random() * MEME_COOKING_MESSAGES.length)];
@@ -313,7 +341,7 @@ export default function MessageInput(): React.ReactElement {
         });
 
         // Generate via DALL-E and post the result
-        generateCustomMemeImage(memeSubject).then(imageUrl => {
+        generateCustomMemeImage(memeSubject, recentChatContext).then(imageUrl => {
           if (imageUrl) {
             addMessage({
               id: `meme-gen-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -339,7 +367,8 @@ export default function MessageInput(): React.ReactElement {
           }
         });
       }, 1500 + Math.random() * 1500);
-    }
+    } // end else (safe)
+    } // end if (isMemeRequest)
     // ──────────────────────────────────────────────────────────────────────
 
     // Post player message immediately

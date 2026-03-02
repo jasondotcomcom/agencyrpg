@@ -1,6 +1,8 @@
 import React from 'react';
 import type { WindowState } from '../../types';
 import { useWindowContext } from '../../context/WindowContext';
+import { useChatContext } from '../../context/ChatContext';
+import { useEmailContext } from '../../context/EmailContext';
 import styles from './TaskbarButton.module.css';
 
 // Small cute icons for taskbar
@@ -78,8 +80,15 @@ interface TaskbarButtonProps {
 
 export default function TaskbarButton({ window: windowState }: TaskbarButtonProps) {
   const { activeWindowId, focusWindow, restoreWindow } = useWindowContext();
+  const { getUnreadCount: getChatUnreadCount } = useChatContext();
+  const { getUnreadCount: getEmailUnreadCount } = useEmailContext();
 
   const isActive = activeWindowId === windowState.id && !windowState.isMinimized;
+
+  const badgeCount =
+    windowState.appId === 'chat' ? getChatUnreadCount() :
+    windowState.appId === 'inbox' ? getEmailUnreadCount() :
+    0;
 
   const handleClick = () => {
     if (windowState.isMinimized) {
@@ -97,6 +106,11 @@ export default function TaskbarButton({ window: windowState }: TaskbarButtonProp
     >
       <div className={styles.icon}>
         {appIcons[windowState.appId] || appIcons.help}
+        {badgeCount > 0 && (
+          <span className={styles.badge}>
+            {badgeCount > 9 ? '9+' : badgeCount}
+          </span>
+        )}
       </div>
       <span className={styles.title}>{windowState.title}</span>
     </button>
