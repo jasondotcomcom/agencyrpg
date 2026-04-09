@@ -9,8 +9,8 @@ import { usePortfolioContext, type PortfolioEntry } from '../../../context/Portf
 import { useCheatContext } from '../../../context/CheatContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
 import { useEmailContext } from '../../../context/EmailContext';
+import { RETIRED_SEASONAL_BRIEFS } from '../../../data/seasonalBriefs';
 import { AWARD_DEFS } from '../../../data/awards';
-import { SEASONAL_BRIEFS } from '../../../data/seasonalBriefs';
 import { teamMembers } from '../../../data/team';
 import { formatBudget } from '../../../types/campaign';
 import { storeHtmlPreview } from '../../../utils/htmlPreviewStore';
@@ -1003,8 +1003,8 @@ P.P.S. — My dad says hi`,
       if (n >= 5)  unlockAchievement('serial-cheater');
       if (n >= 10) unlockAchievement('cheat-encyclopedia');
 
-      // Force-deliver the Women's History Month seasonal brief
-      const whmBrief = SEASONAL_BRIEFS.find(b => b.briefId === 'email-seasonal-whm-001');
+      // Force-deliver the retired Women's History Month seasonal brief
+      const whmBrief = RETIRED_SEASONAL_BRIEFS.find(b => b.briefId === 'email-seasonal-whm-001');
       if (whmBrief) {
         addEmail(whmBrief.buildEmail());
         addNotification('📅 Seasonal Brief!', `${whmBrief.clientName} has a limited-time campaign. Check your inbox!`);
@@ -1049,8 +1049,8 @@ P.P.S. — My dad says hi`,
       if (n >= 5)  unlockAchievement('serial-cheater');
       if (n >= 10) unlockAchievement('cheat-encyclopedia');
 
-      // Force-deliver the March Madness seasonal brief
-      const mmBrief = SEASONAL_BRIEFS.find(b => b.briefId === 'email-seasonal-mm-001');
+      // Force-deliver the retired March Madness seasonal brief
+      const mmBrief = RETIRED_SEASONAL_BRIEFS.find(b => b.briefId === 'email-seasonal-mm-001');
       if (mmBrief) {
         addEmail(mmBrief.buildEmail());
         addNotification('📅 Seasonal Brief!', `${mmBrief.clientName} has a limited-time campaign. Check your inbox!`);

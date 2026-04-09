@@ -26,10 +26,23 @@ export function isSeasonalBriefActive(entry: SeasonalBriefEntry, now: Date = new
 }
 
 // ─── Seasonal Briefs ──────────────────────────────────────────────────────────
+//
+// Seasonal content comes and goes.
+//
+// - SEASONAL_BRIEFS: active rotation. These auto-deliver within their date
+//   window. Add new seasonal briefs here.
+// - RETIRED_SEASONAL_BRIEFS: retired content. No longer auto-delivered, but
+//   the definitions are kept around so Easter-egg cheat codes can still
+//   conjure them for players who know the secret. Any retired-brief email
+//   still sitting unstarted in a player's inbox is cleaned out on next load
+//   (see useCoreGameEffects.ts). Mid-campaign and completed campaigns are
+//   left alone.
 
-export const SEASONAL_BRIEFS: SeasonalBriefEntry[] = [
+export const SEASONAL_BRIEFS: SeasonalBriefEntry[] = [];
 
-  // ─── Women's History Month — Available March 1 through March 31 ─────────────
+export const RETIRED_SEASONAL_BRIEFS: SeasonalBriefEntry[] = [
+
+  // ─── Women's History Month — ran March 1 through March 31 ──────────────────
 
   {
     briefId: 'email-seasonal-whm-001',
@@ -92,7 +105,7 @@ Colette`,
     }),
   },
 
-  // ─── March Madness — Available March 15 through April 8 ─────────────────────
+  // ─── March Madness — ran March 15 through April 8 ──────────────────────────
 
   {
     briefId: 'email-seasonal-mm-001',
@@ -153,3 +166,6 @@ Owen`,
     }),
   },
 ];
+
+/** IDs of retired seasonal briefs — used for inbox cleanup on load. */
+export const RETIRED_SEASONAL_BRIEF_IDS: string[] = RETIRED_SEASONAL_BRIEFS.map(b => b.briefId);

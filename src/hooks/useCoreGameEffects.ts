@@ -10,7 +10,7 @@ import { useConductContext } from '../context/ConductContext';
 import { useAIRevolutionContext } from '../context/AIRevolutionContext';
 import { loadLegacy } from '../components/Ending/EndingSequence';
 import { LOCKED_BRIEFS, LAWSUIT_BRIEF } from '../data/lockedBriefs';
-import { SEASONAL_BRIEFS, isSeasonalBriefActive } from '../data/seasonalBriefs';
+import { SEASONAL_BRIEFS, isSeasonalBriefActive, RETIRED_SEASONAL_BRIEF_IDS } from '../data/seasonalBriefs';
 import { MANIFESTO_MESSAGES } from '../data/aiRevolutionDialogue';
 import { NG_PLUS_LOCKED_BRIEFS, buildBrewedAwakeningsNgPlus } from '../data/ngPlusBriefs';
 import { buildNamingEmail, NAMING_REMINDER } from '../data/agencyNamingEmail';
@@ -27,7 +27,7 @@ export function useCoreGameEffects(): void {
   const { addNotification, focusOrOpenWindow } = useWindowContext();
   const { state: repState, clearLevelUp } = useReputationContext();
   const { campaigns } = useCampaignContext();
-  const { addEmail } = useEmailContext();
+  const { addEmail, emails, deleteEmail } = useEmailContext();
   const { triggerCampaignEvent, morale, addMessage } = useChatContext();
   const { unlockAchievement } = useAchievementContext();
   const { playerName, isAgencyNameDefault } = usePlayerContext();
@@ -320,6 +320,41 @@ export function useCoreGameEffects(): void {
 
     return () => timers.forEach(clearTimeout);
   }, [playerName, addEmail, addNotification, triggerCampaignEvent]);
+
+  // ─── Retired seasonal brief cleanup ───────────────────────────────────────
+  // Remove retired seasonal brief emails from the inbox unless the player has
+  // already started a campaign from them. Mid-campaign players keep their work;
+  // completed campaigns stay in the portfolio untouched.
+  const seasonalCleanupDoneRef = useRef(false);
+  useEffect(() => {
+    if (seasonalCleanupDoneRef.current) return;
+    if (RETIRED_SEASONAL_BRIEF_IDS.length === 0) return;
+
+    const retiredSet = new Set(RETIRED_SEASONAL_BRIEF_IDS);
+    const startedBriefIds = new Set(campaigns.map(c => c.briefId));
+
+    for (const email of emails) {
+      if (!retiredSet.has(email.id)) continue;
+      if (email.isDeleted) continue;
+      if (startedBriefIds.has(email.id)) continue; // campaign already started — leave alone
+      deleteEmail(email.id);
+    }
+
+    // Also prevent the retired briefs from ever being re-delivered by the
+    // date-gated delivery effect above (belt + suspenders; the array is empty
+    // too, but this protects against stale delivery-tracking localStorage).
+    try {
+      const deliveredKey = 'agencyrpg_seasonal_briefs_delivered';
+      const current: string[] = JSON.parse(localStorage.getItem(deliveredKey) ?? '[]');
+      let changed = false;
+      for (const id of RETIRED_SEASONAL_BRIEF_IDS) {
+        if (!current.includes(id)) { current.push(id); changed = true; }
+      }
+      if (changed) localStorage.setItem(deliveredKey, JSON.stringify(current));
+    } catch { /* non-fatal */ }
+
+    seasonalCleanupDoneRef.current = true;
+  }, [emails, campaigns, deleteEmail]);
 
   // Unlock new briefs as campaigns complete (also recovers missed unlocks on reload)
   useEffect(() => {
