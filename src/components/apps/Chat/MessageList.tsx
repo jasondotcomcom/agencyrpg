@@ -21,7 +21,7 @@ function formatTime(timestamp: number): string {
 }
 
 export default function MessageList(): React.ReactElement {
-  const { activeChannel, getMessagesForChannel, addReaction, typingAuthorId, resolvePendingImage } = useChatContext();
+  const { activeChannel, getMessagesForChannel, addReaction, typingAuthorId, typingChannel, resolvePendingImage } = useChatContext();
   const { playerName } = usePlayerContext();
   const { sentientMode } = useAIRevolutionContext();
   const messages = getMessagesForChannel(activeChannel);
@@ -199,7 +199,7 @@ export default function MessageList(): React.ReactElement {
             );
           })
         )}
-        {typingAuthorId && activeChannel === 'general' && (() => {
+        {typingAuthorId && activeChannel === typingChannel && (() => {
           const typingMember = getTeamMember(typingAuthorId);
           return (
             <div className={styles.typingRow} aria-live="polite" aria-label={`${typingMember?.name || typingAuthorId} is typing`}>

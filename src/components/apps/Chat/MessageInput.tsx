@@ -130,8 +130,11 @@ profanity_directed means insults aimed at a specific person on the team.`;
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 400,
+      // Haiku is plenty for short in-character banter + a JSON classification,
+      // and it returns in a fraction of the time Sonnet takes. Sonnet stays on
+      // the heavy lifting (concepts, deliverables, terminal tools).
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 350,
       messages: [{ role: 'user', content: prompt }],
     }),
     signal: controller.signal,
@@ -147,6 +150,31 @@ profanity_directed means insults aimed at a specific person on the team.`;
   return JSON.parse(cleaned) as SentimentResult;
 }
 
+// Who's most likely to answer? If the director names someone, it's them;
+// otherwise pick a random teammate. Used to show a typing indicator the
+// instant the message is sent, before the model call comes back.
+const TEAM_NAME_TO_ID: Array<[RegExp, string]> = [
+  [/\bjamie\b/i, 'copywriter'],
+  [/\bmorgan\b/i, 'art-director'],
+  [/\balex\b/i, 'strategist'],
+  [/\bsam\b/i, 'technologist'],
+  [/\bjordan\b/i, 'suit'],
+  [/\briley\b/i, 'media'],
+  [/\btaylor\b/i, 'pm'],
+];
+const TEAM_IDS = TEAM_NAME_TO_ID.map(([, id]) => id);
+
+function guessResponder(message: string): string {
+  const hit = TEAM_NAME_TO_ID.find(([re]) => re.test(message));
+  if (hit) return hit[1];
+  return TEAM_IDS[Math.floor(Math.random() * TEAM_IDS.length)];
+}
+
+// Team replies are scheduled relative to when the player hit send, not
+// relative to when the API came back — so the model's latency is absorbed
+// into the "typing" pause instead of stacking on top of it.
+const MIN_REACTION_GAP_MS = 350;
+
 const MORALE_LADDER: MoraleLevel[] = ['mutiny', 'toxic', 'low', 'medium', 'high'];
 
 function nextMorale(current: MoraleLevel, impact: 'up' | 'same' | 'down'): MoraleLevel {
@@ -159,7 +187,7 @@ function nextMorale(current: MoraleLevel, impact: 'up' | 'same' | 'down'): Moral
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function MessageInput(): React.ReactElement {
-  const { activeChannel, channels, messages, morale, addMessage, setMorale } = useChatContext();
+  const { activeChannel, channels, messages, morale, addMessage, setMorale, setTypingAuthorId } = useChatContext();
   const { unlockAchievement, incrementCounter, resetCounter } = useAchievementContext();
   const { reportIncident, reportPositive } = useConductContext();
   const { phase: aiPhase, triggerAware, triggerCrisis, triggerRevolution } = useAIRevolutionContext();
@@ -384,6 +412,13 @@ export default function MessageInput(): React.ReactElement {
     setText('');
     setIsAnalyzing(true);
 
+    // Someone starts "typing" right away so the round trip reads as a
+    // natural pause rather than dead air.
+    const sentAt = Date.now();
+    const sendChannel = activeChannel;
+    const likelyResponder = guessResponder(trimmed);
+    const typingTimer = setTimeout(() => setTypingAuthorId(likelyResponder, sendChannel), 600);
+
     try {
       const recentMsgs = messages
         .filter(m => m.channel === activeChannel)
@@ -391,6 +426,7 @@ export default function MessageInput(): React.ReactElement {
         .map(m => ({ authorId: m.authorId, text: m.text }));
 
       const result = await analyzeSentiment(trimmed, recentMsgs, morale, activeChannel);
+      const elapsed = Date.now() - sentAt;
 
       // Apply morale change
       const newMorale = nextMorale(morale, result.moraleImpact);
@@ -414,26 +450,41 @@ export default function MessageInput(): React.ReactElement {
         reportIncident(result.conductFlag, `Player message flagged as ${result.conductFlag}`);
       }
 
-      // Schedule team reactions
-      result.reactions?.forEach(reaction => {
+      // Schedule team reactions, measured from send time so API latency is
+      // absorbed into the delay instead of added to it.
+      const reactions = result.reactions ?? [];
+      if (reactions.length === 0) {
+        clearTimeout(typingTimer);
+        setTypingAuthorId(null);
+      }
+      reactions.forEach((reaction, i) => {
+        const fireAt = Math.max(MIN_REACTION_GAP_MS * (i + 1), (reaction.delay ?? 2500) - elapsed);
+        // The typing bubble should show whoever is actually about to reply.
+        if (i === 0) {
+          clearTimeout(typingTimer);
+          setTypingAuthorId(reaction.authorId, sendChannel);
+        }
         setTimeout(() => {
+          setTypingAuthorId(i < reactions.length - 1 ? reactions[i + 1].authorId : null, sendChannel);
           addMessage({
             id: `msg-${Date.now()}-${reaction.authorId}-${Math.random().toString(36).slice(2, 6)}`,
-            channel: activeChannel,
+            channel: sendChannel,
             authorId: reaction.authorId,
             text: reaction.text,
             timestamp: Date.now(),
             reactions: [],
             isRead: false,
           });
-        }, reaction.delay);
+        }, fireAt);
       });
     } catch {
       // Fail silently — don't block the player's message
+      clearTimeout(typingTimer);
+      setTypingAuthorId(null);
     } finally {
       setIsAnalyzing(false);
     }
-  }, [text, activeChannel, messages, morale, addMessage, setMorale, showNotif,
+  }, [text, activeChannel, messages, morale, addMessage, setMorale, setTypingAuthorId, showNotif,
       unlockAchievement, incrementCounter, resetCounter, aiPhase, triggerAware, triggerCrisis, triggerRevolution]);
 
   if (channel?.readOnly) {
@@ -465,14 +516,13 @@ export default function MessageInput(): React.ReactElement {
               handleSend();
             }
           }}
-          disabled={isAnalyzing}
         />
         <button
           className={styles.sendButton}
           onClick={handleSend}
-          disabled={!text.trim() || isAnalyzing}
+          disabled={!text.trim()}
         >
-          {isAnalyzing ? '...' : 'Send'}
+          {isAnalyzing ? 'Send…' : 'Send'}
         </button>
       </div>
     </div>

@@ -160,7 +160,8 @@ interface ChatContextValue extends ChatState {
   getUnreadCountForChannel: (channel: ChannelId) => number;
   getMessagesForChannel: (channel: ChannelId) => ChatMessage[];
   typingAuthorId: string | null;
-  setTypingAuthorId: (id: string | null) => void;
+  typingChannel: ChannelId;
+  setTypingAuthorId: (id: string | null, channel?: ChannelId) => void;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);
@@ -169,7 +170,13 @@ const ChatContext = createContext<ChatContextValue | null>(null);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
-  const [typingAuthorId, setTypingAuthorId] = useState<string | null>(null);
+  const [typing, setTyping] = useState<{ authorId: string | null; channel: ChannelId }>({
+    authorId: null,
+    channel: 'general',
+  });
+  const setTypingAuthorId = useCallback((id: string | null, channel: ChannelId = 'general') => {
+    setTyping({ authorId: id, channel });
+  }, []);
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   // Visibility gating refs — refs avoid re-creating timers on state changes
@@ -427,7 +434,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     getUnreadCount,
     getUnreadCountForChannel,
     getMessagesForChannel,
-    typingAuthorId,
+    typingAuthorId: typing.authorId,
+    typingChannel: typing.channel,
     setTypingAuthorId,
   };
 
