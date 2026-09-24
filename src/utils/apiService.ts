@@ -56,15 +56,21 @@ async function generateDeliverableImage(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60000);
 
+    // gpt-image-2 replaced DALL-E 3 (which OpenAI retired). It only returns
+    // base64, so we hand back a data URL — which also means the image no
+    // longer expires after an hour the way DALL-E's hosted URLs did.
+    // "low" quality renders in ~10s and looks great for in-game comps.
     const response = await fetch('/api/openai/v1/images/generations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'dall-e-3',
+        model: 'gpt-image-2',
         prompt: visualDescription,
         n: 1,
         size,
-        response_format: 'url',
+        quality: 'low',
+        output_format: 'jpeg',
+        output_compression: 80,
       }),
       signal: controller.signal,
     });
@@ -73,11 +79,12 @@ async function generateDeliverableImage(
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');
-      throw new Error(`DALL-E API error ${response.status}: ${errorText}`);
+      throw new Error(`Image API error ${response.status}: ${errorText}`);
     }
 
     const data = await response.json();
-    return data.data[0].url;
+    const b64: string | undefined = data.data?.[0]?.b64_json;
+    return b64 ? `data:image/jpeg;base64,${b64}` : undefined;
   } catch (error) {
     console.warn('Image generation failed:', error);
     return undefined;
@@ -97,15 +104,15 @@ export function extractVisualDescription(textContent: string): string | null {
 
 function getSizeForDeliverableType(
   type: DeliverableType
-): '1024x1024' | '1792x1024' | '1024x1792' {
+): '1024x1024' | '1536x1024' | '1024x1536' {
   switch (type) {
     case 'billboard':
     case 'print_ad':
     case 'landing_page':
     case 'video':
-      return '1792x1024'; // Landscape
+      return '1536x1024'; // Landscape
     case 'tiktok_series':
-      return '1024x1792'; // Portrait
+      return '1024x1536'; // Portrait
     default:
       return '1024x1024'; // Square
   }

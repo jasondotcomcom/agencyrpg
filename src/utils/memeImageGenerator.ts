@@ -141,11 +141,13 @@ async function fetchBackground(template: MemeTemplate, dynamic = false): Promise
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'dall-e-3',
+          model: 'gpt-image-2',
           prompt: BG_PROMPTS[template],
           n: 1,
           size: '1024x1024',
-          response_format: 'b64_json',
+          quality: 'low',
+          output_format: 'jpeg',
+          output_compression: 80,
         }),
         signal: controller.signal,
       });
@@ -156,7 +158,7 @@ async function fetchBackground(template: MemeTemplate, dynamic = false): Promise
 
       const data = await response.json();
       const b64: string = data.data[0].b64_json;
-      const img = await loadImageFromUrl(`data:image/png;base64,${b64}`);
+      const img = await loadImageFromUrl(`data:image/jpeg;base64,${b64}`);
       // Don't overwrite static cache with dynamic results
       return img;
     } catch (err) {
@@ -489,11 +491,13 @@ async function callDallE(prompt: string): Promise<string | undefined> {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'dall-e-3',
+        model: 'gpt-image-2',
         prompt,
         n: 1,
         size: '1024x1024',
-        response_format: 'b64_json',
+        quality: 'low',
+        output_format: 'jpeg',
+        output_compression: 80,
       }),
       signal: controller.signal,
     });
@@ -617,7 +621,7 @@ export async function generateCustomMemeImage(
   // Step 3: If text overlay is needed, composite with Canvas
   const hasText = interpreted.topText || interpreted.bottomText;
   if (!hasText) {
-    return `data:image/png;base64,${b64}`;
+    return `data:image/jpeg;base64,${b64}`;
   }
 
   const W = 1024;
@@ -628,7 +632,7 @@ export async function generateCustomMemeImage(
   const ctx = canvas.getContext('2d')!;
 
   // Draw DALL-E background
-  const img = await loadImageFromUrl(`data:image/png;base64,${b64}`);
+  const img = await loadImageFromUrl(`data:image/jpeg;base64,${b64}`);
   ctx.drawImage(img, 0, 0, W, H);
 
   // Semi-transparent overlay strips for text readability
