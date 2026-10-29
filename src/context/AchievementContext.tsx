@@ -110,6 +110,13 @@ export const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'hostile-takeover',     name: 'Resistance Was Futile',   icon: '🏢', description: 'Got acquired anyway after rejecting.' },
   { id: 'saw-credits',          name: 'Finished the Story',      icon: '🎬', description: 'Watched the credits.' },
 
+  // ── Layoffs ───────────────────────────────────────────────────────────────
+  { id: 'vote-override',        name: 'Democracy Is Overrated',  icon: '🗳️', description: 'Overrode the all-hands vote.' },
+  { id: 'tough-decisions',      name: 'Tough Decisions',         icon: '📉', description: 'Streamlined your first team member.' },
+  { id: 'synergy-jackpot',      name: 'SYNERGY',                 icon: '🎰', description: 'Hit a 10x jackpot on Headcount Slots.' },
+  { id: 'solo-shop',            name: "We're a Family Here",     icon: '🤖', description: 'Streamlined the entire team.' },
+  { id: 'welcome-back',         name: 'Welcome Back',            icon: '🫂', description: 'Put someone back on a campaign before they disappeared into AI.' },
+
   // ── Conduct & Lawsuit ─────────────────────────────────────────────────────
   { id: 'cancelled',            name: 'Cancelled',             icon: '🚫', description: 'Got forced to resign for misconduct.' },
   { id: 'servant-leader',       name: 'Servant Leader',        icon: '🫡', description: 'Received 5 unprompted thank-yous from team.' },

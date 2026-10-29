@@ -11,6 +11,7 @@ import { SettingsProvider } from './context/SettingsContext';
 import { EndingProvider } from './context/EndingContext';
 import { ConductProvider } from './context/ConductContext';
 import { AIRevolutionProvider } from './context/AIRevolutionContext';
+import { LayoffsProvider } from './context/LayoffsContext';
 import { CheatProvider } from './context/CheatContext';
 import { AchievementProvider } from './context/AchievementContext';
 import { PlayerProvider, usePlayerContext } from './context/PlayerContext';
@@ -249,7 +250,9 @@ function App() {
                         <EndingProvider>
                           <ConductProvider>
                             <AIRevolutionProvider>
-                              {isMobile ? <MobileAppContent /> : <AppContent />}
+                              <LayoffsProvider>
+                                {isMobile ? <MobileAppContent /> : <AppContent />}
+                              </LayoffsProvider>
                             </AIRevolutionProvider>
                           </ConductProvider>
                         </EndingProvider>

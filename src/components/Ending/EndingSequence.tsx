@@ -7,6 +7,8 @@ import { useChatContext } from '../../context/ChatContext';
 import { useWindowContext } from '../../context/WindowContext';
 import type { EndingType } from '../../context/EndingContext';
 import { FORCED_RESIGNATION_REACTIONS, FORCED_RESIGNATION_WHERE_ARE_THEY } from '../../data/conductEvents';
+import { getLayoffsState } from '../../utils/layoffsStore';
+import { CUT_STORIES, SOLO_SHOP_PLAYER_CARD } from '../../data/layoffsDialogue';
 import styles from './EndingSequence.module.css';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -237,13 +239,20 @@ function WhereAreTheyNow({ onComplete }: { onComplete: () => void }) {
         },
       ]
     : [
-        ...WHERE_ARE_THEY,
+        // Anyone who was streamlined gets the life they had after you
+        ...WHERE_ARE_THEY.map(card =>
+          getLayoffsState().cut.includes(card.id)
+            ? { ...card, role: `Former ${card.role}`, text: CUT_STORIES[card.id] ?? card.text }
+            : card
+        ),
         {
           id: 'player',
           avatar: '👤',
           name: playerName || 'You',
-          role: 'Founder & Creative Director',
-          text: "Retired to a beach somewhere. The agency lived on in the work — and in one campaign that nobody has fully explained yet.",
+          role: endingType === 'solo_shop' ? 'Founder, Creative Director & Only Employee' : 'Founder & Creative Director',
+          text: endingType === 'solo_shop'
+            ? SOLO_SHOP_PLAYER_CARD
+            : "Retired to a beach somewhere. The agency lived on in the work — and in one campaign that nobody has fully explained yet.",
         },
       ];
 
@@ -515,6 +524,8 @@ function PostCredits() {
         totalRevenue,
         completionDate: new Date().toISOString(),
         playthroughCount,
+        // Layoffs carry into PostAgencyRPG: who was cut, and in what order
+        cutTeam: getLayoffsState().cut,
       }));
     } catch { /* non-fatal */ }
 
@@ -586,7 +597,9 @@ function PostCredits() {
             <div className={styles.corpTagline}>Holdings Groupe</div>
             <div className={styles.corpDivider} />
             <div className={styles.corpBody}>
-              We're thrilled to welcome you to the OmniPubDent Holdings Groupe family.
+              {endingType === 'solo_shop'
+                ? "We're thrilled to welcome you (and AI3.0) to the OmniPubDent Holdings Groupe family."
+                : "We're thrilled to welcome you to the OmniPubDent Holdings Groupe family."}
             </div>
             <div className={styles.corpBody}>
               Your unique creative culture will be preserved*

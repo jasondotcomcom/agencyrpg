@@ -1,4 +1,5 @@
 import type { TeamMember } from '../types/campaign';
+import { getLayoffsState, useLayoffs } from '../utils/layoffsStore';
 
 export const teamMembers: TeamMember[] = [
   {
@@ -83,12 +84,45 @@ export const teamMembers: TeamMember[] = [
   },
 ];
 
+// Raw lookup — the real person. Used for chat history, endings, avatars.
 export function getTeamMember(id: string): TeamMember | undefined {
   return teamMembers.find(member => member.id === id);
 }
 
+// ─── Layoffs: AI3.0 replacements ──────────────────────────────────────────────
+// A cut person keeps their slot (same id, so every role-based system still
+// works) but the slot is now AI3.0. The generic description flows straight
+// into the concept and deliverable prompts, so the work itself gets blander.
+
+function toAI(member: TeamMember): TeamMember {
+  return {
+    ...member,
+    isAI: true,
+    name: `AI3.0 ${member.role}`,
+    avatar: '🤖',
+    specialty: `${member.specialty} (automated)`,
+    description: 'Fast. Cheap. Fine. Has never had an opinion and never will.',
+    personality: 'Agreeable, generic, no point of view, no taste, no references',
+    voiceStyle: 'Competent and safe. Sounds like every other brand. Avoids anything surprising.',
+  };
+}
+
+/** The team as it stands now: real people, plus AI3.0 in the slots of anyone cut. */
+export function getRoster(): TeamMember[] {
+  const { cut } = getLayoffsState();
+  return teamMembers.map(m => (cut.includes(m.id) ? toAI(m) : m));
+}
+
+/** Same as getRoster, but re-renders the component when someone is cut. */
+export function useRoster(): TeamMember[] {
+  useLayoffs();
+  return getRoster();
+}
+
+// Roster-aware lookup — used for campaign teams and AI prompts.
 export function getTeamMembers(ids: string[]): TeamMember[] {
-  return ids.map(id => getTeamMember(id)).filter((m): m is TeamMember => m !== undefined);
+  const roster = getRoster();
+  return ids.map(id => roster.find(m => m.id === id)).filter((m): m is TeamMember => m !== undefined);
 }
 
 // Get team composition description for AI prompts

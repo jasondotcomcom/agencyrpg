@@ -25,7 +25,20 @@ import { useCheatContext } from '../../../context/CheatContext';
 import { useAchievementContext } from '../../../context/AchievementContext';
 import { useDeviceMode } from '../../../utils/deviceDetection';
 import MobileCampaignCardFlow from './MobileCampaignCardFlow';
+import { getLayoffsState } from '../../../utils/layoffsStore';
 import styles from './CampaignWorkspace.module.css';
+
+// ─── Layoffs: what the client notices when a role is gone ─────────────────────
+
+const LAYOFF_FEEDBACK: Record<string, string> = {
+  strategist: "It didn't quite seem to understand the brief.",
+  'art-director': 'Visually, it was... there.',
+  copywriter: 'The headline was a headline.',
+  pm: 'It came in late.',
+  suit: "Honestly, we're not sure we'll renew.",
+  media: "Not many people saw it.",
+  technologist: 'The digital piece had some bugs.',
+};
 
 // ─── Nightmare Mode Feedback Pool ─────────────────────────────────────────────
 
@@ -114,9 +127,27 @@ export default function CampaignWorkspace({ campaignId }: CampaignWorkspaceProps
     let moralePenalty = 0;
     if (morale === 'toxic') moralePenalty = -10;
     if (morale === 'mutiny') moralePenalty = -25;
-    const moraleScore = moralePenalty !== 0
+    const moraleScoreRaw = moralePenalty !== 0
       ? { ...toolScore, total: Math.max(toolScore.total + moralePenalty, 0) }
       : toolScore;
+
+    // Layoffs: every role you cut breaks something, and AI3.0 on the team is
+    // fine at best. The client notices, even if nobody says why.
+    const { cut } = getLayoffsState();
+    const aiOnTeam = (campaign.conceptingTeam?.memberIds ?? []).filter(id => cut.includes(id)).length;
+    const layoffPenalty = cut.length * 4 + aiOnTeam * 2;
+    const layoffNotes = cut
+      .map(id => LAYOFF_FEEDBACK[id])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join(' ');
+    const moraleScore = layoffPenalty > 0
+      ? {
+          ...moraleScoreRaw,
+          total: Math.max(moraleScoreRaw.total - layoffPenalty, 0),
+          feedback: layoffNotes ? `${moraleScoreRaw.feedback} ${layoffNotes}` : moraleScoreRaw.feedback,
+        }
+      : moraleScoreRaw;
 
     // Apply cheat modifiers
     let cheatTotal = moraleScore.total + cheat.scoreBonus;

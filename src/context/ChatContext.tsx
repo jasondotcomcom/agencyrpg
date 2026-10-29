@@ -13,6 +13,7 @@ import { getInitialMessages, getCampaignEventMessages } from '../data/chatMessag
 import { getAmbientPool } from '../data/ambientMessages';
 import { generateMemeImage, MEME_COOKING_MESSAGES } from '../utils/memeImageGenerator';
 import { usePageVisibility } from '../hooks/usePageVisibility';
+import { filterIncomingMessage } from '../utils/layoffsChat';
 import { useWindowContext } from './WindowContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -57,7 +58,8 @@ type ChatAction =
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case 'ADD_MESSAGE': {
-      const msg = action.payload;
+      const msg = filterIncomingMessage(action.payload);
+      if (!msg) return state; // that person doesn't work here anymore
       // Auto-mark as read if the message is in the currently active channel
       const isActive = msg.channel === state.activeChannel;
       return {
@@ -126,7 +128,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       };
 
     case 'SEED_MESSAGES':
-      return { ...state, messages: action.payload };
+      return {
+        ...state,
+        messages: action.payload
+          .map(filterIncomingMessage)
+          .filter((m): m is ChatMessage => m !== null),
+      };
 
     case 'RESOLVE_PENDING_IMAGE': {
       const msgId = action.payload;

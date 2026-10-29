@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Campaign } from '../../../../types/campaign';
 import { calculateTeamCost, formatBudget } from '../../../../types/campaign';
-import { teamMembers } from '../../../../data/team';
+import { useRoster } from '../../../../data/team';
 import styles from './TeamCard.module.css';
 
 interface TeamCardProps {
@@ -10,6 +10,7 @@ interface TeamCardProps {
 }
 
 export default function TeamCard({ campaign, onSelectionChange }: TeamCardProps) {
+  const teamMembers = useRoster();
   const [selectedIds, setSelectedIds] = useState<string[]>(
     campaign.conceptingTeam?.memberIds || []
   );

@@ -3,6 +3,7 @@ import type { DesktopIcon as DesktopIconType } from '../../types';
 import { useEmailContext } from '../../context/EmailContext';
 import { useChatContext } from '../../context/ChatContext';
 import { useTerminalTools } from '../../hooks/useTerminalTools';
+import { useLayoffs } from '../../utils/layoffsStore';
 import MobileAppIcon from './MobileAppIcon';
 import QuickActionMenu from './QuickActionMenu';
 import styles from './Mobile.module.css';
@@ -33,6 +34,7 @@ export default function MobileHomeScreen() {
   const { getUnreadCount } = useEmailContext();
   const { getUnreadCount: getChatUnreadCount } = useChatContext();
   const terminalTools = useTerminalTools();
+  const { overridden: slotsUnlocked } = useLayoffs();
 
   const [quickAction, setQuickAction] = useState<QuickActionState | null>(null);
 
@@ -43,8 +45,11 @@ export default function MobileHomeScreen() {
       icon: `tool:${t.icon}`,
       appId: `tool:${t.id}`,
     }));
-    return [...defaultIcons, ...toolIcons];
-  }, [terminalTools]);
+    const slotsIcon: DesktopIconType[] = slotsUnlocked
+      ? [{ id: 'icon-headcount-slots', label: 'Headcount Slots', icon: 'tool:🎰', appId: 'headcount-slots' }]
+      : [];
+    return [...defaultIcons, ...slotsIcon, ...toolIcons];
+  }, [terminalTools, slotsUnlocked]);
 
   const unreadCount = getUnreadCount();
   const chatUnreadCount = getChatUnreadCount();

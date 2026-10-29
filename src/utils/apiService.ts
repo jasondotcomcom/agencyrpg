@@ -1,5 +1,6 @@
 import type { Campaign, CampaignConcept, DeliverableType, Platform } from '../types/campaign';
 import { getTeamMembers } from '../data/team';
+import { isCut } from './layoffsStore';
 import { extractQuickView } from './contentFormatter';
 
 // ─── Claude Text Generation ──────────────────────────────────────────────────
@@ -141,7 +142,8 @@ export async function generateDeliverable(
     let imageUrl: string | undefined;
     try {
       const visualDesc = extractVisualDescription(textContent);
-      if (visualDesc) {
+      // No Art Director, no visuals. The work comes back as text on a white box.
+      if (visualDesc && !isCut('art-director')) {
         imageUrl = await generateDeliverableImage(visualDesc, deliverable.type);
       }
     } catch {
@@ -172,6 +174,11 @@ function getDeliverablePrompt(
     ? getTeamMembers(campaign.conceptingTeam.memberIds)
     : [];
   const teamNames = members.map((m) => `${m.name} (${m.role})`).join(', ');
+  // Layoffs: AI3.0 seats make the work blander. The more of them, the blander.
+  const aiCount = members.filter(m => m.isAI).length;
+  const aiNote = aiCount === 0 ? '' : aiCount >= members.length
+    ? '\n\nNOTE: This entire team is automated. Write competent, generic, forgettable work. Safe word choices, no surprises, no point of view, no cultural references. It should read like every other brand.'
+    : `\n\nNOTE: ${aiCount} of ${members.length} team seats are automated. The work should be noticeably more generic and safe than usual.`;
 
   const context = `
 CAMPAIGN CONTEXT:
@@ -193,7 +200,7 @@ CREATIVE TEAM: ${teamNames}
 
 DELIVERABLE: ${description}
 PLATFORM: ${platform}
-`.trim();
+`.trim() + aiNote;
 
   const revisionNote = feedback
     ? `\n\nPREVIOUS FEEDBACK (address this in your revision):\n${feedback}\n`

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import type { Campaign } from '../../../types/campaign';
+import type { Campaign, TeamMember } from '../../../types/campaign';
 import { DELIVERABLE_TYPES, PLATFORMS } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
 import { getTeamMembers } from '../../../data/team';
@@ -71,6 +71,7 @@ export default function GenerationPhase({ campaign }: GenerationPhaseProps): Rea
               {isRevision ? 'Revising deliverables...' : 'Generating deliverables...'}
             </div>
             <div className={styles.waitSubtitle}>Usually takes 2-3 minutes</div>
+            <TeamActivity members={members} />
 
             <div className={styles.progressBarWrap}>
               <div className={styles.progressBar}>
@@ -139,4 +140,53 @@ export default function GenerationPhase({ campaign }: GenerationPhaseProps): Rea
       </div>
     </div>
   );
+}
+
+
+// ─── What the team is up to ──────────────────────────────────────────────────
+// Real people get real lines. AI3.0 seats just generate. When every seat is
+// automated there's only one line left.
+
+const HUMAN_ACTIVITY: Record<string, string[]> = {
+  copywriter: ['is rewriting that headline for the third time', 'just quoted a movie nobody has seen', 'deleted everything and started over'],
+  'art-director': ['says the kerning is off', 'is adjusting the blue again', 'is making a mood board'],
+  strategist: ['found a relevant trend', 'is asking "but why?"', 'is checking this against three frameworks'],
+  technologist: ['suggested building an app', 'is debugging something that worked five minutes ago', 'is sketching a database schema'],
+  suit: ['is figuring out how to sell this', 'is translating creative into client', 'says the client will love it if we frame it right'],
+  media: ['is checking which platforms make sense', 'just pulled up TikTok analytics', 'is calculating reach'],
+  pm: ['is updating the timeline. Again.', 'just prevented scope creep', 'says we have 10 minutes for this'],
+};
+
+const AI_OUTPUT: Record<string, string> = {
+  copywriter: 'headline',
+  'art-director': 'visual',
+  strategist: 'insight',
+  technologist: 'build',
+  suit: 'client summary',
+  media: 'media plan',
+  pm: 'timeline',
+};
+
+function TeamActivity({ members }: { members: TeamMember[] }) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick(n => n + 1), 3500);
+    return () => clearInterval(t);
+  }, []);
+  if (members.length === 0) return null;
+
+  const allAI = members.every(m => m.isAI);
+  let line: string;
+  if (allAI) {
+    line = 'AI is thinking really hard about this one...';
+  } else {
+    const m = members[tick % members.length];
+    if (m.isAI) {
+      line = `Generating ${AI_OUTPUT[m.id] ?? 'content'}...`;
+    } else {
+      const pool = HUMAN_ACTIVITY[m.id] ?? ['is working on it'];
+      line = `${m.name.split(' ')[0]} ${pool[Math.floor(tick / members.length) % pool.length]}...`;
+    }
+  }
+  return <div className={styles.waitSubtitle} style={{ marginTop: 8, fontStyle: 'italic' }}>{line}</div>;
 }

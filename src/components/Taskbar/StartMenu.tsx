@@ -3,6 +3,7 @@ import { usePlayerContext } from '../../context/PlayerContext';
 import { useWindowContext } from '../../context/WindowContext';
 import { useAchievementContext } from '../../context/AchievementContext';
 import { emitSave } from '../../utils/saveSignal';
+import { useLayoffs } from '../../utils/layoffsStore';
 import styles from './StartMenu.module.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ export default function StartMenu({ onClose }: { onClose: () => void }) {
   const { playerName, logOff: playerLogOff } = usePlayerContext();
   const { focusOrOpenWindow, addNotification, windows } = useWindowContext();
   const { recordAppOpened } = useAchievementContext();
+  const { overridden: slotsUnlocked } = useLayoffs();
   const menuRef = useRef<HTMLDivElement>(null);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState<'newgame' | 'logoff' | null>(null);
@@ -263,6 +265,12 @@ export default function StartMenu({ onClose }: { onClose: () => void }) {
               <span className={styles.itemIcon}>⛷️</span>
               <span className={styles.itemLabel}>SkiFree</span>
             </button>
+            {slotsUnlocked && (
+              <button className={styles.item} onClick={() => openApp('headcount-slots', 'Headcount Slots')}>
+                <span className={styles.itemIcon}>🎰</span>
+                <span className={styles.itemLabel}>Headcount Slots</span>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -347,7 +355,7 @@ function getAppIcon(appId: string): string {
   const icons: Record<string, string> = {
     inbox: '📧', projects: '📁', portfolio: '🖼️', chat: '💬',
     terminal: '💻', notes: '📝', calendar: '📅', settings: '⚙️',
-    help: '❓', solitaire: '🃏', minesweeper: '💣', skifree: '⛷️',
+    help: '❓', solitaire: '🃏', minesweeper: '💣', skifree: '⛷️', 'headcount-slots': '🎰',
   };
   return icons[appId] || '📄';
 }

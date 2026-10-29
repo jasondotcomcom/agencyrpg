@@ -10,6 +10,7 @@ import { useAchievementContext } from '../../../context/AchievementContext';
 import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
 import { usePlayerContext } from '../../../context/PlayerContext';
 import { NAMING_CHAT_RESPONSES } from '../../../data/agencyNamingEmail';
+import { useLayoffsContext } from '../../../context/LayoffsContext';
 import styles from './EmailDetail.module.css';
 
 interface EmailDetailProps {
@@ -51,6 +52,7 @@ export default function EmailDetail({ email }: EmailDetailProps) {
   const { unlockAchievement, incrementCounter } = useAchievementContext();
   const { isRevolutionActive } = useAIRevolutionContext();
   const { agencyName, setAgencyName, isAgencyNameDefault } = usePlayerContext();
+  const { layoffs, startTrial, overrideVote } = useLayoffsContext();
   const [reputationApplied, setReputationApplied] = useState(false);
   const [acquisitionActioned, setAcquisitionActioned] = useState(false);
   const [namingActioned, setNamingActioned] = useState(false);
@@ -435,6 +437,42 @@ export default function EmailDetail({ email }: EmailDetailProps) {
           <span style={{ fontSize: 13, color: 'var(--text-muted)', padding: '0 12px' }}>
             Response sent.
           </span>
+        </div>
+      )}
+
+      {/* AI3.0 Vendor Pitch Footer */}
+      {email.type === 'vendor_pitch' && (
+        <div className={styles.footer}>
+          {layoffs.overridden ? (
+            <span style={{ fontSize: 13, color: 'var(--text-muted)', padding: '0 12px' }}>
+              🎰 Trial active. Headcount Slots is in your Start Menu.
+            </span>
+          ) : !layoffs.trialStarted ? (
+            <button
+              className={styles.primaryButton}
+              onClick={startTrial}
+              style={{ background: 'linear-gradient(135deg, #f9e79f, #ffb7b2)' }}
+            >
+              🤖 Start Free Trial
+            </button>
+          ) : !layoffs.voteHeld ? (
+            <span style={{ fontSize: 13, color: 'var(--text-muted)', padding: '0 12px' }}>
+              🗳️ The team is voting in #general…
+            </span>
+          ) : (
+            <>
+              <span style={{ fontSize: 13, color: 'var(--text-muted)', padding: '0 12px' }}>
+                Vote failed.
+              </span>
+              <button
+                className={styles.primaryButton}
+                onClick={overrideVote}
+                style={{ background: 'linear-gradient(135deg, #666, #444)', color: '#eee' }}
+              >
+                Override Vote
+              </button>
+            </>
+          )}
         </div>
       )}
 

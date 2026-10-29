@@ -20,7 +20,11 @@ const VALID_PLATFORMS: Platform[] = [
 function buildConceptPrompt(campaign: Campaign): string {
   const { brief, conceptingTeam, strategicDirection } = campaign;
   const members = conceptingTeam ? getTeamMembers(conceptingTeam.memberIds) : [];
-  const teamDesc = conceptingTeam ? getTeamCompositionDescription(conceptingTeam.memberIds) : 'No team assigned';
+  const baseTeamDesc = conceptingTeam ? getTeamCompositionDescription(conceptingTeam.memberIds) : 'No team assigned';
+  // Layoffs: automated seats pull the concepts toward the safe middle
+  const aiSeats = members.filter(m => m.isAI).length;
+  const teamDesc = aiSeats === 0 ? baseTeamDesc
+    : `${baseTeamDesc}\n\n(${aiSeats} of ${members.length} seats are AI3.0. Concepts from automated seats should be safe, generic and familiar. If every seat is automated, all 3 concepts should feel interchangeable.)`;
 
   const teamDeliverableLines = members.map(m =>
     `${m.name} (${m.role}): [What specifically does ${m.name} build/write/design/strategize for this concept?]`

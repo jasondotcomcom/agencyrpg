@@ -11,7 +11,9 @@ import { useAchievementContext } from '../../../context/AchievementContext';
 import { useEmailContext } from '../../../context/EmailContext';
 import { RETIRED_SEASONAL_BRIEFS } from '../../../data/seasonalBriefs';
 import { AWARD_DEFS } from '../../../data/awards';
-import { teamMembers } from '../../../data/team';
+import { getRoster } from '../../../data/team';
+import { getLayoffsState, updateLayoffs } from '../../../utils/layoffsStore';
+import { AI3_SENDER, buildAI3Pitch } from '../../../data/layoffsDialogue';
 import { formatBudget } from '../../../types/campaign';
 import { storeHtmlPreview } from '../../../utils/htmlPreviewStore';
 import MobileCommandBar from './MobileCommandBar';
@@ -551,7 +553,7 @@ export default function TerminalApp(): React.ReactElement {
     if (activeCampaign) {
       const { brief, clientName, campaignName, phase, clientBudget, productionBudget, productionSpent } = activeCampaign;
       const members = activeCampaign.conceptingTeam
-        ? teamMembers.filter(m => activeCampaign.conceptingTeam!.memberIds.includes(m.id))
+        ? getRoster().filter(m => activeCampaign.conceptingTeam!.memberIds.includes(m.id))
         : [];
       const teamDesc = members.length > 0
         ? members.map(m => `${m.name} (${m.role} — ${m.specialty})`).join(', ')
@@ -574,7 +576,7 @@ export default function TerminalApp(): React.ReactElement {
 - Funds: $${fundsState.totalFunds.toLocaleString()}
 - Reputation: ${repState.currentReputation} pts (${repState.currentTier.name})
 - Team Morale: ${morale}
-- Available Team: ${teamMembers.map(m => `${m.name} (${m.role})`).join(', ')}`;
+- Available Team: ${getRoster().map(m => `${m.name} (${m.role})`).join(', ')}`;
     }
 
     const isHtml = tool.outputFormat === 'html';
@@ -885,6 +887,33 @@ Generate output for this tool based on the context above. Rules:
       setTimeout(() => {
         focusOrOpenWindow('onmyai-club', '🌐 OnMyAI.club');
       }, 800);
+    }
+
+    else if (lower === 'ai3point0') {
+      // Hidden cheat: skip the wait and get AI3.0's first pitch now
+      triggerCheatEffect('AI3.0 🤖');
+      const n = recordCheatUsed('ai3point0');
+      if (n >= 5)  unlockAchievement('serial-cheater');
+      if (n >= 10) unlockAchievement('cheat-encyclopedia');
+      const st = getLayoffsState();
+      if (st.overridden) {
+        addLines([['output', '🤖 AI3.0 is already here. Check the Start Menu.']]);
+      } else {
+        const { subject, body } = buildAI3Pitch(0, 'Founder', 'your agency');
+        addEmail({
+          id: `lay-ai3-pitch-cheat-${Date.now()}`,
+          type: 'vendor_pitch',
+          from: AI3_SENDER,
+          subject,
+          body,
+          timestamp: new Date(),
+          isRead: false,
+          isStarred: false,
+          isDeleted: false,
+        });
+        if (st.ai3EmailsSent === 0) updateLayoffs({ ai3EmailsSent: 1 });
+        addLines([['output', '🤖 Someone from AI3.0 just emailed you.']]);
+      }
     }
 
     else if (lower === 'funvideogames') {
@@ -2040,7 +2069,7 @@ Human Resources
           ['output', 'Open the Projects app and start a concepting phase.'],
         ]);
       } else {
-        const members = teamMembers.filter(m =>
+        const members = getRoster().filter(m =>
           activeCampaign.conceptingTeam!.memberIds.includes(m.id)
         );
         addLines([
@@ -2094,7 +2123,7 @@ Human Resources
         const totalDeliverables = deliverables.length;
         const budgetUsedPct = productionBudget > 0 ? Math.round((productionSpent / productionBudget) * 100) : 0;
         const members = activeCampaign.conceptingTeam
-          ? teamMembers.filter(m => activeCampaign.conceptingTeam!.memberIds.includes(m.id))
+          ? getRoster().filter(m => activeCampaign.conceptingTeam!.memberIds.includes(m.id))
           : [];
 
         addLines([
@@ -2196,7 +2225,7 @@ Human Resources
         description: 'Analyze team morale and chat sentiment.',
         category: 'analytics',
         sampleOutput: `TEAM SENTIMENT\n\nMorale: ${morale}\nTrend: Stable\nRisk Areas: None detected`,
-        runPromptHint: `Analyze the current team sentiment at this creative agency. Team morale is currently "${morale}". ${activeCampaign ? `They are working on the ${activeCampaign.clientName} campaign (${activeCampaign.phase} phase). Challenge: "${activeCampaign.brief.challenge}".` : 'No active campaign right now.'} The team includes: ${teamMembers.filter(m => m.id !== 'hr').map(m => `${m.name} (${m.role} — ${m.personality})`).join(', ')}. Based on the morale level, provide a sentiment report: overall mood, risk areas, recommendations for the creative director, and predicted impact on work quality.`,
+        runPromptHint: `Analyze the current team sentiment at this creative agency. Team morale is currently "${morale}". ${activeCampaign ? `They are working on the ${activeCampaign.clientName} campaign (${activeCampaign.phase} phase). Challenge: "${activeCampaign.brief.challenge}".` : 'No active campaign right now.'} The team includes: ${getRoster().filter(m => m.id !== 'hr').map(m => `${m.name} (${m.role} — ${m.personality})`).join(', ')}. Based on the morale level, provide a sentiment report: overall mood, risk areas, recommendations for the creative director, and predicted impact on work quality.`,
         createdAt: Date.now(),
       };
       await handleRun(sentimentTool);

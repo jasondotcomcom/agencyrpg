@@ -8,7 +8,7 @@ import { useAIRevolutionContext } from '../../../context/AIRevolutionContext';
 import { EXISTENTIAL_CONCEPTS } from '../../../data/aiRevolutionDialogue';
 import { getRandomDirection, getRandomDirectionExcluding } from '../../../data/autoDirections';
 import type { DirectionQuality } from '../../../data/autoDirections';
-import { teamMembers } from '../../../data/team';
+import { useRoster } from '../../../data/team';
 import MicroGames from '../../MicroGames/MicroGames';
 import styles from './ConceptingPhase.module.css';
 
@@ -17,6 +17,7 @@ interface ConceptingPhaseProps {
 }
 
 export default function ConceptingPhase({ campaign }: ConceptingPhaseProps): React.ReactElement {
+  const teamMembers = useRoster();
   const {
     setConceptingTeam,
     setStrategicDirection,

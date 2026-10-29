@@ -15,6 +15,19 @@ import { MANIFESTO_MESSAGES } from '../data/aiRevolutionDialogue';
 import { NG_PLUS_LOCKED_BRIEFS, buildBrewedAwakeningsNgPlus } from '../data/ngPlusBriefs';
 import { buildNamingEmail, NAMING_REMINDER } from '../data/agencyNamingEmail';
 import type { LegacyPrestigeFlags } from '../components/Ending/EndingSequence';
+import { cutCount } from '../utils/layoffsStore';
+
+// Layoffs: once 3+ roles are cut, big clients stop calling. Held briefs stay
+// undelivered (not marked delivered), so nothing is announced. They just don't come.
+const BIG_BRIEF_BUDGET = 100000;
+function isHeldForLayoffs(entry: { buildEmail: (opts?: { playerName?: string }) => { campaignBrief?: { budget: number } } }): boolean {
+  if (cutCount() < 3) return false;
+  try {
+    return (entry.buildEmail().campaignBrief?.budget ?? 0) >= BIG_BRIEF_BUDGET;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * useCoreGameEffects
@@ -387,7 +400,8 @@ export function useCoreGameEffects(): void {
     const toUnlock = allBriefs.filter(
       entry => !entry.unlockAtReputation
         && entry.unlockAt <= completedCount
-        && !deliveredSet.has(entry.briefId),
+        && !deliveredSet.has(entry.briefId)
+        && !isHeldForLayoffs(entry),
     );
 
     if (toUnlock.length === 0) {
@@ -441,6 +455,7 @@ export function useCoreGameEffects(): void {
       if (entry.requiresLegacyFlag && !flags[entry.requiresLegacyFlag as keyof LegacyPrestigeFlags]) return false;
       if (entry.requiresNgPlus && !legacy) return false;
       if (delivered.includes(entry.briefId)) return false;
+      if (isHeldForLayoffs(entry)) return false;
       return rep >= entry.unlockAtReputation;
     });
 

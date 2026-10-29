@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Campaign } from '../../../types/campaign';
 import { formatBudget } from '../../../types/campaign';
 import type { CampaignScore } from '../../../types/reputation';
+import { getLayoffsState } from '../../../utils/layoffsStore';
 import styles from './CampaignResults.module.css';
 
 interface CampaignResultsProps {
@@ -275,16 +276,21 @@ export default function CampaignResults({
 
 // Submitting phase quips
 function SubmittingQuips(): React.ReactElement {
+  // Layoffs: quips about people who were cut quietly disappear
+  const { cut } = getLayoffsState();
   const quips = [
-    "Crossing fingers...",
-    "Hope they like the blue...",
-    "The team is stress-eating...",
-    "Copywriter is pacing...",
-    "Art Director won't stop refreshing...",
-    "PM triple-checked the files...",
-    "Strategist is rationalizing outcomes...",
-    "Suit is ready to spin any result...",
-  ];
+    { text: "Crossing fingers...", role: null },
+    { text: "Hope they like the blue...", role: 'art-director' },
+    { text: "The team is stress-eating...", role: null },
+    { text: "Copywriter is pacing...", role: 'copywriter' },
+    { text: "Art Director won't stop refreshing...", role: 'art-director' },
+    { text: "PM triple-checked the files...", role: 'pm' },
+    { text: "Strategist is rationalizing outcomes...", role: 'strategist' },
+    { text: "Suit is ready to spin any result...", role: 'suit' },
+  ]
+    .filter(q => !q.role || !cut.includes(q.role))
+    .map(q => q.text);
+  if (cut.length >= 7) quips.splice(0, quips.length, 'Submitting...');
 
   const [currentQuip, setCurrentQuip] = useState(0);
 

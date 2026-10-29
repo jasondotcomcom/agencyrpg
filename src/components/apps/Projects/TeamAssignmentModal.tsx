@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { Campaign, Deliverable } from '../../../types/campaign';
 import { calculateTeamCost, DELIVERABLE_TYPES, formatBudget } from '../../../types/campaign';
 import { useCampaignContext } from '../../../context/CampaignContext';
-import { teamMembers } from '../../../data/team';
+import { useRoster } from '../../../data/team';
 import styles from './TeamAssignmentModal.module.css';
 
 interface TeamAssignmentModalProps {
@@ -16,6 +16,7 @@ export default function TeamAssignmentModal({
   deliverable,
   onClose,
 }: TeamAssignmentModalProps): React.ReactElement {
+  const teamMembers = useRoster();
   const { assignTeam } = useCampaignContext();
   const [selectedIds, setSelectedIds] = useState<string[]>(
     deliverable.assignedTeam?.memberIds || []

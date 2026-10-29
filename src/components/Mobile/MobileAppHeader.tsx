@@ -16,6 +16,7 @@ const appTitles: Record<string, string> = {
   solitaire: 'Solitaire',
   minesweeper: 'Minesweeper',
   skifree: 'SkiFree',
+  'headcount-slots': 'Headcount Slots',
   hrtraining: 'HR Training',
   lawsuit: 'Lawsuit',
   'ai-revolution': 'AI Revolution',

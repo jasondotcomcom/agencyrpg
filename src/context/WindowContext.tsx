@@ -25,6 +25,7 @@ const appSizeTier: Record<string, keyof typeof sizeTiers> = {
   solitaire: 'medium',
   minesweeper: 'small',
   skifree: 'medium',
+  'headcount-slots': 'medium',
   hrtraining: 'medium',
   lawsuit: 'medium',
   'ai-revolution': 'medium',

@@ -5,7 +5,7 @@ import { useCampaignContext } from '../../../context/CampaignContext';
 import { useAgencyFunds } from '../../../context/AgencyFundsContext';
 import { useReputationContext } from '../../../context/ReputationContext';
 import { useChatContext } from '../../../context/ChatContext';
-import { teamMembers } from '../../../data/team';
+import { getRoster } from '../../../data/team';
 import { formatBudget } from '../../../types/campaign';
 import styles from './ToolApp.module.css';
 
@@ -21,7 +21,7 @@ function buildContextBlock(
   if (campaign) {
     const { brief, clientName, campaignName, phase, clientBudget, productionBudget, productionSpent } = campaign;
     const members = campaign.conceptingTeam
-      ? teamMembers.filter(m => campaign.conceptingTeam!.memberIds.includes(m.id))
+      ? getRoster().filter(m => campaign.conceptingTeam!.memberIds.includes(m.id))
       : [];
     const teamDesc = members.length > 0
       ? members.map(m => `${m.name} (${m.role} — ${m.specialty})`).join(', ')
@@ -45,7 +45,7 @@ function buildContextBlock(
 - Funds: $${fundsTotal.toLocaleString()}
 - Reputation: ${repPoints} pts (${tierName})
 - Team Morale: ${morale}
-- Available Team: ${teamMembers.map(m => `${m.name} (${m.role})`).join(', ')}`;
+- Available Team: ${getRoster().map(m => `${m.name} (${m.role})`).join(', ')}`;
 }
 
 function buildPrompt(tool: AgencyTool, contextBlock: string): string {

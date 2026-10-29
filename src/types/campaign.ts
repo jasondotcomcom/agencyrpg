@@ -57,6 +57,7 @@ export type CampaignPhase =
   | 'completed';    // Client responded
 
 export interface TeamMember {
+  isAI?: boolean; // Replaced by AI3.0 after a layoff
   id: string;
   name: string;
   role: string;

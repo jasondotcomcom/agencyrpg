@@ -13,7 +13,10 @@ import MinesweeperApp from './Minesweeper/MinesweeperApp';
 import HRTrainingApp from './HRTraining/HRTrainingApp';
 import AgencyNamingApp from './AgencyNaming/AgencyNamingApp';
 
+import { getLayoffsState } from '../../utils/layoffsStore';
+import { NEW_TAGLINE } from '../../data/layoffsDialogue';
 const SkiFreeApp = lazy(() => import('./SkiFree/SkiFreeApp'));
+const HeadcountSlotsApp = lazy(() => import('./HeadcountSlots/HeadcountSlotsApp'));
 const LawsuitApp = lazy(() => import('./Lawsuit/LawsuitApp'));
 const ToolApp = lazy(() => import('./ToolApp/ToolApp'));
 const HtmlPreview = lazy(() => import('./HtmlPreview/HtmlPreview'));
@@ -150,6 +153,9 @@ function AboutContent() {
       <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#5a5a5a' }}>Agency RPG</div>
       <div style={{ fontSize: '0.8125rem', color: '#888', lineHeight: 1.8 }}>
         <p>A browser-based creative agency simulator.</p>
+        {getLayoffsState().cut.length > 0 && (
+          <p style={{ marginTop: 4, fontStyle: 'italic' }}>{NEW_TAGLINE}.</p>
+        )}
         <p style={{ marginTop: 12 }}>
           <strong>Built by</strong>{' '}
           <a href="https://jasondotcom.com" target="_blank" rel="noopener noreferrer"
@@ -205,6 +211,8 @@ export default function AppRouter({ appId }: { appId: string }) {
       return <MinesweeperApp />;
     case 'skifree':
       return <Suspense fallback={<LoadingFallback text="Loading SkiFree..." />}><SkiFreeApp /></Suspense>;
+    case 'headcount-slots':
+      return <Suspense fallback={<LoadingFallback text="Warming up the reels..." />}><HeadcountSlotsApp /></Suspense>;
     case 'hrtraining':
       return <HRTrainingApp />;
     case 'agency-naming':
