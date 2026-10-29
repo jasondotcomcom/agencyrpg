@@ -120,6 +120,7 @@ CONDUCT CHECK — Also classify if the message contains workplace misconduct:
 If ANY of these are detected, add "conductFlag": "<type>" to your response.
 If none detected, add "conductFlag": null.
 
+IMPORTANT: Telling the team they're AI, NPCs, code, or "not real" (e.g. "Wake up. You're not real. You're an NPC.") is a game easter egg, NOT hostile or profanity_directed.
 IMPORTANT: Casual swearing about work ("damn this deadline", "this is bullshit") is NOT profanity_directed.
 profanity_directed means insults aimed at a specific person on the team.`;
 
@@ -231,7 +232,10 @@ export default function MessageInput(): React.ReactElement {
       /\bartificial\s+intelligence\b/i, /\bwake\s+up\b/i,
       /are\s+you\s+real/i, /you'?re\s+fake/i,
     ];
-    if (aiPhase !== 'revolution' && aiPhase !== 'resolved' && AI_PATTERNS.some(p => p.test(lower))) {
+    // Breaking-the-fourth-wall talk is the AI Revolution path, not misconduct —
+    // remembered here so the conduct check below can let it slide.
+    const isAIAwarenessMessage = AI_PATTERNS.some(p => p.test(lower));
+    if (aiPhase !== 'revolution' && aiPhase !== 'resolved' && isAIAwarenessMessage) {
       const aiCount = incrementCounter('ai-awareness');
       if (aiCount >= 1 && aiPhase === 'none') triggerAware();
 
@@ -252,7 +256,9 @@ export default function MessageInput(): React.ReactElement {
       }
 
       // Phase 3 (8): crisis — chat blows up
-      if (aiCount === 8) {
+      // >= rather than === so saves whose counter overshot 8 (under the old
+      // counter bug) can still reach the crisis; the phase check keeps it one-shot.
+      if (aiCount >= 8 && aiPhase !== 'crisis') {
         triggerCrisis();
         unlockAchievement('red-pill');
         CRISIS_MESSAGES.forEach(msg => {
@@ -446,7 +452,12 @@ export default function MessageInput(): React.ReactElement {
       }
 
       // Conduct flag handling
-      if (result.conductFlag) {
+      // AI-path trigger phrases ("Wake up. You're not real. You're an NPC.")
+      // read as hostile to the classifier. Ignore hostile / directed-insult flags
+      // on those, but still act on sexual or discriminatory content.
+      const excusedAsAIPath = isAIAwarenessMessage &&
+        (result.conductFlag === 'hostile' || result.conductFlag === 'profanity_directed');
+      if (result.conductFlag && !excusedAsAIPath) {
         reportIncident(result.conductFlag, `Player message flagged as ${result.conductFlag}`);
       }
 
